@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Resultado del pago",
@@ -24,12 +25,12 @@ export default async function PagoResultadoPage({
       <p className="mt-4 text-sm text-ink-muted">
         Esta página es provisional. Aquí conectaremos confirmación por API, comprobante y seguimiento del pedido.
       </p>
-      <a
+      <Link
         href="/"
         className="mt-8 inline-block border border-ink px-6 py-3 text-sm font-medium text-ink hover:bg-ink hover:text-paper"
       >
         Volver al inicio
-      </a>
+      </Link>
     </div>
   );
 }
