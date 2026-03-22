@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { StartCheckoutButton } from "@/components/payments/StartCheckoutButton";
+
+/** En producción, la ruta solo existe si ENABLE_PAYMENT_TEST_PAGE=true en Vercel. */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Prueba de pago",
@@ -11,6 +15,12 @@ export const metadata: Metadata = {
  * Añade MERCADOPAGO_ACCESS_TOKEN en Vercel y NEXT_PUBLIC_SITE_URL con tu URL pública.
  */
 export default function PagoPruebaPage() {
+  const isProd = process.env.NODE_ENV === "production";
+  const testEnabled = process.env.ENABLE_PAYMENT_TEST_PAGE === "true";
+  if (isProd && !testEnabled) {
+    notFound();
+  }
+
   return (
     <div className="mx-auto max-w-lg px-4 py-16 md:px-6">
       <h1 className="font-display text-2xl font-semibold text-ink">Prueba de pago (Mercado Pago)</h1>

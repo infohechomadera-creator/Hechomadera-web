@@ -38,12 +38,12 @@ Abre [http://localhost:3000](http://localhost:3000).
 1. Conecta el repo a Vercel.
 2. Variables: ver `.env.example`.
 3. **Banner promocional (opcional):** en Vercel añade `NEXT_PUBLIC_PROMO_ENABLED=true`, `NEXT_PUBLIC_PROMO_TEXT=Tu mensaje`, opcional `NEXT_PUBLIC_PROMO_LINK=/tienda` y redeploy.
-4. Dominio: `hechomadera.com` en Vercel → DNS según instrucciones de Vercel (Hostinger puede seguir como registrador/DNS).
+4. Dominio: `hechomadera.com` en Vercel → **`docs/DOMINIO-VERCEL.md`** (DNS en Hostinger).
 
 **WordPress en Hostinger** se mantiene como respaldo hasta el cutover definitivo.
 
 ## Siguiente desarrollo (prioridad sugerida)
 
-1. Conectar dominio `hechomadera.com` a Vercel (cuando toque).
-2. **Mercado Pago:** ver `docs/MERCADOPAGO.md` — variable `MERCADOPAGO_ACCESS_TOKEN` en Vercel; prueba en **`/pago/prueba`**.
+1. Conectar dominio `hechomadera.com` → **`docs/DOMINIO-VERCEL.md`**.
+2. **Mercado Pago:** `docs/MERCADOPAGO.md` — token en Vercel; **`/pago/prueba`** en producción solo con `ENABLE_PAYMENT_TEST_PAGE=true`; webhook en **`/api/payments/mercadopago/webhook`**.
 3. Catálogo `content/products.json` cuando tengas productos.
