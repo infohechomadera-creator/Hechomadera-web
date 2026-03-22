@@ -34,8 +34,9 @@ El dominio **hechomadera.com** sigue siendo suyo; solo cambiará el **DNS** apun
 1. En la carpeta del proyecto: `npm install` y `npm run dev`.
 2. Crear repo GitHub y conectar **Vercel**.
 3. Añadir `NEXT_PUBLIC_WHATSAPP_PHONE` y `NEXT_PUBLIC_SITE_URL` en Vercel (variables de entorno).
-4. Importar los ~40 productos al JSON o script de importación.
-5. Implementar checkout Mercado Pago en rutas API cuando las credenciales estén listas.
+4. **Formulario de contacto:** `POST /api/contact` — opcionalmente `RESEND_API_KEY` + `CONTACT_TO_EMAIL` en Vercel para envío real por email.
+5. Importar los ~40 productos al JSON o script de importación (cuando existan productos).
+6. Implementar checkout Mercado Pago en rutas API cuando las credenciales estén listas.
 
 ## Rollback
 

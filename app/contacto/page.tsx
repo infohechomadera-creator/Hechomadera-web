@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site-config";
+import { ContactForm } from "@/components/contact/ContactForm";
+import { getWhatsAppHref } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
   title: "Contacto y agenda",
@@ -7,16 +9,50 @@ export const metadata: Metadata = {
 };
 
 export default function ContactoPage() {
+  const wa = getWhatsAppHref("Hola Hechomadera, quiero hablar con un asesor.");
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
       <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Contacto</h1>
       <p className="mt-4 max-w-2xl text-ink-muted">
-        Cobertura inicial: {siteConfig.cities.join(", ")}. Formulario de envío y calendario (Google Calendar) se integran en fase manual.
+        Cobertura inicial: {siteConfig.cities.join(", ")}. Prioridad: WhatsApp &lt; 15 min · formulario &lt; 3h (objetivo
+        operativo).
       </p>
-      <div className="mt-10 rounded border border-neutral-200 bg-white p-8">
-        <p className="text-sm text-ink-muted">
-          Placeholder: aquí irá el formulario (Resend / servicio de email / CRM) sin exponer secretos en el repo.
-        </p>
+
+      <div className="mt-10 grid gap-12 lg:grid-cols-2">
+        <div>
+          <h2 className="font-display text-xl font-semibold text-ink">Escríbenos</h2>
+          <p className="mt-2 text-sm text-ink-muted">
+            Integración de correo: añade <code className="rounded bg-neutral-100 px-1">RESEND_API_KEY</code> y{" "}
+            <code className="rounded bg-neutral-100 px-1">CONTACT_TO_EMAIL</code> en Vercel (manual).
+          </p>
+          <div className="mt-8">
+            <ContactForm />
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          <div className="border border-neutral-200 bg-white p-8">
+            <h2 className="font-display text-xl font-semibold text-ink">WhatsApp</h2>
+            <p className="mt-2 text-sm text-ink-muted">Canal rápido para dudas y seguimiento.</p>
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex w-full items-center justify-center border border-ink bg-ink px-4 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
+            >
+              Abrir WhatsApp
+            </a>
+          </div>
+
+          <div className="border border-neutral-200 bg-paper-dim p-8">
+            <h2 className="font-display text-xl font-semibold text-ink">Agenda</h2>
+            <p className="mt-2 text-sm text-ink-muted">
+              Calendario Google (por asesor) se integrará aquí o enlace externo — configuración manual cuando definan
+              flujo.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
