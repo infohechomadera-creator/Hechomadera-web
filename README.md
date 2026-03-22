@@ -45,5 +45,5 @@ Abre [http://localhost:3000](http://localhost:3000).
 ## Siguiente desarrollo (prioridad sugerida)
 
 1. Conectar dominio `hechomadera.com` a Vercel (cuando toque).
-2. Checkout **Mercado Pago** (credenciales solo en Vercel).
+2. **Mercado Pago:** ver `docs/MERCADOPAGO.md` — variable `MERCADOPAGO_ACCESS_TOKEN` en Vercel; prueba en **`/pago/prueba`**.
 3. Catálogo `content/products.json` cuando tengas productos.
