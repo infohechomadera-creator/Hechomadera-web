@@ -3,6 +3,7 @@ import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { PromoBanner } from "@/components/layout/PromoBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${inter.variable} ${display.variable} min-h-screen font-sans antialiased`}>
+        <PromoBanner />
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />

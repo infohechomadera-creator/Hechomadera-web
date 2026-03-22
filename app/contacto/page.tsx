@@ -26,9 +26,7 @@ export default function ContactoPage() {
         <div>
           <h2 className="font-display text-xl font-semibold text-ink">Escríbenos</h2>
           <p className="mt-2 text-sm text-ink-muted">
-            Correo: <code className="rounded bg-neutral-100 px-1">CONTACT_TO_EMAIL</code> = donde recibes (puede ser Gmail).{" "}
-            <code className="rounded bg-neutral-100 px-1">RESEND_FROM</code> = remitente con tu dominio verificado en Resend (no
-            @gmail.com).
+            Déjanos tus datos y te respondemos lo antes posible.
           </p>
           <div className="mt-8">
             <ContactForm />
@@ -58,11 +56,6 @@ export default function ContactoPage() {
           </div>
         </div>
       </div>
-
-      <p className="mt-12 text-center text-[10px] text-neutral-400">
-        Build: {process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local"} — si no ves formulario arriba, el navegador no está
-        sirviendo el último deploy (revisa Vercel → Deployments).
-      </p>
     </div>
   );
 }
