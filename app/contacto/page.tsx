@@ -26,8 +26,9 @@ export default function ContactoPage() {
         <div>
           <h2 className="font-display text-xl font-semibold text-ink">Escríbenos</h2>
           <p className="mt-2 text-sm text-ink-muted">
-            Integración de correo: añade <code className="rounded bg-neutral-100 px-1">RESEND_API_KEY</code> y{" "}
-            <code className="rounded bg-neutral-100 px-1">CONTACT_TO_EMAIL</code> en Vercel (manual).
+            Correo: <code className="rounded bg-neutral-100 px-1">CONTACT_TO_EMAIL</code> = donde recibes (puede ser Gmail).{" "}
+            <code className="rounded bg-neutral-100 px-1">RESEND_FROM</code> = remitente con tu dominio verificado en Resend (no
+            @gmail.com).
           </p>
           <div className="mt-8">
             <ContactForm />

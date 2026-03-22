@@ -19,6 +19,10 @@ function isValidEmail(email: string) {
  * POST /api/contact
  * - Si existe RESEND_API_KEY: envía correo vía Resend (configurar dominio en resend.com).
  * - Si no: solo valida y devuelve ok (modo desarrollo); revisar logs en Vercel.
+ *
+ * Importante (Resend): el campo `from` NO puede ser @gmail.com. Debe ser un correo del
+ * dominio verificado en Resend (ej. info@hechomadera.com). El aviso llega a CONTACT_TO_EMAIL
+ * (puede ser infohechomadera@gmail.com). reply_to = email del visitante para responderle.
  */
 export async function POST(request: Request) {
   let json: Body;
@@ -55,7 +59,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Mensaje demasiado largo" }, { status: 400 });
   }
 
-  const to = process.env.CONTACT_TO_EMAIL ?? "info@hechomadera.com";
+  /** Dónde recibes los avisos (puede ser Gmail) */
+  const to = process.env.CONTACT_TO_EMAIL ?? "infohechomadera@gmail.com";
   const key = process.env.RESEND_API_KEY;
 
   const html = `
@@ -69,7 +74,8 @@ export async function POST(request: Request) {
   `;
 
   if (key) {
-    const from = process.env.RESEND_FROM ?? "Hechomadera <onboarding@resend.dev>";
+    /** Remitente: dominio verificado en Resend (no usar @gmail.com aquí) */
+    const from = process.env.RESEND_FROM ?? "Hechomadera <info@hechomadera.com>";
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
