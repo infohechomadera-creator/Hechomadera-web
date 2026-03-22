@@ -3,6 +3,9 @@ import { siteConfig } from "@/lib/site-config";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { getWhatsAppHref } from "@/lib/whatsapp";
 
+/** Evita HTML estático cacheado de un deploy antiguo */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Contacto y agenda",
   description: "Ciudades de cobertura, formulario y WhatsApp. SLA: respuesta prioritaria por canales definidos.",
@@ -54,6 +57,11 @@ export default function ContactoPage() {
           </div>
         </div>
       </div>
+
+      <p className="mt-12 text-center text-[10px] text-neutral-400">
+        Build: {process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local"} — si no ves formulario arriba, el navegador no está
+        sirviendo el último deploy (revisa Vercel → Deployments).
+      </p>
     </div>
   );
 }
