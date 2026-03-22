@@ -8,9 +8,17 @@ type Props = {
   unitPrice: number;
   title: string;
   quantity?: number;
+  /** Referencia para Mercado Pago (webhooks / conciliación), ej. tienda-{id} */
+  externalReference?: string;
 };
 
-export function StartCheckoutButton({ label = "Pagar con Mercado Pago", unitPrice, title, quantity = 1 }: Props) {
+export function StartCheckoutButton({
+  label = "Pagar con Mercado Pago",
+  unitPrice,
+  title,
+  quantity = 1,
+  externalReference,
+}: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +29,12 @@ export function StartCheckoutButton({ label = "Pagar con Mercado Pago", unitPric
       const res = await fetch("/api/payments/mercadopago/preference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, unit_price: unitPrice, quantity }),
+        body: JSON.stringify({
+          title,
+          unit_price: unitPrice,
+          quantity,
+          ...(externalReference ? { external_reference: externalReference } : {}),
+        }),
       });
       const data = (await res.json()) as { redirect_url?: string; error?: string; hint?: string; details?: unknown };
 

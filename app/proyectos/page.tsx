@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DepositCalculator } from "@/components/business/DepositCalculator";
 import { Button } from "@/components/ui/Button";
 import { siteConfig } from "@/lib/site-config";
 
@@ -21,6 +22,10 @@ export default function ProyectosPage() {
         <Button href="/como-funciona" variant="secondary">
           Ver cómo funciona
         </Button>
+      </div>
+
+      <div className="mt-14 max-w-2xl">
+        <DepositCalculator />
       </div>
     </div>
   );

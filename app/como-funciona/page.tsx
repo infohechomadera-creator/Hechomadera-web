@@ -17,7 +17,9 @@ export default function ComoFuncionaPage() {
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
       <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Cómo funciona</h1>
       <p className="mt-4 max-w-2xl text-ink-muted">
-        Proceso pensado para reducir la informalidad típica de obra: claridad, seguridad en pagos y tiempos acordados.
+        Proceso pensado para reducir la informalidad típica de obra: claridad, seguridad en pagos y tiempos acordados. En la{" "}
+        <strong>tienda</strong> el pago es 100% online con Mercado Pago; en <strong>proyectos a medida</strong> el abono y el saldo se acuerdan según
+        cotización.
       </p>
       <ol className="mt-10 space-y-6">
         {steps.map((s) => (

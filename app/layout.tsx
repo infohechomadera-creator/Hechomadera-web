@@ -4,6 +4,8 @@ import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PromoBanner } from "@/components/layout/PromoBanner";
+import { CookieConsent } from "@/components/layout/CookieConsent";
+import { JsonLdOrganization } from "@/components/seo/JsonLdOrganization";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,6 +31,13 @@ export const metadata: Metadata = {
   openGraph: {
     locale: "es_CO",
     siteName: "Hechomadera",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hechomadera — Diseño y construcción de tu hogar",
+    description:
+      "Muebles y proyectos a medida en Colombia. Tienda online y proyectos con proceso claro.",
   },
 };
 
@@ -40,10 +49,12 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${inter.variable} ${display.variable} min-h-screen font-sans antialiased`}>
+        <JsonLdOrganization />
         <PromoBanner />
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />
+        <CookieConsent />
       </body>
     </html>
   );

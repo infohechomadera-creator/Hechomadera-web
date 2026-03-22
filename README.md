@@ -32,6 +32,8 @@ Abre [http://localhost:3000](http://localhost:3000).
 - `content/products.json` — catálogo marketplace (~40 ítems)
 - `lib/site-config.ts` — navegación, ciudades, reglas de negocio en código
 - `docs/MIGRACION.md` — respaldo WP, manual vs agente
+- `docs/CHECKLIST-LANZAMIENTO.md` — variables, dominio, legal, SEO antes del cutover
+- `app/sitemap.ts` / `app/robots.txt` — SEO técnico (usa `NEXT_PUBLIC_SITE_URL`)
 
 ## Despliegue
 

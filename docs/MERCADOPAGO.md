@@ -22,7 +22,11 @@
 2. Pulsa **Pagar con Mercado Pago** → debe abrir el checkout de Mercado Pago.
 3. Con credenciales de **prueba**, usa tarjetas de prueba de la documentación de MP.
 
-## 4) URLs de retorno
+## 4) Referencia externa (opcional)
+
+Si el cliente envía `external_reference` al crear la preferencia (la tienda envía `tienda-{id}`), Mercado Pago la devuelve en notificaciones y ayuda a conciliar pedidos.
+
+## 5) URLs de retorno
 
 La API crea preferencias con `back_urls` hacia:
 
@@ -32,7 +36,7 @@ La API crea preferencias con `back_urls` hacia:
 
 (Ajustar luego según parámetros reales que envíe MP en la query.)
 
-## 5) Webhooks
+## 6) Webhooks
 
 1. URL de notificación en el panel de Mercado Pago (misma base que el sitio):
 
@@ -42,6 +46,6 @@ La API crea preferencias con `back_urls` hacia:
 
 3. Variable opcional (según evolución de la integración): `MERCADOPAGO_WEBHOOK_SECRET` — documentar en MP si aplica a tu flujo.
 
-## 6) Abonos del 35% (proyectos)
+## 7) Abonos del 35% (proyectos)
 
 Misma API de preferencias: `unit_price` = monto del abono calculado en servidor según tu regla de negocio (no hardcodear en cliente).

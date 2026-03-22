@@ -40,8 +40,11 @@ export function SiteFooter() {
           </p>
         </div>
       </div>
-      <div className="border-t border-neutral-200 py-6 text-center text-xs text-ink-muted">
-        © {new Date().getFullYear()} {siteConfig.name}. Todos los derechos reservados.
+      <div className="border-t border-neutral-200 px-4 py-6 text-center text-xs text-ink-muted">
+        <p>Pagos en tienda procesados con Mercado Pago (checkout seguro).</p>
+        <p className="mt-2">
+          © {new Date().getFullYear()} {siteConfig.name}. Todos los derechos reservados.
+        </p>
       </div>
     </footer>
   );

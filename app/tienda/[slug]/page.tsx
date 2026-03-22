@@ -58,7 +58,12 @@ export default async function ProductoPage({ params }: Props) {
           Checkout con Mercado Pago (tarjetas y medios disponibles según MP). Serás redirigido a su sitio seguro.
         </p>
         <div className="mt-6">
-          <StartCheckoutButton title={titleCheckout} unitPrice={product.priceCOP} quantity={1} />
+          <StartCheckoutButton
+            title={titleCheckout}
+            unitPrice={product.priceCOP}
+            quantity={1}
+            externalReference={`tienda-${product.id}`}
+          />
         </div>
       </div>
 

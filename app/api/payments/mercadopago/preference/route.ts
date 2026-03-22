@@ -27,12 +27,23 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { items?: Item[]; title?: string; unit_price?: number; quantity?: number };
+  let body: {
+    items?: Item[];
+    title?: string;
+    unit_price?: number;
+    quantity?: number;
+    /** Referencia opcional (conciliación); se sanea y trunca */
+    external_reference?: string;
+  };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
+
+  const externalRefRaw = typeof body.external_reference === "string" ? body.external_reference : "";
+  const externalReference =
+    externalRefRaw.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 256) || `web-${Date.now()}`;
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
 
@@ -76,7 +87,7 @@ export async function POST(request: Request) {
     },
     auto_return: "approved",
     statement_descriptor: "HECHOMADERA",
-    external_reference: `web-${Date.now()}`,
+    external_reference: externalReference,
   };
 
   const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
