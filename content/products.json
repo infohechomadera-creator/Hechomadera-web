@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "ej-001",
+    "name": "Ejemplo — producto estándar",
+    "slug": "ejemplo-producto-estandar",
+    "priceCOP": 150000,
+    "description": "Producto de muestra para probar el checkout con Mercado Pago. Sustituye por artículos reales del catálogo cuando los tengas."
+  }
+]

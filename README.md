@@ -46,4 +46,4 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 1. Conectar dominio `hechomadera.com` → **`docs/DOMINIO-VERCEL.md`**.
 2. **Mercado Pago:** `docs/MERCADOPAGO.md` — token en Vercel; **`/pago/prueba`** en producción solo con `ENABLE_PAYMENT_TEST_PAGE=true`; webhook en **`/api/payments/mercadopago/webhook`**.
-3. Catálogo `content/products.json` cuando tengas productos.
+3. Catálogo: edita `content/products.json` (hay un producto de ejemplo); cada ítem enlaza a `/tienda/[slug]` con botón Mercado Pago.

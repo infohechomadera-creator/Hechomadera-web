@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import products from "@/content/products.json";
 import { siteConfig } from "@/lib/site-config";
+import { formatPriceCOP, type StoreProduct } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Tienda",
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default function TiendaPage() {
-  const list = products as { id: string; name: string; priceCOP: number; slug: string }[];
+  const list = products as StoreProduct[];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
@@ -30,9 +31,7 @@ export default function TiendaPage() {
               <Link href={`/tienda/${p.slug}`} className="font-medium text-ink hover:underline">
                 {p.name}
               </Link>
-              <p className="mt-2 text-sm text-ink-muted">
-                {p.priceCOP.toLocaleString("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 })}
-              </p>
+              <p className="mt-2 text-sm text-ink-muted">{formatPriceCOP(p.priceCOP)}</p>
             </li>
           ))
         )}
