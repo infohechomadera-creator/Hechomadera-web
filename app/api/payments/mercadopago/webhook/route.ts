@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchMercadoPagoPayment, normalizePaymentState } from "@/lib/mercadopago";
+import { markPaymentProcessed, saveWebhookEvent } from "@/lib/webhook-events";
 
 export const runtime = "nodejs";
 
@@ -61,12 +62,27 @@ export async function POST(request: Request) {
     }
 
     const p = result.payment;
+    const dedupe = markPaymentProcessed(p.id ?? null);
+    const normalizedStatus = normalizePaymentState(p.status);
+    saveWebhookEvent({
+      provider: "mercadopago",
+      event_type: eventType,
+      action: body.action ?? null,
+      resource_id: resourceId || null,
+      payment_id: p.id ?? null,
+      order_id: p.external_reference ?? null,
+      status: p.status ?? null,
+      normalized_status: normalizedStatus,
+      status_detail: p.status_detail ?? null,
+      received_at: new Date().toISOString(),
+    });
+
     console.info("[Mercado Pago webhook] payment event", {
       eventType,
       action: body.action ?? null,
       payment_id: p.id,
       status: p.status,
-      normalized_status: normalizePaymentState(p.status),
+      normalized_status: normalizedStatus,
       status_detail: p.status_detail ?? null,
       external_reference: p.external_reference ?? null,
       transaction_amount: p.transaction_amount ?? null,
@@ -74,9 +90,24 @@ export async function POST(request: Request) {
       payment_method_id: p.payment_method_id ?? null,
       date_created: p.date_created ?? null,
       date_approved: p.date_approved ?? null,
+      duplicate_event: dedupe.alreadyProcessed,
+      dedupe_key: dedupe.dedupeKey,
     });
     return NextResponse.json({ received: true, processed: true }, { status: 200 });
   }
+
+  saveWebhookEvent({
+    provider: "mercadopago",
+    event_type: eventType,
+    action: body.action ?? null,
+    resource_id: resourceId || null,
+    payment_id: null,
+    order_id: null,
+    status: null,
+    normalized_status: null,
+    status_detail: null,
+    received_at: new Date().toISOString(),
+  });
 
   console.info("[Mercado Pago webhook] unsupported event", {
     eventType,

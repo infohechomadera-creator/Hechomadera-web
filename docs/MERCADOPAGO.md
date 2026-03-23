@@ -61,3 +61,15 @@ Devuelve estado técnico de MP, estado normalizado (`approved`/`pending`/`reject
 ## 8) Abonos del 35% (proyectos)
 
 Misma API de preferencias: `unit_price` = monto del abono calculado en servidor según tu regla de negocio (no hardcodear en cliente).
+
+## 9) Debug de eventos webhook (temporal)
+
+Existe endpoint protegido para inspección rápida de eventos webhook en memoria:
+
+- `GET /api/payments/webhook-events?limit=20&token=TU_TOKEN`
+
+Requiere variable de entorno:
+
+- `DEBUG_WEBHOOK_TOKEN` (Vercel / .env.local)
+
+También acepta header `x-debug-token`. Nota: buffer en memoria, útil para depuración corta; no reemplaza base de datos.
