@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchMercadoPagoPayment, normalizePaymentState } from "@/lib/mercadopago";
+import { validateMercadoPagoWebhookSignature } from "@/lib/mercadopago-webhook-signature";
 import { markPaymentProcessed, saveWebhookEvent } from "@/lib/webhook-events";
 
 export const runtime = "nodejs";
@@ -46,6 +47,45 @@ export async function POST(request: Request) {
   const eventType = body.type ?? body.topic ?? url.searchParams.get("type") ?? url.searchParams.get("topic") ?? "unknown";
   const rawId = body.data?.id ?? body.id ?? url.searchParams.get("data.id") ?? url.searchParams.get("id");
   const resourceId = rawId != null ? String(rawId) : "";
+  const enforceSignature = process.env.MERCADOPAGO_WEBHOOK_ENFORCE === "true";
+  const signatureValidation = validateMercadoPagoWebhookSignature({
+    signatureHeader: request.headers.get("x-signature"),
+    requestIdHeader: request.headers.get("x-request-id"),
+    resourceId,
+    secret: process.env.MERCADOPAGO_WEBHOOK_SECRET,
+  });
+
+  if (!signatureValidation.ok) {
+    await saveWebhookEvent({
+      provider: "mercadopago",
+      event_type: eventType,
+      action: body.action ?? null,
+      processed: false,
+      resource_id: resourceId || null,
+      payment_id: null,
+      order_id: null,
+      status: null,
+      normalized_status: null,
+      status_detail: null,
+      error: `signature_invalid:${signatureValidation.reason ?? "unknown"}`,
+      received_at: new Date().toISOString(),
+    });
+
+    if (enforceSignature) {
+      console.warn("[Mercado Pago webhook] rejected by signature", {
+        eventType,
+        resourceId: resourceId || null,
+        reason: signatureValidation.reason ?? "unknown",
+      });
+      return NextResponse.json({ received: false, error: "Invalid webhook signature" }, { status: 401 });
+    }
+
+    console.warn("[Mercado Pago webhook] signature not valid (soft mode)", {
+      eventType,
+      resourceId: resourceId || null,
+      reason: signatureValidation.reason ?? "unknown",
+    });
+  }
 
   // Keep webhook idempotent/safe: always return 200 after processing/logging.
   if (eventType === "payment" && resourceId) {
