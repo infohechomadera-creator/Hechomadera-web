@@ -51,7 +51,7 @@ export async function POST(request: Request) {
   if (eventType === "payment" && resourceId) {
     const result = await fetchMercadoPagoPayment(resourceId);
     if (!result.ok) {
-      saveWebhookEvent({
+      await saveWebhookEvent({
         provider: "mercadopago",
         event_type: eventType,
         action: body.action ?? null,
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     const p = result.payment;
     const dedupe = markPaymentProcessed(p.id ?? null);
     const normalizedStatus = normalizePaymentState(p.status);
-    saveWebhookEvent({
+    await saveWebhookEvent({
       provider: "mercadopago",
       event_type: eventType,
       action: body.action ?? null,
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true, processed: true }, { status: 200 });
   }
 
-  saveWebhookEvent({
+  await saveWebhookEvent({
     provider: "mercadopago",
     event_type: eventType,
     action: body.action ?? null,

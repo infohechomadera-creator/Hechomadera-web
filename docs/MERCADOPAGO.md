@@ -71,5 +71,6 @@ Existe endpoint protegido para inspección rápida de eventos webhook en memoria
 Requiere variable de entorno:
 
 - `DEBUG_WEBHOOK_TOKEN` (Vercel / .env.local)
+- Opcional para persistencia entre invocaciones serverless: `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN`
 
-También acepta header `x-debug-token`. Nota: buffer en memoria, útil para depuración corta; no reemplaza base de datos.
+También acepta header `x-debug-token`. Sin Redis, usa buffer en memoria (puede vaciarse entre invocaciones).
