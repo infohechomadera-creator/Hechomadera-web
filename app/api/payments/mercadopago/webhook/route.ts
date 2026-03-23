@@ -51,6 +51,20 @@ export async function POST(request: Request) {
   if (eventType === "payment" && resourceId) {
     const result = await fetchMercadoPagoPayment(resourceId);
     if (!result.ok) {
+      saveWebhookEvent({
+        provider: "mercadopago",
+        event_type: eventType,
+        action: body.action ?? null,
+        processed: false,
+        resource_id: resourceId || null,
+        payment_id: null,
+        order_id: null,
+        status: null,
+        normalized_status: null,
+        status_detail: null,
+        error: `${result.status}: ${result.error}`,
+        received_at: new Date().toISOString(),
+      });
       console.error("[Mercado Pago webhook] payment fetch failed", {
         eventType,
         resourceId,
@@ -68,12 +82,14 @@ export async function POST(request: Request) {
       provider: "mercadopago",
       event_type: eventType,
       action: body.action ?? null,
+      processed: true,
       resource_id: resourceId || null,
       payment_id: p.id ?? null,
       order_id: p.external_reference ?? null,
       status: p.status ?? null,
       normalized_status: normalizedStatus,
       status_detail: p.status_detail ?? null,
+      error: null,
       received_at: new Date().toISOString(),
     });
 
@@ -100,12 +116,14 @@ export async function POST(request: Request) {
     provider: "mercadopago",
     event_type: eventType,
     action: body.action ?? null,
+    processed: false,
     resource_id: resourceId || null,
     payment_id: null,
     order_id: null,
     status: null,
     normalized_status: null,
     status_detail: null,
+    error: null,
     received_at: new Date().toISOString(),
   });
 

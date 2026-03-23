@@ -2,12 +2,14 @@ export type WebhookEventRecord = {
   provider: "mercadopago";
   event_type: string;
   action: string | null;
+  processed: boolean;
   resource_id: string | null;
   payment_id: number | null;
   order_id: string | null;
   status: string | null;
   normalized_status: "approved" | "pending" | "rejected" | "unknown" | null;
   status_detail: string | null;
+  error: string | null;
   received_at: string;
 };
 
