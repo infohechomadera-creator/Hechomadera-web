@@ -24,7 +24,9 @@
 
 ## 4) Referencia externa (opcional)
 
-Si el cliente envía `external_reference` al crear la preferencia (la tienda envía `tienda-{id}`), Mercado Pago la devuelve en notificaciones y ayuda a conciliar pedidos.
+La API de preferencias ahora genera un `order_id` propio y lo usa como `external_reference` en Mercado Pago. Esto facilita consultar estado por orden aunque no retorne `payment_id` en el navegador.
+
+Si el cliente envía `external_reference` en el request, se conserva como `source_reference` en la respuesta de la API (útil para trazabilidad).
 
 ## 5) URLs de retorno
 
@@ -34,7 +36,7 @@ La API crea preferencias con `back_urls` hacia:
 - `/pago/resultado?estado=rechazado`
 - `/pago/resultado?estado=pendiente`
 
-Mercado Pago puede agregar parámetros como `payment_id` / `collection_id`. La página `/pago/resultado` ya intenta consultar el pago real en servidor cuando recibe esos ids.
+Mercado Pago puede agregar parámetros como `payment_id` / `collection_id`. Además, las `back_urls` incluyen `order_id` para que `/pago/resultado` pueda consultar estado por orden.
 
 ## 6) Webhooks
 
@@ -52,6 +54,7 @@ Endpoint disponible para depurar estado real:
 
 - `GET /api/payments/mercadopago/payment/{paymentId}`
 - `GET /api/payments/mercadopago/reference/{externalReference}`
+- `GET /api/payments/orders/{orderId}`
 
 Devuelve estado técnico de MP, estado normalizado (`approved`/`pending`/`rejected`) y referencia externa.
 

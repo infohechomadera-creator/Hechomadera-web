@@ -14,10 +14,17 @@ export const metadata: Metadata = {
 export default async function PagoResultadoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string; payment_id?: string; collection_id?: string; external_reference?: string }>;
+  searchParams: Promise<{
+    estado?: string;
+    payment_id?: string;
+    collection_id?: string;
+    order_id?: string;
+    external_reference?: string;
+  }>;
 }) {
-  const { estado, payment_id, collection_id, external_reference } = await searchParams;
+  const { estado, payment_id, collection_id, order_id, external_reference } = await searchParams;
   const paymentId = payment_id ?? collection_id;
+  const orderReference = order_id ?? external_reference;
 
   const copy: Record<
     string,
@@ -66,8 +73,8 @@ export default async function PagoResultadoPage({
         external_reference: p.external_reference,
       };
     }
-  } else if (external_reference) {
-    const paymentByReference = await fetchLatestPaymentByExternalReference(external_reference);
+  } else if (orderReference) {
+    const paymentByReference = await fetchLatestPaymentByExternalReference(orderReference);
     if (paymentByReference.ok) {
       const p = paymentByReference.payment;
       const normalized = normalizePaymentState(p.status);

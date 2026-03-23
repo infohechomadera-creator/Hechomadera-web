@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createOrderId, sanitizeSourceReference } from "@/lib/orders";
 
 export const runtime = "nodejs";
 
@@ -41,9 +42,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const externalRefRaw = typeof body.external_reference === "string" ? body.external_reference : "";
-  const externalReference =
-    externalRefRaw.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 256) || `web-${Date.now()}`;
+  const orderId = createOrderId();
+  const sourceReference = sanitizeSourceReference(body.external_reference);
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
 
@@ -73,6 +73,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "unit_price debe ser mayor a 0." }, { status: 400 });
   }
 
+  const successUrl = `${baseUrl}/pago/resultado?estado=aprobado&order_id=${encodeURIComponent(orderId)}`;
+  const failureUrl = `${baseUrl}/pago/resultado?estado=rechazado&order_id=${encodeURIComponent(orderId)}`;
+  const pendingUrl = `${baseUrl}/pago/resultado?estado=pendiente&order_id=${encodeURIComponent(orderId)}`;
+
   const preference = {
     items: items.map((i) => ({
       title: i.title,
@@ -81,13 +85,17 @@ export async function POST(request: Request) {
       currency_id: "COP",
     })),
     back_urls: {
-      success: `${baseUrl}/pago/resultado?estado=aprobado`,
-      failure: `${baseUrl}/pago/resultado?estado=rechazado`,
-      pending: `${baseUrl}/pago/resultado?estado=pendiente`,
+      success: successUrl,
+      failure: failureUrl,
+      pending: pendingUrl,
     },
     auto_return: "approved",
     statement_descriptor: "HECHOMADERA",
-    external_reference: externalReference,
+    /**
+     * external_reference se reserva para order_id propio.
+     * Permite consultar estado por orden aunque el cliente no retorne con payment_id.
+     */
+    external_reference: orderId,
   };
 
   const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
@@ -125,6 +133,8 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
+    order_id: orderId,
+    source_reference: sourceReference,
     preference_id: data.id,
     init_point: data.init_point,
     sandbox_init_point: data.sandbox_init_point,
