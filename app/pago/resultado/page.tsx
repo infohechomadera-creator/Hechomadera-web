@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { fetchMercadoPagoPayment, normalizePaymentState } from "@/lib/mercadopago";
+import {
+  fetchLatestPaymentByExternalReference,
+  fetchMercadoPagoPayment,
+  normalizePaymentState,
+} from "@/lib/mercadopago";
 
 export const metadata: Metadata = {
   title: "Resultado del pago",
@@ -10,9 +14,9 @@ export const metadata: Metadata = {
 export default async function PagoResultadoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string; payment_id?: string; collection_id?: string }>;
+  searchParams: Promise<{ estado?: string; payment_id?: string; collection_id?: string; external_reference?: string }>;
 }) {
-  const { estado, payment_id, collection_id } = await searchParams;
+  const { estado, payment_id, collection_id, external_reference } = await searchParams;
   const paymentId = payment_id ?? collection_id;
 
   const copy: Record<
@@ -48,9 +52,24 @@ export default async function PagoResultadoPage({
   } | null = null;
 
   if (paymentId) {
-    const result = await fetchMercadoPagoPayment(paymentId);
-    if (result.ok) {
-      const p = result.payment;
+    const paymentById = await fetchMercadoPagoPayment(paymentId);
+    if (paymentById.ok) {
+      const p = paymentById.payment;
+      const normalized = normalizePaymentState(p.status);
+      if (normalized === "approved") block = copy.aprobado;
+      if (normalized === "pending") block = copy.pendiente;
+      if (normalized === "rejected") block = copy.rechazado;
+      paymentDetails = {
+        payment_id: p.id,
+        status: p.status,
+        status_detail: p.status_detail,
+        external_reference: p.external_reference,
+      };
+    }
+  } else if (external_reference) {
+    const paymentByReference = await fetchLatestPaymentByExternalReference(external_reference);
+    if (paymentByReference.ok) {
+      const p = paymentByReference.payment;
       const normalized = normalizePaymentState(p.status);
       if (normalized === "approved") block = copy.aprobado;
       if (normalized === "pending") block = copy.pendiente;

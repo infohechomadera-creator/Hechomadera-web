@@ -51,6 +51,7 @@ Mercado Pago puede agregar parámetros como `payment_id` / `collection_id`. La p
 Endpoint disponible para depurar estado real:
 
 - `GET /api/payments/mercadopago/payment/{paymentId}`
+- `GET /api/payments/mercadopago/reference/{externalReference}`
 
 Devuelve estado técnico de MP, estado normalizado (`approved`/`pending`/`rejected`) y referencia externa.
 
