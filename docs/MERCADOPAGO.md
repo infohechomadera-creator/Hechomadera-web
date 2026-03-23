@@ -34,7 +34,7 @@ La API crea preferencias con `back_urls` hacia:
 - `/pago/resultado?estado=rechazado`
 - `/pago/resultado?estado=pendiente`
 
-(Ajustar luego según parámetros reales que envíe MP en la query.)
+Mercado Pago puede agregar parámetros como `payment_id` / `collection_id`. La página `/pago/resultado` ya intenta consultar el pago real en servidor cuando recibe esos ids.
 
 ## 6) Webhooks
 
@@ -46,6 +46,14 @@ La API crea preferencias con `back_urls` hacia:
 
 3. Variable opcional (según evolución de la integración): `MERCADOPAGO_WEBHOOK_SECRET` — documentar en MP si aplica a tu flujo.
 
-## 7) Abonos del 35% (proyectos)
+## 7) Consultar pago por ID (API interna)
+
+Endpoint disponible para depurar estado real:
+
+- `GET /api/payments/mercadopago/payment/{paymentId}`
+
+Devuelve estado técnico de MP, estado normalizado (`approved`/`pending`/`rejected`) y referencia externa.
+
+## 8) Abonos del 35% (proyectos)
 
 Misma API de preferencias: `unit_price` = monto del abono calculado en servidor según tu regla de negocio (no hardcodear en cliente).

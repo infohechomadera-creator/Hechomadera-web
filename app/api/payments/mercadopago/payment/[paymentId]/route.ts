@@ -1,0 +1,40 @@
+import { NextResponse } from "next/server";
+import { fetchMercadoPagoPayment, normalizePaymentState } from "@/lib/mercadopago";
+
+export const runtime = "nodejs";
+
+/**
+ * GET /api/payments/mercadopago/payment/:paymentId
+ * Consulta estado del pago en Mercado Pago (server-to-server).
+ */
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ paymentId: string }> },
+) {
+  const { paymentId } = await params;
+  const result = await fetchMercadoPagoPayment(paymentId);
+  if (!result.ok) {
+    return NextResponse.json(
+      { ok: false, error: result.error, details: result.details },
+      { status: result.status },
+    );
+  }
+
+  const p = result.payment;
+  return NextResponse.json({
+    ok: true,
+    payment: {
+      id: p.id,
+      status: p.status,
+      status_detail: p.status_detail,
+      normalized_status: normalizePaymentState(p.status),
+      external_reference: p.external_reference,
+      transaction_amount: p.transaction_amount,
+      currency_id: p.currency_id,
+      payment_type_id: p.payment_type_id,
+      payment_method_id: p.payment_method_id,
+      date_created: p.date_created,
+      date_approved: p.date_approved,
+    },
+  });
+}

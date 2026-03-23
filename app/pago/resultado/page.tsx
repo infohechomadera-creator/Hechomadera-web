@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { fetchMercadoPagoPayment, normalizePaymentState } from "@/lib/mercadopago";
 
 export const metadata: Metadata = {
   title: "Resultado del pago",
@@ -9,9 +10,10 @@ export const metadata: Metadata = {
 export default async function PagoResultadoPage({
   searchParams,
 }: {
-  searchParams: Promise<{ estado?: string }>;
+  searchParams: Promise<{ estado?: string; payment_id?: string; collection_id?: string }>;
 }) {
-  const { estado } = await searchParams;
+  const { estado, payment_id, collection_id } = await searchParams;
+  const paymentId = payment_id ?? collection_id;
 
   const copy: Record<
     string,
@@ -37,11 +39,33 @@ export default async function PagoResultadoPage({
     },
   };
 
-  const block = estado ? copy[estado] : null;
+  let block = estado ? copy[estado] : null;
+  let paymentDetails: {
+    payment_id: number;
+    status: string;
+    status_detail?: string;
+    external_reference?: string;
+  } | null = null;
+
+  if (paymentId) {
+    const result = await fetchMercadoPagoPayment(paymentId);
+    if (result.ok) {
+      const p = result.payment;
+      const normalized = normalizePaymentState(p.status);
+      if (normalized === "approved") block = copy.aprobado;
+      if (normalized === "pending") block = copy.pendiente;
+      if (normalized === "rejected") block = copy.rechazado;
+      paymentDetails = {
+        payment_id: p.id,
+        status: p.status,
+        status_detail: p.status_detail,
+        external_reference: p.external_reference,
+      };
+    }
+  }
+
   const title = block?.title ?? "Resultado del pago";
-  const body =
-    block?.body ??
-    "Volviste desde Mercado Pago. Si completaste un pago, la confirmación puede tardar unos instantes. Si tenés dudas, contáctanos.";
+  const body = block?.body ?? "Volviste desde Mercado Pago. Si completaste un pago, la confirmacion puede tardar unos instantes. Si tienes dudas, contactanos.";
 
   const borderClass =
     block?.tone === "ok"
@@ -55,6 +79,30 @@ export default async function PagoResultadoPage({
       <h1 className="font-display text-center text-2xl font-semibold text-ink">{title}</h1>
       <div className={`mt-6 border px-5 py-4 text-sm leading-relaxed text-ink-muted ${borderClass}`}>
         <p>{body}</p>
+        {paymentDetails ? (
+          <dl className="mt-4 space-y-1 border-t border-neutral-200 pt-4 text-xs">
+            <div>
+              <dt className="inline font-semibold text-ink">Pago:</dt>{" "}
+              <dd className="inline">{paymentDetails.payment_id}</dd>
+            </div>
+            <div>
+              <dt className="inline font-semibold text-ink">Estado tecnico:</dt>{" "}
+              <dd className="inline">{paymentDetails.status}</dd>
+            </div>
+            {paymentDetails.status_detail ? (
+              <div>
+                <dt className="inline font-semibold text-ink">Detalle:</dt>{" "}
+                <dd className="inline">{paymentDetails.status_detail}</dd>
+              </div>
+            ) : null}
+            {paymentDetails.external_reference ? (
+              <div>
+                <dt className="inline font-semibold text-ink">Referencia:</dt>{" "}
+                <dd className="inline">{paymentDetails.external_reference}</dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
       </div>
       <p className="mt-6 text-center text-xs text-ink-muted">
         Próximos pasos en el roadmap: confirmación por API, comprobante y seguimiento del pedido desde el webhook de Mercado Pago.
