@@ -15,6 +15,14 @@ export type WebhookEventRecord = {
   received_at: string;
 };
 
+export type WebhookEventSummary = {
+  total: number;
+  by_event_type: Record<string, number>;
+  by_processed: { true: number; false: number };
+  by_normalized_status: Record<string, number>;
+  with_errors: number;
+};
+
 /**
  * Buffer en memoria para trazabilidad operativa corta (sin BD).
  * Nota: en serverless puede resetear entre invocaciones.
@@ -90,4 +98,24 @@ export function markPaymentProcessed(paymentId: number | null): {
   }
   globalState.__hmWebhookSeen!.add(key);
   return { dedupeKey: key, alreadyProcessed: false };
+}
+
+export function summarizeWebhookEvents(events: WebhookEventRecord[]): WebhookEventSummary {
+  const summary: WebhookEventSummary = {
+    total: events.length,
+    by_event_type: {},
+    by_processed: { true: 0, false: 0 },
+    by_normalized_status: {},
+    with_errors: 0,
+  };
+
+  for (const event of events) {
+    summary.by_event_type[event.event_type] = (summary.by_event_type[event.event_type] ?? 0) + 1;
+    summary.by_processed[String(event.processed) as "true" | "false"] += 1;
+    const status = event.normalized_status ?? "none";
+    summary.by_normalized_status[status] = (summary.by_normalized_status[status] ?? 0) + 1;
+    if (event.error) summary.with_errors += 1;
+  }
+
+  return summary;
 }

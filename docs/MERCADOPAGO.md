@@ -72,6 +72,7 @@ Misma API de preferencias: `unit_price` = monto del abono calculado en servidor 
 Existe endpoint protegido para inspección rápida de eventos webhook en memoria:
 
 - `GET /api/payments/webhook-events?limit=20&token=TU_TOKEN`
+- `GET /api/payments/metrics?limit=100&token=TU_TOKEN` (resumen agregado para seguimiento operativo)
 
 Requiere variable de entorno:
 

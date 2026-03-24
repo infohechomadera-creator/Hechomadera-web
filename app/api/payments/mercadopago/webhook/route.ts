@@ -47,6 +47,13 @@ export async function POST(request: Request) {
   const eventType = body.type ?? body.topic ?? url.searchParams.get("type") ?? url.searchParams.get("topic") ?? "unknown";
   const rawId = body.data?.id ?? body.id ?? url.searchParams.get("data.id") ?? url.searchParams.get("id");
   const resourceId = rawId != null ? String(rawId) : "";
+  const baseEvent = {
+    provider: "mercadopago" as const,
+    event_type: eventType,
+    action: body.action ?? null,
+    resource_id: resourceId || null,
+    received_at: new Date().toISOString(),
+  };
   const enforceSignature = process.env.MERCADOPAGO_WEBHOOK_ENFORCE === "true";
   const signatureValidation = validateMercadoPagoWebhookSignature({
     signatureHeader: request.headers.get("x-signature"),
@@ -54,24 +61,22 @@ export async function POST(request: Request) {
     resourceId,
     secret: process.env.MERCADOPAGO_WEBHOOK_SECRET,
   });
+  const signatureError = signatureValidation.ok
+    ? null
+    : `signature_invalid:${signatureValidation.reason ?? "unknown"}`;
 
   if (!signatureValidation.ok) {
-    await saveWebhookEvent({
-      provider: "mercadopago",
-      event_type: eventType,
-      action: body.action ?? null,
-      processed: false,
-      resource_id: resourceId || null,
-      payment_id: null,
-      order_id: null,
-      status: null,
-      normalized_status: null,
-      status_detail: null,
-      error: `signature_invalid:${signatureValidation.reason ?? "unknown"}`,
-      received_at: new Date().toISOString(),
-    });
-
     if (enforceSignature) {
+      await saveWebhookEvent({
+        ...baseEvent,
+        processed: false,
+        payment_id: null,
+        order_id: null,
+        status: null,
+        normalized_status: null,
+        status_detail: null,
+        error: signatureError,
+      });
       console.warn("[Mercado Pago webhook] rejected by signature", {
         eventType,
         resourceId: resourceId || null,
@@ -92,18 +97,14 @@ export async function POST(request: Request) {
     const result = await fetchMercadoPagoPayment(resourceId);
     if (!result.ok) {
       await saveWebhookEvent({
-        provider: "mercadopago",
-        event_type: eventType,
-        action: body.action ?? null,
+        ...baseEvent,
         processed: false,
-        resource_id: resourceId || null,
         payment_id: null,
         order_id: null,
         status: null,
         normalized_status: null,
         status_detail: null,
-        error: `${result.status}: ${result.error}`,
-        received_at: new Date().toISOString(),
+        error: signatureError ?? `${result.status}: ${result.error}`,
       });
       console.error("[Mercado Pago webhook] payment fetch failed", {
         eventType,
@@ -119,18 +120,14 @@ export async function POST(request: Request) {
     const dedupe = markPaymentProcessed(p.id ?? null);
     const normalizedStatus = normalizePaymentState(p.status);
     await saveWebhookEvent({
-      provider: "mercadopago",
-      event_type: eventType,
-      action: body.action ?? null,
+      ...baseEvent,
       processed: true,
-      resource_id: resourceId || null,
       payment_id: p.id ?? null,
       order_id: p.external_reference ?? null,
       status: p.status ?? null,
       normalized_status: normalizedStatus,
       status_detail: p.status_detail ?? null,
-      error: null,
-      received_at: new Date().toISOString(),
+      error: signatureError,
     });
 
     console.info("[Mercado Pago webhook] payment event", {
@@ -153,18 +150,14 @@ export async function POST(request: Request) {
   }
 
   await saveWebhookEvent({
-    provider: "mercadopago",
-    event_type: eventType,
-    action: body.action ?? null,
+    ...baseEvent,
     processed: false,
-    resource_id: resourceId || null,
     payment_id: null,
     order_id: null,
     status: null,
     normalized_status: null,
     status_detail: null,
-    error: null,
-    received_at: new Date().toISOString(),
+    error: signatureError,
   });
 
   console.info("[Mercado Pago webhook] unsupported event", {
