@@ -16,6 +16,11 @@ Endpoints internos para operación. Requieren `ADMIN_API_TOKEN` (query `?token=`
 - `GET /api/admin/orders/export?limit=500&token=...`
   - Export CSV para análisis externo.
 
+## Vista mínima de operación
+
+- `/admin?token=...` — listado de órdenes con filtros y enlace a export CSV.
+- `/admin/orders/{orderId}?token=...` — detalle de una orden.
+
 ## Notas
 
 - Las órdenes se crean al generar preferencia en `/api/payments/mercadopago/preference`.
