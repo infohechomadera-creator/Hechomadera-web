@@ -9,6 +9,11 @@ export type MercadoPagoPayment = {
   date_approved?: string | null;
   payment_type_id?: string;
   payment_method_id?: string;
+  payer?: {
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+  };
 };
 
 type MercadoPagoErrorShape = {

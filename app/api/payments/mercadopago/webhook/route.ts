@@ -3,6 +3,7 @@ import { fetchMercadoPagoPayment, normalizePaymentState } from "@/lib/mercadopag
 import { validateMercadoPagoWebhookSignature } from "@/lib/mercadopago-webhook-signature";
 import { updateOrderFromPayment } from "@/lib/orders-store";
 import { markPaymentProcessed, saveWebhookEvent } from "@/lib/webhook-events";
+import { sendPaymentConfirmationToBuyer, sendNewOrderAlertToSeller } from "@/lib/email-notifications";
 
 export const runtime = "nodejs";
 
@@ -118,8 +119,9 @@ export async function POST(request: Request) {
     }
 
     const p = result.payment;
+    let updatedOrder = null;
     if (p.external_reference) {
-      await updateOrderFromPayment({
+      updatedOrder = await updateOrderFromPayment({
         orderId: p.external_reference,
         payment: {
           id: p.id,
@@ -143,6 +145,29 @@ export async function POST(request: Request) {
       status_detail: p.status_detail ?? null,
       error: signatureError,
     });
+
+    // Enviar emails de confirmación solo en pagos aprobados y no duplicados
+    if (normalizedStatus === "approved" && !dedupe.alreadyProcessed && updatedOrder) {
+      const buyerEmail = p.payer?.email;
+      const buyerFirstName = p.payer?.first_name;
+      const buyerName = buyerFirstName
+        ? `${buyerFirstName}${p.payer?.last_name ? ` ${p.payer.last_name}` : ""}`.trim()
+        : undefined;
+
+      if (buyerEmail) {
+        sendPaymentConfirmationToBuyer({
+          order: updatedOrder,
+          buyerEmail,
+          buyerName,
+        }).catch((err) => console.error("[webhook] error email comprador:", err));
+      }
+
+      sendNewOrderAlertToSeller({
+        order: updatedOrder,
+        buyerEmail,
+        buyerName,
+      }).catch((err) => console.error("[webhook] error email vendedor:", err));
+    }
 
     console.info("[Mercado Pago webhook] payment event", {
       eventType,

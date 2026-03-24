@@ -5,11 +5,29 @@ import {
   fetchMercadoPagoPayment,
   normalizePaymentState,
 } from "@/lib/mercadopago";
+import { getOrder } from "@/lib/orders-store";
 
 export const metadata: Metadata = {
   title: "Resultado del pago",
   robots: { index: false, follow: false },
 };
+
+const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_PHONE ?? "573012890552";
+
+function formatCOP(amount: number): string {
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+function getWaLink(orderId?: string): string {
+  const msg = orderId
+    ? `Hola, acabo de realizar un pago en hechomadera.com. Mi número de orden es ${orderId}. ¿Me pueden confirmar los próximos pasos?`
+    : "Hola, acabo de realizar un pago en hechomadera.com. ¿Me pueden ayudar con los próximos pasos?";
+  return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
 
 export default async function PagoResultadoPage({
   searchParams,
@@ -26,130 +44,167 @@ export default async function PagoResultadoPage({
   const paymentId = payment_id ?? collection_id;
   const orderReference = order_id ?? external_reference;
 
-  const copy: Record<
-    string,
-    { title: string; body: string; tone: "ok" | "warn" | "neutral" }
-  > = {
-    aprobado: {
-      title: "Pago aprobado",
-      body:
-        "Recibimos la confirmación de Mercado Pago. En breve podrás recibir un comprobante o seguimiento por los canales que definamos (email/WhatsApp). Si no ves novedades en 24 h, escríbenos.",
-      tone: "ok",
-    },
-    rechazado: {
-      title: "Pago no completado",
-      body:
-        "La transacción no se finalizó o fue rechazada. No se realizó el cobro. Puedes intentar de nuevo desde la tienda o contactarnos si necesitas ayuda.",
-      tone: "warn",
-    },
-    pendiente: {
-      title: "Pago pendiente",
-      body:
-        "El pago puede estar en revisión (por ejemplo transferencia o medios que demoran). Te avisaremos cuando se confirme. Guarda cualquier referencia que te muestre Mercado Pago.",
-      tone: "neutral",
-    },
-  };
+  // Consultar estado real desde MP
+  type NormalizedState = "approved" | "pending" | "rejected" | null;
+  let normalizedState: NormalizedState = estado === "aprobado"
+    ? "approved"
+    : estado === "rechazado"
+    ? "rejected"
+    : estado === "pendiente"
+    ? "pending"
+    : null;
 
-  let block = estado ? copy[estado] : null;
-  let paymentDetails: {
-    payment_id: number;
-    status: string;
-    status_detail?: string;
-    external_reference?: string;
-  } | null = null;
+  function toNormalized(s: string): NormalizedState {
+    if (s === "approved") return "approved";
+    if (s === "pending") return "pending";
+    if (s === "rejected") return "rejected";
+    return null;
+  }
+
+  let paymentDetail: { status: string; status_detail?: string } | null = null;
 
   if (paymentId) {
-    const paymentById = await fetchMercadoPagoPayment(paymentId);
-    if (paymentById.ok) {
-      const p = paymentById.payment;
-      const normalized = normalizePaymentState(p.status);
-      if (normalized === "approved") block = copy.aprobado;
-      if (normalized === "pending") block = copy.pendiente;
-      if (normalized === "rejected") block = copy.rechazado;
-      paymentDetails = {
-        payment_id: p.id,
-        status: p.status,
-        status_detail: p.status_detail,
-        external_reference: p.external_reference,
-      };
+    const result = await fetchMercadoPagoPayment(paymentId);
+    if (result.ok) {
+      normalizedState = toNormalized(normalizePaymentState(result.payment.status));
+      paymentDetail = { status: result.payment.status, status_detail: result.payment.status_detail };
     }
   } else if (orderReference) {
-    const paymentByReference = await fetchLatestPaymentByExternalReference(orderReference);
-    if (paymentByReference.ok) {
-      const p = paymentByReference.payment;
-      const normalized = normalizePaymentState(p.status);
-      if (normalized === "approved") block = copy.aprobado;
-      if (normalized === "pending") block = copy.pendiente;
-      if (normalized === "rejected") block = copy.rechazado;
-      paymentDetails = {
-        payment_id: p.id,
-        status: p.status,
-        status_detail: p.status_detail,
-        external_reference: p.external_reference,
-      };
+    const result = await fetchLatestPaymentByExternalReference(orderReference);
+    if (result.ok) {
+      normalizedState = toNormalized(normalizePaymentState(result.payment.status));
+      paymentDetail = { status: result.payment.status, status_detail: result.payment.status_detail };
     }
   }
 
-  const title = block?.title ?? "Resultado del pago";
-  const body = block?.body ?? "Volviste desde Mercado Pago. Si completaste un pago, la confirmacion puede tardar unos instantes. Si tienes dudas, contactanos.";
+  // Cargar resumen del pedido desde Redis
+  const order = orderReference ? await getOrder(orderReference) : null;
 
-  const borderClass =
-    block?.tone === "ok"
-      ? "border-emerald-200 bg-emerald-50"
-      : block?.tone === "warn"
-        ? "border-amber-200 bg-amber-50"
-        : "border-neutral-200 bg-white";
+  // Contenido por estado
+  const content = {
+    approved: {
+      badge: "Pago aprobado",
+      badgeClass: "bg-emerald-50 text-emerald-800 border border-emerald-200",
+      title: "Recibimos tu pago",
+      body: "Estamos listos para empezar. Un asesor de Hechomadera te escribe en las próximas horas para coordinar los detalles de tu pedido.",
+      cta: "¿Tienes alguna pregunta? Escríbenos por WhatsApp — respondemos en menos de 15 minutos.",
+    },
+    pending: {
+      badge: "Pago en revisión",
+      badgeClass: "bg-amber-50 text-amber-800 border border-amber-200",
+      title: "Tu pago está en proceso",
+      body: "Mercado Pago está verificando la transacción. Esto puede tomar unos minutos. Te avisaremos cuando se confirme — guarda tu número de orden como referencia.",
+      cta: "Si necesitas ayuda o tienes dudas, escríbenos por WhatsApp.",
+    },
+    rejected: {
+      badge: "Pago no completado",
+      badgeClass: "bg-red-50 text-red-800 border border-red-200",
+      title: "No pudimos procesar tu pago",
+      body: "La transacción no se completó. No se realizó ningún cobro. Puedes intentarlo de nuevo desde la tienda o escribirnos si necesitas ayuda con el pago.",
+      cta: "¿Problemas con el pago? Te ayudamos por WhatsApp.",
+    },
+  } as const;
+
+  const state = normalizedState && normalizedState in content ? normalizedState : null;
+  const c = state ? content[state] : null;
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-20 md:px-6">
-      <h1 className="font-display text-center text-2xl font-semibold text-ink">{title}</h1>
-      <div className={`mt-6 border px-5 py-4 text-sm leading-relaxed text-ink-muted ${borderClass}`}>
-        <p>{body}</p>
-        {paymentDetails ? (
-          <dl className="mt-4 space-y-1 border-t border-neutral-200 pt-4 text-xs">
-            <div>
-              <dt className="inline font-semibold text-ink">Pago:</dt>{" "}
-              <dd className="inline">{paymentDetails.payment_id}</dd>
-            </div>
-            <div>
-              <dt className="inline font-semibold text-ink">Estado tecnico:</dt>{" "}
-              <dd className="inline">{paymentDetails.status}</dd>
-            </div>
-            {paymentDetails.status_detail ? (
-              <div>
-                <dt className="inline font-semibold text-ink">Detalle:</dt>{" "}
-                <dd className="inline">{paymentDetails.status_detail}</dd>
-              </div>
-            ) : null}
-            {paymentDetails.external_reference ? (
-              <div>
-                <dt className="inline font-semibold text-ink">Referencia:</dt>{" "}
-                <dd className="inline">{paymentDetails.external_reference}</dd>
-              </div>
-            ) : null}
-          </dl>
-        ) : null}
-      </div>
-      <p className="mt-6 text-center text-xs text-ink-muted">
-        Próximos pasos en el roadmap: confirmación por API, comprobante y seguimiento del pedido desde el webhook de Mercado Pago.
+    <div className="mx-auto max-w-lg px-4 py-16 md:px-6 md:py-24">
+
+      {/* Badge de estado */}
+      {c && (
+        <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${c.badgeClass}`}>
+          {c.badge}
+        </span>
+      )}
+
+      {/* Título */}
+      <h1 className="font-display mt-4 text-2xl font-semibold text-ink md:text-3xl">
+        {c?.title ?? "Volviste desde Mercado Pago"}
+      </h1>
+
+      {/* Mensaje principal */}
+      <p className="mt-4 text-sm leading-relaxed text-ink-muted">
+        {c?.body ?? "Si completaste un pago, la confirmación puede tardar unos instantes. Guarda tu número de orden como referencia y contáctanos si tienes dudas."}
       </p>
-      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
-        <Link
-          href="/tienda"
-          className="inline-flex items-center justify-center border border-ink bg-ink px-6 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
-        >
-          Ir a la tienda
-        </Link>
+
+      {/* Resumen del pedido */}
+      {order && (
+        <div className="mt-8 border border-neutral-200 bg-white">
+          <div className="border-b border-neutral-100 px-5 py-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Resumen de tu pedido</p>
+          </div>
+          <div className="px-5 py-4">
+            <ul className="space-y-2">
+              {order.items.map((item, i) => (
+                <li key={i} className="flex items-start justify-between gap-4 text-sm">
+                  <span className="text-ink">
+                    {item.title}
+                    {item.quantity > 1 && (
+                      <span className="ml-1 text-ink-muted">× {item.quantity}</span>
+                    )}
+                  </span>
+                  <span className="shrink-0 font-medium text-ink">
+                    {formatCOP(item.unit_price * item.quantity)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-4">
+              <span className="text-sm font-semibold text-ink">Total</span>
+              <span className="text-base font-semibold text-ink">{formatCOP(order.total_cop)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Número de orden */}
+      {orderReference && (
+        <p className="mt-4 text-xs text-ink-muted">
+          Número de orden: <span className="font-mono font-semibold text-ink">{orderReference}</span>
+        </p>
+      )}
+
+      {/* CTA WhatsApp */}
+      {c && (
+        <div className="mt-8 border border-neutral-200 bg-paper-dim px-5 py-4">
+          <p className="text-sm text-ink-muted">{c.cta}</p>
+          <a
+            href={getWaLink(orderReference)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
+          >
+            Escribir por WhatsApp
+          </a>
+        </div>
+      )}
+
+      {/* Acciones */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        {normalizedState === "rejected" ? (
+          <Link
+            href="/tienda"
+            className="inline-flex items-center justify-center border border-ink bg-ink px-6 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
+          >
+            Volver a la tienda
+          </Link>
+        ) : (
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center border border-ink bg-ink px-6 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
+          >
+            Ir al inicio
+          </Link>
+        )}
         <Link
           href="/contacto"
           className="inline-flex items-center justify-center border border-neutral-300 px-6 py-3 text-sm font-medium text-ink hover:border-ink"
         >
           Contacto
         </Link>
-        <Link href="/" className="inline-flex items-center justify-center text-sm text-ink-muted underline hover:text-ink">
-          Inicio
-        </Link>
       </div>
+
     </div>
   );
 }

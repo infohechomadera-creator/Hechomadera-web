@@ -55,7 +55,8 @@ export default async function ProductoPage({ params }: Props) {
       <div className="mt-10 border border-neutral-200 bg-white p-6">
         <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Pago en línea</p>
         <p className="mt-2 text-sm text-ink-muted">
-          Checkout con Mercado Pago (tarjetas y medios disponibles según MP). Serás redirigido a su sitio seguro.
+          Al hacer clic serás redirigido al checkout seguro de Mercado Pago. Acepta tarjetas débito,
+          crédito y otros medios disponibles en Colombia.
         </p>
         <div className="mt-6">
           <StartCheckoutButton
@@ -65,6 +66,22 @@ export default async function ProductoPage({ params }: Props) {
             externalReference={`tienda-${product.id}`}
           />
         </div>
+
+        {/* Señales de confianza */}
+        <ul className="mt-5 space-y-2 border-t border-neutral-100 pt-5">
+          <li className="flex items-start gap-2 text-xs text-ink-muted">
+            <span className="mt-px shrink-0 text-ink">✓</span>
+            <span>Pago 100% seguro procesado por Mercado Pago — tus datos nunca pasan por nuestros servidores.</span>
+          </li>
+          <li className="flex items-start gap-2 text-xs text-ink-muted">
+            <span className="mt-px shrink-0 text-ink">✓</span>
+            <span>Recibes confirmación por email inmediatamente después de pagar.</span>
+          </li>
+          <li className="flex items-start gap-2 text-xs text-ink-muted">
+            <span className="mt-px shrink-0 text-ink">✓</span>
+            <span>Un asesor te contacta en menos de 3 horas para coordinar entrega o instalación.</span>
+          </li>
+        </ul>
       </div>
 
       <p className="mt-8 text-center text-sm">
