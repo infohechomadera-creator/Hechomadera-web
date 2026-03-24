@@ -1,42 +1,72 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import products from "@/content/products.json";
-import { siteConfig } from "@/lib/site-config";
-import { formatPriceCOP, type StoreProduct } from "@/lib/products";
+import { CATEGORY_LABELS, type StoreProduct, type ProductCategory } from "@/lib/products";
+import { TiendaCatalog } from "@/components/business/TiendaCatalog";
 
 export const metadata: Metadata = {
   title: "Tienda",
   description:
-    "Muebles y accesorios con precio fijo en pesos colombianos. Pago 100% online con Mercado Pago. Hechomadera — carpintería digital a medida.",
+    "Muebles y accesorios con precio fijo en pesos colombianos. Cocinas, closets, baños, sala y estudios a medida. Pago 100% online con Mercado Pago. Hechomadera.",
+};
+
+/* ─── category card images (placeholder seeds) ──────────── */
+const CATEGORY_IMAGES: Record<ProductCategory, string> = {
+  cocinas: "hm-cat-kitchen",
+  closets: "hm-cat-closet",
+  banos: "hm-cat-bath",
+  "sala-comedor": "hm-cat-living",
+  estudios: "hm-cat-study",
 };
 
 export default function TiendaPage() {
   const list = products as StoreProduct[];
+  const categories = Object.keys(CATEGORY_LABELS) as ProductCategory[];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
-      <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Tienda</h1>
-      <p className="mt-4 max-w-2xl text-ink-muted">
-        Productos marketplace: precio fijo en pesos colombianos. {siteConfig.business.marketplaceShippingNote} Integración de pago
-        (Mercado Pago) se conecta en fase manual con credenciales de producción/prueba.
-      </p>
-      <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {list.length === 0 ? (
-          <li className="col-span-full text-sm text-ink-muted">
-            Aún no hay productos en JSON. Añade entradas en <code className="rounded bg-neutral-100 px-1">content/products.json</code> o
-            importa desde el catálogo actual.
-          </li>
-        ) : (
-          list.map((p) => (
-            <li key={p.id} className="border border-neutral-200 bg-white p-6">
-              <Link href={`/tienda/${p.slug}`} className="font-medium text-ink hover:underline">
-                {p.name}
-              </Link>
-              <p className="mt-2 text-sm text-ink-muted">{formatPriceCOP(p.priceCOP)}</p>
+
+      {/* ── heading ──────────────────────────────────────────── */}
+      <div className="max-w-2xl">
+        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Tienda</h1>
+        <p className="mt-3 text-sm text-ink-muted">
+          Precio fijo en pesos colombianos. Pago 100% online con Mercado Pago — sin intermediarios,
+          sin sorpresas.
+        </p>
+      </div>
+
+      {/* ── category grid ────────────────────────────────────── */}
+      <div className="mt-10">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+          Explorar por categoría
+        </p>
+        <ul className="mt-4 grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+          {categories.map((cat) => (
+            <li key={cat}>
+              <a
+                href="#catalogo"
+                className="group relative block aspect-square overflow-hidden bg-neutral-100"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://picsum.photos/seed/${CATEGORY_IMAGES[cat]}/400/400`}
+                  alt={CATEGORY_LABELS[cat]}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-ink/40 transition-colors group-hover:bg-ink/55" />
+                <span className="absolute inset-x-0 bottom-0 p-3 font-display text-sm font-semibold text-paper">
+                  {CATEGORY_LABELS[cat]}
+                </span>
+              </a>
             </li>
-          ))
-        )}
-      </ul>
+          ))}
+        </ul>
+      </div>
+
+      {/* ── catalog ──────────────────────────────────────────── */}
+      <section id="catalogo" className="mt-16 border-t border-neutral-200 pt-10">
+        <TiendaCatalog products={list} />
+      </section>
     </div>
   );
 }

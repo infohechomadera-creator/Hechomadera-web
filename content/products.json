@@ -4,6 +4,109 @@
     "name": "Ejemplo — producto estándar",
     "slug": "ejemplo-producto-estandar",
     "priceCOP": 150000,
-    "description": "Producto de muestra para probar el checkout con Mercado Pago. Sustituye por artículos reales del catálogo cuando los tengas."
+    "description": "Producto de muestra para probar el checkout con Mercado Pago. Sustituye por artículos reales del catálogo cuando los tengas.",
+    "category": "cocinas",
+    "material": "MDF lacado",
+    "imageSlug": "hm-kitchen-1"
+  },
+  {
+    "id": "coc-001",
+    "name": "Cocina lineal en MDF blanco",
+    "slug": "cocina-lineal-mdf-blanco",
+    "priceCOP": 12500000,
+    "description": "Cocina de diseño minimalista en MDF lacado blanco mate. Herrajes ocultos, encimera de cuarzo y sistema de almacenamiento optimizado. Fabricada a medida para tu espacio.",
+    "category": "cocinas",
+    "material": "MDF lacado blanco",
+    "imageSlug": "hm-kitchen-2"
+  },
+  {
+    "id": "coc-002",
+    "name": "Cocina en L con isla central",
+    "slug": "cocina-en-l-con-isla",
+    "priceCOP": 18900000,
+    "description": "Diseño en L con isla central para mayor funcionalidad. Combinación de madera natural y lacado gris antracita. Incluye muebles altos, bajos e isla con espacio de almacenamiento.",
+    "category": "cocinas",
+    "material": "Madera natural + lacado gris",
+    "imageSlug": "hm-kitchen-3"
+  },
+  {
+    "id": "clos-001",
+    "name": "Closet corredero en roble natural",
+    "slug": "closet-corredero-roble-natural",
+    "priceCOP": 8700000,
+    "description": "Closet de puertas correderas en roble natural cepillado. Interior con módulos de cajones, colgadores dobles y estantes. Herrajes en negro mate.",
+    "category": "closets",
+    "material": "Roble natural",
+    "imageSlug": "hm-closet-1"
+  },
+  {
+    "id": "clos-002",
+    "name": "Vestier con cajoneras y espejos",
+    "slug": "vestier-cajoneras-espejos",
+    "priceCOP": 14200000,
+    "description": "Vestier completo con cajoneras, espejos de cuerpo completo y zona de accesorios. Acabado en melamínico blanco con detalles en nogal. Diseñado para maximizar el aprovechamiento del espacio.",
+    "category": "closets",
+    "material": "Melamínico blanco + nogal",
+    "imageSlug": "hm-closet-2"
+  },
+  {
+    "id": "ban-001",
+    "name": "Mueble de baño flotante en MDF lacado",
+    "slug": "mueble-bano-flotante-mdf",
+    "priceCOP": 4800000,
+    "description": "Mueble de baño suspendido en MDF lacado blanco con lavamanos integrado. Dos cajones con amortiguadores. Diseño limpio y atemporal.",
+    "category": "banos",
+    "material": "MDF lacado blanco",
+    "imageSlug": "hm-bath-1"
+  },
+  {
+    "id": "ban-002",
+    "name": "Vanitorio doble lavamanos en nogal",
+    "slug": "vanitorio-doble-lavamanos-nogal",
+    "priceCOP": 6500000,
+    "description": "Mueble de baño para dos lavamanos en nogal vaporizado. Acabado premium con herrajes dorados. Incluye espejo retroiluminado.",
+    "category": "banos",
+    "material": "Nogal vaporizado",
+    "imageSlug": "hm-bath-2"
+  },
+  {
+    "id": "sal-001",
+    "name": "Librero modular para sala",
+    "slug": "librero-modular-sala",
+    "priceCOP": 5200000,
+    "description": "Sistema de libreros modulares con combinación de módulos cerrados y abiertos. Acabado en blanco roto con interior en color arena. Se adapta a cualquier pared.",
+    "category": "sala-comedor",
+    "material": "MDF lacado blanco roto",
+    "imageSlug": "hm-living-1"
+  },
+  {
+    "id": "sal-002",
+    "name": "Buffet comedor en madera de nogal",
+    "slug": "buffet-comedor-nogal",
+    "priceCOP": 9100000,
+    "description": "Mueble auxiliar de comedor en madera de nogal sólida. Tres puertas con herrajes en bronce. Sobre de mármol incluido. Pieza de autor para el comedor.",
+    "category": "sala-comedor",
+    "material": "Nogal sólido + mármol",
+    "imageSlug": "hm-living-2"
+  },
+  {
+    "id": "est-001",
+    "name": "Escritorio en L para home office",
+    "slug": "escritorio-en-l-home-office",
+    "priceCOP": 4300000,
+    "description": "Escritorio en L optimizado para trabajo desde casa. Superficie amplia en melamínico wengué con estructura en acero negro mate. Incluye cajonera con ruedas.",
+    "category": "estudios",
+    "material": "Melamínico wengué + acero",
+    "imageSlug": "hm-study-1"
+  },
+  {
+    "id": "est-002",
+    "name": "Estante organizador de oficina",
+    "slug": "estante-organizador-oficina",
+    "priceCOP": 3800000,
+    "description": "Estantería de pared para oficina con módulos ajustables. Combinación de estantes abiertos y cajones. Acabado en blanco con detalles en madera clara.",
+    "category": "estudios",
+    "material": "MDF blanco + madera clara",
+    "imageSlug": "hm-study-2"
   }
 ]

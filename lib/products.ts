@@ -2,6 +2,13 @@
  * Catálogo marketplace — fuente: content/products.json
  * Añade o edita productos ahí (no hardcodear listas largas en componentes).
  */
+export type ProductCategory =
+  | "cocinas"
+  | "closets"
+  | "banos"
+  | "sala-comedor"
+  | "estudios";
+
 export type StoreProduct = {
   id: string;
   name: string;
@@ -9,6 +16,20 @@ export type StoreProduct = {
   priceCOP: number;
   /** Texto corto para ficha / SEO */
   description?: string;
+  /** Categoría para filtros */
+  category?: ProductCategory;
+  /** Material principal */
+  material?: string;
+  /** Seed para imagen placeholder (picsum) — reemplazar por ruta real cuando tengas fotos */
+  imageSlug?: string;
+};
+
+export const CATEGORY_LABELS: Record<ProductCategory, string> = {
+  cocinas: "Cocinas",
+  closets: "Closets & Vestiers",
+  banos: "Baños",
+  "sala-comedor": "Sala & Comedor",
+  estudios: "Estudios & Oficinas",
 };
 
 export function formatPriceCOP(amount: number): string {
