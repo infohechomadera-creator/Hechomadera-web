@@ -16,8 +16,17 @@
     "priceCOP": 12500000,
     "description": "Cocina de diseño minimalista en MDF lacado blanco mate. Herrajes ocultos, encimera de cuarzo y sistema de almacenamiento optimizado. Fabricada a medida para tu espacio.",
     "category": "cocinas",
-    "material": "MDF lacado blanco",
-    "imageSlug": "hm-kitchen-2"
+    "material": "MDF lacado blanco mate",
+    "imageSlug": "hm-kitchen-2",
+    "gallerySlug": ["hm-kitchen-2b", "hm-kitchen-2c", "hm-kitchen-2d"],
+    "dimensions": { "ancho": "A medida", "alto": "220 cm", "profundidad": "60 cm" },
+    "features": [
+      "Herrajes ocultos de apertura táctil",
+      "Encimera de cuarzo blanco incluida",
+      "Iluminación LED bajo muebles altos",
+      "Acabado lacado blanco mate resistente a manchas",
+      "Fabricación a medida según plano de tu cocina"
+    ]
   },
   {
     "id": "coc-002",
@@ -26,8 +35,17 @@
     "priceCOP": 18900000,
     "description": "Diseño en L con isla central para mayor funcionalidad. Combinación de madera natural y lacado gris antracita. Incluye muebles altos, bajos e isla con espacio de almacenamiento.",
     "category": "cocinas",
-    "material": "Madera natural + lacado gris",
-    "imageSlug": "hm-kitchen-3"
+    "material": "Madera natural + lacado gris antracita",
+    "imageSlug": "hm-kitchen-3",
+    "gallerySlug": ["hm-kitchen-3b", "hm-kitchen-3c"],
+    "dimensions": { "ancho": "A medida", "alto": "220 cm", "profundidad": "60 cm" },
+    "features": [
+      "Isla central con espacio de almacenamiento inferior",
+      "Combinación madera natural con lacado antracita",
+      "Herrajes Blum soft-close",
+      "Encimera de porcelanato efecto piedra",
+      "Diseño en L optimizado para circulación"
+    ]
   },
   {
     "id": "clos-001",
@@ -36,8 +54,17 @@
     "priceCOP": 8700000,
     "description": "Closet de puertas correderas en roble natural cepillado. Interior con módulos de cajones, colgadores dobles y estantes. Herrajes en negro mate.",
     "category": "closets",
-    "material": "Roble natural",
-    "imageSlug": "hm-closet-1"
+    "material": "Roble natural cepillado",
+    "imageSlug": "hm-closet-1",
+    "gallerySlug": ["hm-closet-1b", "hm-closet-1c"],
+    "dimensions": { "ancho": "A medida", "alto": "240 cm", "profundidad": "65 cm" },
+    "features": [
+      "Puertas correderas en roble natural cepillado",
+      "Interior con colgadores dobles y simples",
+      "Módulos de cajones con amortiguador",
+      "Herrajes de rieles en negro mate",
+      "Optimizado para habitaciones hasta 4 m de ancho"
+    ]
   },
   {
     "id": "clos-002",
@@ -47,7 +74,15 @@
     "description": "Vestier completo con cajoneras, espejos de cuerpo completo y zona de accesorios. Acabado en melamínico blanco con detalles en nogal. Diseñado para maximizar el aprovechamiento del espacio.",
     "category": "closets",
     "material": "Melamínico blanco + nogal",
-    "imageSlug": "hm-closet-2"
+    "imageSlug": "hm-closet-2",
+    "gallerySlug": ["hm-closet-2b"],
+    "features": [
+      "Espejo de cuerpo completo con iluminación lateral",
+      "Cajoneras con guías telescópicas",
+      "Zona de accesorios y porta-corbatas",
+      "Combinación melamínico blanco con detalles en nogal",
+      "Instalación incluida con nivelación de pisos"
+    ]
   },
   {
     "id": "ban-001",
@@ -57,7 +92,15 @@
     "description": "Mueble de baño suspendido en MDF lacado blanco con lavamanos integrado. Dos cajones con amortiguadores. Diseño limpio y atemporal.",
     "category": "banos",
     "material": "MDF lacado blanco",
-    "imageSlug": "hm-bath-1"
+    "imageSlug": "hm-bath-1",
+    "dimensions": { "ancho": "80 cm", "alto": "45 cm", "profundidad": "46 cm" },
+    "features": [
+      "Suspendido en pared — sin contacto con el piso",
+      "Dos cajones con cierre suave",
+      "Compatible con lavamanos de sobreponer o empotrar",
+      "MDF lacado resistente a humedad",
+      "Instalación incluida"
+    ]
   },
   {
     "id": "ban-002",
@@ -66,8 +109,16 @@
     "priceCOP": 6500000,
     "description": "Mueble de baño para dos lavamanos en nogal vaporizado. Acabado premium con herrajes dorados. Incluye espejo retroiluminado.",
     "category": "banos",
-    "material": "Nogal vaporizado",
-    "imageSlug": "hm-bath-2"
+    "material": "Nogal vaporizado + herrajes dorados",
+    "imageSlug": "hm-bath-2",
+    "dimensions": { "ancho": "120 cm", "alto": "50 cm", "profundidad": "46 cm" },
+    "features": [
+      "Doble espacio para dos lavamanos",
+      "Nogal vaporizado con acabado premium",
+      "Herrajes en dorado cepillado",
+      "Espejo retroiluminado LED incluido",
+      "Ideal para baños principales o suites"
+    ]
   },
   {
     "id": "sal-001",
@@ -77,7 +128,14 @@
     "description": "Sistema de libreros modulares con combinación de módulos cerrados y abiertos. Acabado en blanco roto con interior en color arena. Se adapta a cualquier pared.",
     "category": "sala-comedor",
     "material": "MDF lacado blanco roto",
-    "imageSlug": "hm-living-1"
+    "imageSlug": "hm-living-1",
+    "features": [
+      "Módulos combinables cerrados y abiertos",
+      "Interior en color arena con iluminación opcional",
+      "Retroiluminación LED en módulos abiertos",
+      "Instalación mural con sistema de rieles ocultos",
+      "Personalizable en ancho y distribución de módulos"
+    ]
   },
   {
     "id": "sal-002",
@@ -87,7 +145,15 @@
     "description": "Mueble auxiliar de comedor en madera de nogal sólida. Tres puertas con herrajes en bronce. Sobre de mármol incluido. Pieza de autor para el comedor.",
     "category": "sala-comedor",
     "material": "Nogal sólido + mármol",
-    "imageSlug": "hm-living-2"
+    "imageSlug": "hm-living-2",
+    "dimensions": { "ancho": "160 cm", "alto": "85 cm", "profundidad": "45 cm" },
+    "features": [
+      "Nogal sólido de primera calidad",
+      "Sobre en mármol Carrara natural incluido",
+      "Tres puertas con herrajes en bronce envejecido",
+      "Interior con estante regulable",
+      "Pieza de diseño con acabado artesanal"
+    ]
   },
   {
     "id": "est-001",
@@ -96,8 +162,16 @@
     "priceCOP": 4300000,
     "description": "Escritorio en L optimizado para trabajo desde casa. Superficie amplia en melamínico wengué con estructura en acero negro mate. Incluye cajonera con ruedas.",
     "category": "estudios",
-    "material": "Melamínico wengué + acero",
-    "imageSlug": "hm-study-1"
+    "material": "Melamínico wengué + acero negro",
+    "imageSlug": "hm-study-1",
+    "dimensions": { "ancho": "160 cm", "alto": "75 cm", "profundidad": "140 cm" },
+    "features": [
+      "Superficie en L de 160 × 140 cm",
+      "Cajonera móvil con ruedas incluida",
+      "Estructura en acero negro mate",
+      "Gestión de cables integrada",
+      "Altura estándar ergonómica 75 cm"
+    ]
   },
   {
     "id": "est-002",
@@ -107,6 +181,13 @@
     "description": "Estantería de pared para oficina con módulos ajustables. Combinación de estantes abiertos y cajones. Acabado en blanco con detalles en madera clara.",
     "category": "estudios",
     "material": "MDF blanco + madera clara",
-    "imageSlug": "hm-study-2"
+    "imageSlug": "hm-study-2",
+    "features": [
+      "Estantes regulables en altura",
+      "Módulos con cajones de almacenamiento",
+      "Instalación mural con sistema de rieles",
+      "Combinación blanco mate con madera clara",
+      "Modular — amplíable con módulos adicionales"
+    ]
   }
 ]
