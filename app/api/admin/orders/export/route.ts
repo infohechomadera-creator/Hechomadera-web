@@ -25,7 +25,15 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const limit = Number(url.searchParams.get("limit") ?? "500");
-  const orders = await listOrders(limit);
+  const from = url.searchParams.get("from") ?? "";
+  const to = url.searchParams.get("to") ?? "";
+  const allOrders = await listOrders(limit);
+  const orders = allOrders.filter((o) => {
+    const date = o.created_at.slice(0, 10);
+    if (from && date < from) return false;
+    if (to && date > to) return false;
+    return true;
+  });
 
   const header = [
     "order_id",
