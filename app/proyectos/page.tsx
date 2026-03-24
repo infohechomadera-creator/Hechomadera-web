@@ -5,7 +5,8 @@ import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Proyectos a medida",
-  description: "Cotización con precio desde, abono inicial y acompañamiento. Envío incluido en proyectos según alcance.",
+  description:
+    "Cotiza tu proyecto sin compromiso. Diseño y renders antes de fabricar, abono del 35% al confirmar. Carpintería digital en 10 ciudades de Colombia.",
 };
 
 export default function ProyectosPage() {

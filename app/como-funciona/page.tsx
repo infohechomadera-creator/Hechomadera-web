@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Cómo funciona",
-  description: "Pasos desde el primer contacto hasta la entrega: medidas, cotización, abono, fabricación e instalación.",
+  description:
+    "Proceso 100% digital de principio a fin: cuéntanos tu visión, diseñamos juntos con renders e IA, fabricamos e instalamos con tiempos acordados. Sin sorpresas.",
 };
 
 const steps = [

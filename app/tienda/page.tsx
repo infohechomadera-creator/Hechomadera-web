@@ -6,7 +6,8 @@ import { formatPriceCOP, type StoreProduct } from "@/lib/products";
 
 export const metadata: Metadata = {
   title: "Tienda",
-  description: "Productos estándar con precio en COP. Pago 100% online. Envío no incluido por defecto.",
+  description:
+    "Muebles y accesorios con precio fijo en pesos colombianos. Pago 100% online con Mercado Pago. Hechomadera — carpintería digital a medida.",
 };
 
 export default function TiendaPage() {

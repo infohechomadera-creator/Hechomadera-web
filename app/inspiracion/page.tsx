@@ -3,7 +3,8 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Inspiración",
-  description: "Ideas de estilo, materiales y ambientes para tu proyecto o compra en Hechomadera.",
+  description:
+    "Espacios diseñados y construidos por Hechomadera. Cocinas, closets, salas y proyectos a medida en Colombia. Encuentra inspiración para tu próxima remodelación.",
 };
 
 const PLACEHOLDER_IMAGES = [

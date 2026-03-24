@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Contacto y agenda",
-  description: "Ciudades de cobertura, formulario y WhatsApp. SLA: respuesta prioritaria por canales definidos.",
+  description:
+    "Escríbenos, agenda una asesoría o cotiza tu proyecto. Atención por WhatsApp en menos de 15 minutos. Presencia en 10 ciudades de Colombia.",
 };
 
 export default function ContactoPage() {

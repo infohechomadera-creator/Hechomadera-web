@@ -36,9 +36,37 @@ export default async function ProductoPage({ params }: Props) {
   }
 
   const titleCheckout = `Pedido — ${product.name}`;
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://hechomadera.com").replace(/\/$/, "");
+
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description ?? product.name,
+    url: `${base}/tienda/${product.slug}`,
+    brand: {
+      "@type": "Brand",
+      name: "Hechomadera",
+    },
+    offers: {
+      "@type": "Offer",
+      price: product.priceCOP,
+      priceCurrency: "COP",
+      availability: "https://schema.org/InStock",
+      url: `${base}/tienda/${product.slug}`,
+      seller: {
+        "@type": "Organization",
+        name: "Hechomadera",
+      },
+    },
+  };
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 md:px-6 md:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
         <Link href="/tienda" className="hover:underline">
           Tienda
