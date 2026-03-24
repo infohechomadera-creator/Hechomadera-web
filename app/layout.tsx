@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PromoBanner } from "@/components/layout/PromoBanner";
 import { CookieConsent } from "@/components/layout/CookieConsent";
+import { WhatsAppFloat } from "@/components/layout/WhatsAppFloat";
 import { JsonLdOrganization } from "@/components/seo/JsonLdOrganization";
 
 const inter = Inter({
@@ -69,6 +70,7 @@ export default function RootLayout({
         <SiteHeader />
         <main>{children}</main>
         <SiteFooter />
+        <WhatsAppFloat />
         <CookieConsent />
       </body>
     </html>

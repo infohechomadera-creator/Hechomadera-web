@@ -1,26 +1,33 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Página no encontrada",
+};
 
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-lg px-4 py-24 text-center md:px-6">
-      <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">404</p>
-      <h1 className="font-display mt-4 text-3xl font-semibold text-ink">Página no encontrada</h1>
-      <p className="mt-4 text-sm text-ink-muted">
-        La ruta no existe o ya no está disponible. Si buscabas una prueba de pago en producción, puede estar desactivada por
-        configuración.
+    <div className="mx-auto flex min-h-[60vh] max-w-6xl flex-col items-center justify-center px-4 py-20 text-center md:px-6">
+      <p className="font-mono text-xs font-semibold uppercase tracking-widest text-ink-muted">404</p>
+      <h1 className="mt-4 font-display text-3xl font-semibold text-ink md:text-4xl">
+        Esta página no existe.
+      </h1>
+      <p className="mt-4 max-w-md text-sm text-ink-muted">
+        El enlace puede estar roto o la página fue movida. Desde aquí podés volver al inicio o
+        escribirnos directamente.
       </p>
-      <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-center">
+      <div className="mt-10 flex flex-wrap justify-center gap-4">
         <Link
           href="/"
           className="inline-flex items-center justify-center border border-ink bg-ink px-6 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
         >
-          Ir al inicio
+          Volver al inicio
         </Link>
         <Link
           href="/contacto"
           className="inline-flex items-center justify-center border border-neutral-300 px-6 py-3 text-sm font-medium text-ink hover:border-ink"
         >
-          Contacto
+          Contactar
         </Link>
       </div>
     </div>
