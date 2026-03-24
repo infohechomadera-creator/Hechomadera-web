@@ -44,7 +44,7 @@ Mercado Pago puede agregar parámetros como `payment_id` / `collection_id`. Adem
 
    `https://TU_DOMINIO/api/payments/mercadopago/webhook`
 
-2. La ruta **`POST /api/payments/mercadopago/webhook`** ya responde `200` y deja el cuerpo en **logs de Vercel** (Functions). Falta, cuando tengas pedidos en base de datos: validar firma, consultar el pago por API y marcar el pedido como pagado.
+2. La ruta **`POST /api/payments/mercadopago/webhook`** ya consulta el pago por API, valida firma (modo suave o estricto) y actualiza la orden cuando recibe `external_reference=order_id`.
 
 3. Variable opcional (según evolución de la integración): `MERCADOPAGO_WEBHOOK_SECRET` — documentar en MP si aplica a tu flujo.
 4. Endurecimiento opcional:

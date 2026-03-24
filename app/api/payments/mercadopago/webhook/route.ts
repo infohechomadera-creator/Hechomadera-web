@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchMercadoPagoPayment, normalizePaymentState } from "@/lib/mercadopago";
 import { validateMercadoPagoWebhookSignature } from "@/lib/mercadopago-webhook-signature";
+import { updateOrderFromPayment } from "@/lib/orders-store";
 import { markPaymentProcessed, saveWebhookEvent } from "@/lib/webhook-events";
 
 export const runtime = "nodejs";
@@ -117,6 +118,19 @@ export async function POST(request: Request) {
     }
 
     const p = result.payment;
+    if (p.external_reference) {
+      await updateOrderFromPayment({
+        orderId: p.external_reference,
+        payment: {
+          id: p.id,
+          status: p.status,
+          status_detail: p.status_detail,
+          date_created: p.date_created,
+          date_approved: p.date_approved ?? null,
+          payment_method_id: p.payment_method_id,
+        },
+      });
+    }
     const dedupe = markPaymentProcessed(p.id ?? null);
     const normalizedStatus = normalizePaymentState(p.status);
     await saveWebhookEvent({

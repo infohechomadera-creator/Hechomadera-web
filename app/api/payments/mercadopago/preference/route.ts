@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createOrderId, sanitizeSourceReference } from "@/lib/orders";
+import { saveNewOrder } from "@/lib/orders-store";
 
 export const runtime = "nodejs";
 
@@ -130,6 +131,19 @@ export async function POST(request: Request) {
   if (!payUrl) {
     return NextResponse.json({ error: "Respuesta sin URL de pago.", details: data }, { status: 502 });
   }
+
+  await saveNewOrder({
+    order_id: orderId,
+    source_reference: sourceReference,
+    preference_id: data.id ?? null,
+    redirect_url: payUrl,
+    items: items.map((i) => ({
+      title: i.title,
+      quantity: i.quantity,
+      unit_price: i.unit_price,
+      currency_id: "COP",
+    })),
+  });
 
   return NextResponse.json({
     ok: true,

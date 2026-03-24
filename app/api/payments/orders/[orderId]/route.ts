@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchLatestPaymentByExternalReference, normalizePaymentState } from "@/lib/mercadopago";
+import { getOrder } from "@/lib/orders-store";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,16 @@ export async function GET(
   { params }: { params: Promise<{ orderId: string }> },
 ) {
   const { orderId } = await params;
+  const stored = await getOrder(orderId);
+
+  if (stored) {
+    return NextResponse.json({
+      ok: true,
+      source: "orders-store",
+      order: stored,
+    });
+  }
+
   const result = await fetchLatestPaymentByExternalReference(orderId);
 
   if (!result.ok) {
