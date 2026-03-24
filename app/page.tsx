@@ -53,7 +53,7 @@ const reviews = [
 const stats = [
   { value: "30 años", label: "de oficio" },
   { value: "10 ciudades", label: "de cobertura" },
-  { value: "Constructoras", label: "como respaldo" },
+  { value: "Gratitud", label: "de nuestros clientes" },
 ] as const;
 
 export default function HomePage() {
