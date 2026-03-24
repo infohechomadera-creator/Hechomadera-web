@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProjectEstimator } from "@/components/business/ProjectEstimator";
+import { StyleQuiz } from "@/components/business/StyleQuiz";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -210,6 +211,22 @@ export default function ProyectosPage() {
         </div>
         <div className="mt-6 max-w-2xl">
           <ProjectEstimator />
+        </div>
+      </div>
+
+      {/* ── Style Quiz ───────────────────────────────────────── */}
+      <div className="mt-16 border-t border-neutral-200 pt-12">
+        <div className="max-w-2xl">
+          <h2 className="font-display text-xl font-semibold text-ink">
+            ¿Cuál es tu estilo?
+          </h2>
+          <p className="mt-2 text-sm text-ink-muted">
+            8 preguntas para descubrir la línea estética de tu proyecto. Al final te decimos qué
+            materiales y acabados van contigo.
+          </p>
+        </div>
+        <div className="mt-6 max-w-2xl">
+          <StyleQuiz />
         </div>
       </div>
 
