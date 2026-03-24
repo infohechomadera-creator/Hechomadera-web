@@ -85,7 +85,7 @@ export default function HomePage() {
                   Cotizar mi proyecto
                 </Link>
                 <Link
-                  href="/como-funciona"
+                  href="/proyectos"
                   className="inline-flex items-center justify-center border border-ink px-6 py-4 text-sm font-medium tracking-wide text-ink hover:bg-ink hover:text-paper"
                 >
                   Ver cómo funciona
@@ -156,7 +156,7 @@ export default function HomePage() {
 
           <div className="mt-8">
             <Link
-              href="/como-funciona"
+              href="/proyectos"
               className="text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
             >
               Ver el proceso completo →

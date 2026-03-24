@@ -33,7 +33,6 @@ export const navItems = [
   { href: "/", label: "Inicio" },
   { href: "/tienda", label: "Tienda" },
   { href: "/proyectos", label: "Proyectos a medida" },
-  { href: "/como-funciona", label: "Cómo funciona" },
   { href: "/inspiracion", label: "Inspiración" },
   { href: "/nosotros", label: "Nosotros" },
   { href: "/contacto", label: "Contacto" },
