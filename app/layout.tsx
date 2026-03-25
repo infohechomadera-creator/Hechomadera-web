@@ -26,11 +26,11 @@ const display = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hechomadera — Carpintería y Muebles a Medida en Colombia",
+    default: "Hechomadera — Cocinas Integrales, Closets y Carpintería a Medida en Colombia",
     template: "%s | Hechomadera",
   },
   description:
-    "Carpintería arquitectónica, muebles de madera, cocinas, closets y remodelación a medida. 30 años de oficio, proceso 100% digital, carpinteros en Bogotá, Medellín, Cali, Barranquilla y más ciudades de Colombia.",
+    "Cocinas integrales, closets, muebles de madera y carpintería arquitectónica a medida. Ebanistería con 30 años de oficio, diseño digital y fabricación en Bogotá, Medellín, Cali, Barranquilla y más ciudades de Colombia.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: {
     locale: "es_CO",
@@ -53,9 +53,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hechomadera — Carpintería y Muebles a Medida en Colombia",
+    title: "Hechomadera — Cocinas Integrales, Closets y Carpintería a Medida en Colombia",
     description:
-      "Carpintería arquitectónica, muebles de madera, cocinas y closets a medida. Carpinteros en Bogotá, Medellín, Cali y más. 30 años de oficio.",
+      "Cocinas integrales, closets modernos, muebles de madera y ebanistería a medida. Carpinteros en Bogotá, Medellín, Cali y más. 30 años de oficio.",
     images: ["/og-image.jpg"],
   },
 };

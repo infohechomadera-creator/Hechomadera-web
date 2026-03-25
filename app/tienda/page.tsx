@@ -4,9 +4,9 @@ import { CATEGORY_LABELS, type StoreProduct, type ProductCategory } from "@/lib/
 import { TiendaCatalog } from "@/components/business/TiendaCatalog";
 
 export const metadata: Metadata = {
-  title: "Tienda — Muebles de Madera, Cocinas y Closets a Medida",
+  title: "Tienda — Cocinas Integrales, Closets y Muebles de Madera a Medida",
   description:
-    "Muebles de carpintería a medida con precio fijo en pesos colombianos: cocinas de madera, closets, muebles de baño, sala y estudio. Alternativa a Madecentro con proceso digital. Pago online seguro.",
+    "Cocinas integrales, closets modernos, muebles de baño, vestidores y carpintería arquitectónica con precio fijo. Alternativa a Madecentro, Jamar y Homecenter: fabricación a medida con diseño y proceso digital. Pago online seguro.",
 };
 
 /* ─── category card images (placeholder seeds) ──────────── */
@@ -27,10 +27,9 @@ export default function TiendaPage() {
 
       {/* ── heading ──────────────────────────────────────────── */}
       <div className="max-w-2xl">
-        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Muebles de Carpintería a Medida</h1>
+        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Cocinas Integrales, Closets y Muebles de Madera</h1>
         <p className="mt-3 text-sm text-ink-muted">
-          Cocinas de madera, closets, muebles de baño y más — precio fijo en pesos colombianos,
-          pago 100% online. Sin intermediarios, sin sorpresas.
+          Carpintería arquitectónica a medida: cocinas integrales, closets modernos, vestidores, muebles de baño y ebanistería — precio fijo en pesos colombianos, pago 100% online.
         </p>
       </div>
 

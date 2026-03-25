@@ -4,9 +4,9 @@ import { getWhatsAppHref } from "@/lib/whatsapp";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Nosotros — Carpinteros con 30 Años de Oficio en Colombia",
+  title: "Nosotros — Ebanistería y Carpintería Arquitectónica con 30 Años de Oficio",
   description:
-    "Somos una carpintería arquitectónica con 30 años de experiencia. Muebles de madera, cocinas, closets y remodelación a medida en 10 ciudades de Colombia. La carpintería que combina oficio real con proceso digital.",
+    "La carpintería con 30 años de experiencia en Colombia. Fabricamos cocinas integrales, closets modernos, muebles de madera y carpintería arquitectónica a medida. Ebanistería real, proceso digital, presencia en 10 ciudades.",
 };
 
 const stats = [

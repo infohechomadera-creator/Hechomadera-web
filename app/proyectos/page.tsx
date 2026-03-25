@@ -7,9 +7,9 @@ import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Proyectos a Medida — Carpintería Arquitectónica y Remodelación",
+  title: "Proyectos a Medida — Cocinas Integrales, Closets y Remodelación en Colombia",
   description:
-    "Carpintería arquitectónica a medida: cocinas, closets, muebles de madera y remodelación con diseño, renders y proceso claro. Carpinteros en Bogotá, Medellín, Cali, Barranquilla y más ciudades de Colombia.",
+    "Fábrica de cocinas integrales, closets, vestidores y carpintería arquitectónica. Diseño, renders, fabricación e instalación a medida. Carpinteros y ebanistas en Bogotá, Medellín, Cali, Barranquilla, Santa Marta y más.",
 };
 
 /* ─── Timeline data ──────────────────────────────────────── */

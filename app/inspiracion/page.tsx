@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Inspiración — Cocinas, Closets y Muebles de Madera a Medida",
+  title: "Inspiración — Cocinas Integrales, Closets y Ebanistería a Medida",
   description:
-    "Galería de cocinas de madera, closets, muebles de baño y proyectos de remodelación a medida en Colombia. Inspírate para tu próximo proyecto de carpintería arquitectónica.",
+    "Galería de cocinas integrales, closets modernos, vestidores, muebles de madera y proyectos de remodelación en Colombia. Inspírate para tu proyecto de carpintería arquitectónica o ebanistería.",
 };
 
 const PLACEHOLDER_IMAGES = [

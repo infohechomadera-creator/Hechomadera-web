@@ -7,9 +7,9 @@ import { getWhatsAppHref } from "@/lib/whatsapp";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Contacto — Carpinteros en Bogotá, Medellín, Cali y más",
+  title: "Contacto — Carpinteros y Cocinas Integrales en Bogotá, Medellín, Cali y más",
   description:
-    "Carpinterías en Bogotá, Medellín, Cali, Barranquilla, Santa Marta, Cartagena, Valledupar, Montería, Sincelejo y Ciénaga. Cotiza tu proyecto de carpintería o remodelación — respuesta en menos de 15 minutos.",
+    "Carpinteros y carpinterías en Bogotá, Medellín, Cali, Barranquilla, Santa Marta, Cartagena y más. Cotiza cocinas integrales, closets, muebles de madera y remodelación — respuesta en menos de 15 minutos.",
 };
 
 export default function ContactoPage() {

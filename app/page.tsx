@@ -80,14 +80,13 @@ export default function HomePage() {
         <div className="relative z-10 flex min-h-[85vh] items-center">
           <div className="mx-auto max-w-6xl px-6 py-24 md:px-10">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
-              Colombia · Carpintería digital
+              Cocinas integrales · Closets · Carpintería arquitectónica · Colombia
             </p>
             <h1 className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-paper md:text-5xl lg:text-6xl">
               Hay espacios que cambian cómo te sientes al llegar a casa.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-paper/80">
-              Los diseñamos y construimos contigo — proceso claro, precios transparentes
-              y experiencia que vale la pena.
+              Fabricamos cocinas integrales, closets, vestidores y muebles de madera a medida — con diseño, renders y proceso claro. Carpinteros y ebanistas en 10 ciudades de Colombia.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
