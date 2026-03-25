@@ -80,7 +80,7 @@ export default function HomePage() {
               <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link
                   href="/proyectos"
-                  className="inline-flex items-center justify-center border border-accent bg-accent px-6 py-4 text-sm font-medium tracking-wide text-paper hover:bg-accent-hover"
+                  className="inline-flex items-center justify-center border border-ink bg-ink px-6 py-4 text-sm font-medium tracking-wide text-paper hover:bg-neutral-800"
                 >
                   Cotizar mi proyecto
                 </Link>

@@ -100,7 +100,7 @@ export default function ProyectosPage() {
             target="_blank"
             rel="noopener noreferrer"
             data-track-location="proyectos_hero"
-            className="inline-flex items-center justify-center border border-accent bg-accent px-5 py-3 text-sm font-medium text-paper hover:bg-accent-hover"
+            className="inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
           >
             Solicitar cotización
           </a>
@@ -263,7 +263,7 @@ export default function ProyectosPage() {
               target="_blank"
               rel="noopener noreferrer"
               data-track-location="proyectos_cta_final"
-              className="inline-flex items-center justify-center border border-accent bg-accent px-6 py-3 text-sm font-medium text-paper hover:bg-accent-hover"
+              className="inline-flex items-center justify-center border border-paper bg-paper px-6 py-3 text-sm font-medium text-ink hover:bg-neutral-100"
             >
               WhatsApp — respuesta en 15 min
             </a>
