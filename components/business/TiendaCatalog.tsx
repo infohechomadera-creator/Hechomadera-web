@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { formatPriceCOP, CATEGORY_LABELS, type StoreProduct, type ProductCategory } from "@/lib/products";
+import { track } from "@/lib/analytics";
 
 /* ─── price buckets ──────────────────────────────────────── */
 const PRICE_RANGES = [
@@ -74,9 +75,11 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
   const categories = Object.keys(CATEGORY_LABELS) as ProductCategory[];
 
   function toggleCategory(cat: ProductCategory) {
-    setActiveCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
-    );
+    setActiveCategories((prev) => {
+      const next = prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat];
+      track("filter_apply", { type: "category", value: cat });
+      return next;
+    });
   }
 
   const filtered = useMemo(() => {

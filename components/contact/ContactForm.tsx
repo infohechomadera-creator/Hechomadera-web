@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { siteConfig } from "@/lib/site-config";
+import { track } from "@/lib/analytics";
 
 export function ContactForm() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -39,6 +40,7 @@ export function ContactForm() {
       }
 
       setStatus("success");
+      track("contact_form_submit", { city: payload.city });
       form.reset();
     } catch {
       setStatus("error");

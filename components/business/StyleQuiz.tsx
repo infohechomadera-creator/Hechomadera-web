@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getWhatsAppHref } from "@/lib/whatsapp";
+import { track } from "@/lib/analytics";
 
 /* ─── style keys ─────────────────────────────────────────── */
 type StyleKey = "minimal" | "rustico" | "sofisticado" | "industrial" | "escandinavo" | "ecletico";
@@ -200,6 +201,7 @@ export function StyleQuiz() {
     setSelected(null);
     if (current + 1 >= total) {
       setDone(true);
+      track("quiz_complete", { style: computeResult([...answers, selected]) });
     } else {
       setCurrent(current + 1);
     }

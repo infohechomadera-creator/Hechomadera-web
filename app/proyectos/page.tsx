@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProjectEstimator } from "@/components/business/ProjectEstimator";
 import { StyleQuiz } from "@/components/business/StyleQuiz";
+import { PdfDownloadButton } from "@/components/business/PdfDownloadButton";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -242,16 +243,7 @@ export default function ProyectosPage() {
               paso a paso — es gratis y te ahorra tiempo.
             </p>
           </div>
-          <a
-            href="/guia-de-medidas.pdf"
-            download
-            className="inline-flex shrink-0 items-center justify-center gap-2 border border-ink bg-white px-6 py-3 text-sm font-medium text-ink hover:bg-neutral-50"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M8 1v9M4 7l4 4 4-4M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Descargar guía (PDF)
-          </a>
+          <PdfDownloadButton />
         </div>
       </div>
 

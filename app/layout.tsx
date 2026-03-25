@@ -7,6 +7,8 @@ import { PromoBanner } from "@/components/layout/PromoBanner";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { WhatsAppFloat } from "@/components/layout/WhatsAppFloat";
 import { JsonLdOrganization } from "@/components/seo/JsonLdOrganization";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -72,6 +74,8 @@ export default function RootLayout({
         <SiteFooter />
         <WhatsAppFloat />
         <CookieConsent />
+        <GoogleAnalytics />
+        <Analytics />
       </body>
     </html>
   );

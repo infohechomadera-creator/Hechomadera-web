@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 type Props = {
   label?: string;
@@ -25,6 +26,7 @@ export function StartCheckoutButton({
   async function onClick() {
     setLoading(true);
     setError(null);
+    track("checkout_start", { product: title, price: unitPrice });
     try {
       const res = await fetch("/api/payments/mercadopago/preference", {
         method: "POST",
@@ -51,6 +53,7 @@ export function StartCheckoutButton({
       setError("Respuesta sin URL de pago.");
     } catch {
       setError("Error de red. Intenta de nuevo.");
+      track("checkout_error", { product: title, reason: "network" });
     } finally {
       setLoading(false);
     }

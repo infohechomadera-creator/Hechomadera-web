@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getWhatsAppHref } from "@/lib/whatsapp";
+import { track } from "@/lib/analytics";
 
 /* ─── types ─────────────────────────────────────────────── */
 type SpaceKey = "cocina" | "closet" | "bano" | "sala" | "estudio" | "multiple";
@@ -268,7 +269,12 @@ export function ProjectEstimator() {
               <button
                 type="button"
                 disabled={!tier}
-                onClick={() => setStep(4)}
+                onClick={() => {
+                  setStep(4);
+                  if (space && size && tier) {
+                    track("estimator_complete", { space, size, tier });
+                  }
+                }}
                 className="border border-ink bg-ink px-6 py-2 text-sm font-medium text-paper transition-opacity hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Ver estimado
