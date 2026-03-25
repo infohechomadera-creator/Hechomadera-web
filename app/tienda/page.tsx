@@ -4,9 +4,9 @@ import { CATEGORY_LABELS, type StoreProduct, type ProductCategory } from "@/lib/
 import { TiendaCatalog } from "@/components/business/TiendaCatalog";
 
 export const metadata: Metadata = {
-  title: "Tienda",
+  title: "Tienda — Muebles de Madera, Cocinas y Closets a Medida",
   description:
-    "Muebles y accesorios con precio fijo en pesos colombianos. Cocinas, closets, baños, sala y estudios a medida. Pago 100% online con Mercado Pago. Hechomadera.",
+    "Muebles de carpintería a medida con precio fijo en pesos colombianos: cocinas de madera, closets, muebles de baño, sala y estudio. Alternativa a Madecentro con proceso digital. Pago online seguro.",
 };
 
 /* ─── category card images (placeholder seeds) ──────────── */
@@ -27,10 +27,10 @@ export default function TiendaPage() {
 
       {/* ── heading ──────────────────────────────────────────── */}
       <div className="max-w-2xl">
-        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Tienda</h1>
+        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Muebles de Carpintería a Medida</h1>
         <p className="mt-3 text-sm text-ink-muted">
-          Precio fijo en pesos colombianos. Pago 100% online con Mercado Pago — sin intermediarios,
-          sin sorpresas.
+          Cocinas de madera, closets, muebles de baño y más — precio fijo en pesos colombianos,
+          pago 100% online. Sin intermediarios, sin sorpresas.
         </p>
       </div>
 

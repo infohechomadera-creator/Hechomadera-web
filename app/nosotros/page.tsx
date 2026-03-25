@@ -4,9 +4,9 @@ import { getWhatsAppHref } from "@/lib/whatsapp";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Nosotros",
+  title: "Nosotros — Carpinteros con 30 Años de Oficio en Colombia",
   description:
-    "Hechomadera es una carpintería digital que une 30 años de oficio artesanal con diseño, tecnología e inteligencia artificial para transformar tu hogar.",
+    "Somos una carpintería arquitectónica con 30 años de experiencia. Muebles de madera, cocinas, closets y remodelación a medida en 10 ciudades de Colombia. La carpintería que combina oficio real con proceso digital.",
 };
 
 const stats = [

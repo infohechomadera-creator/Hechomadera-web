@@ -26,11 +26,11 @@ const display = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   title: {
-    default: "Hechomadera — Carpintería digital a medida en Colombia",
+    default: "Hechomadera — Carpintería y Muebles a Medida en Colombia",
     template: "%s | Hechomadera",
   },
   description:
-    "Diseñamos y construimos tu espacio a medida con proceso 100% digital, precios transparentes y experiencia que vale la pena. 30 años de oficio, 10 ciudades en Colombia.",
+    "Carpintería arquitectónica, muebles de madera, cocinas, closets y remodelación a medida. 30 años de oficio, proceso 100% digital, carpinteros en Bogotá, Medellín, Cali, Barranquilla y más ciudades de Colombia.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
   openGraph: {
     locale: "es_CO",
@@ -47,15 +47,15 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Hechomadera — Carpintería digital a medida en Colombia",
+        alt: "Hechomadera — Carpintería y Muebles a Medida en Colombia",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Hechomadera — Carpintería digital a medida en Colombia",
+    title: "Hechomadera — Carpintería y Muebles a Medida en Colombia",
     description:
-      "Diseñamos y construimos tu espacio a medida. Proceso digital, precios transparentes, 30 años de oficio. Colombia.",
+      "Carpintería arquitectónica, muebles de madera, cocinas y closets a medida. Carpinteros en Bogotá, Medellín, Cali y más. 30 años de oficio.",
     images: ["/og-image.jpg"],
   },
 };

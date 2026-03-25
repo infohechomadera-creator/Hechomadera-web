@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Inspiración",
+  title: "Inspiración — Cocinas, Closets y Muebles de Madera a Medida",
   description:
-    "Espacios diseñados y construidos por Hechomadera. Cocinas, closets, salas y proyectos a medida en Colombia. Encuentra inspiración para tu próxima remodelación.",
+    "Galería de cocinas de madera, closets, muebles de baño y proyectos de remodelación a medida en Colombia. Inspírate para tu próximo proyecto de carpintería arquitectónica.",
 };
 
 const PLACEHOLDER_IMAGES = [

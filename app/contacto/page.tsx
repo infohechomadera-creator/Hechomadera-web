@@ -7,9 +7,9 @@ import { getWhatsAppHref } from "@/lib/whatsapp";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Contacto y agenda",
+  title: "Contacto — Carpinteros en Bogotá, Medellín, Cali y más",
   description:
-    "Escríbenos, agenda una asesoría o cotiza tu proyecto. Atención por WhatsApp en menos de 15 minutos. Presencia en 10 ciudades de Colombia.",
+    "Carpinterías en Bogotá, Medellín, Cali, Barranquilla, Santa Marta, Cartagena, Valledupar, Montería, Sincelejo y Ciénaga. Cotiza tu proyecto de carpintería o remodelación — respuesta en menos de 15 minutos.",
 };
 
 export default function ContactoPage() {
@@ -19,8 +19,7 @@ export default function ContactoPage() {
     <div data-track-section="contacto-main" className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
       <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Contacto</h1>
       <p className="mt-4 max-w-2xl text-ink-muted">
-        Cobertura inicial: {siteConfig.cities.join(", ")}. Prioridad: WhatsApp &lt; 15 min · formulario &lt; 3h (objetivo
-        operativo).
+        Carpinteros y carpinterías a medida en {siteConfig.cities.join(", ")}. Respuesta por WhatsApp en menos de 15 min.
       </p>
 
       <div className="mt-10 grid gap-12 lg:grid-cols-2">

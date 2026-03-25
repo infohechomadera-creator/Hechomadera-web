@@ -7,9 +7,9 @@ import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "Proyectos a medida",
+  title: "Proyectos a Medida — Carpintería Arquitectónica y Remodelación",
   description:
-    "Diseño, renders y fabricación a medida. Proceso 100% claro: cotización, abono del 35% online y seguimiento en cada etapa. Carpintería digital en 10 ciudades de Colombia.",
+    "Carpintería arquitectónica a medida: cocinas, closets, muebles de madera y remodelación con diseño, renders y proceso claro. Carpinteros en Bogotá, Medellín, Cali, Barranquilla y más ciudades de Colombia.",
 };
 
 /* ─── Timeline data ──────────────────────────────────────── */
