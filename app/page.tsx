@@ -60,62 +60,58 @@ export default function HomePage() {
   return (
     <div>
 
-      {/* ── 1. HERO ─────────────────────────────────────────────── */}
-      <section data-track-section="home-hero" className="border-b border-neutral-200 bg-paper">
-        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
-          <div className="grid gap-12 lg:grid-cols-5 lg:items-center">
+      {/* ── 1. HERO — banner full width con texto superpuesto ────── */}
+      <section
+        data-track-section="home-hero"
+        className="relative min-h-[85vh] w-full overflow-hidden"
+      >
+        {/* Imagen de fondo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="https://picsum.photos/seed/hm-hero-main/1600/900"
+          alt="Espacio a medida por Hechomadera"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
 
-            {/* Texto */}
-            <div className="lg:col-span-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">
-                Colombia · Carpintería digital
-              </p>
-              <h1 className="font-display mt-4 max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-ink md:text-5xl lg:text-6xl">
-                Hay espacios que cambian cómo te sientes al llegar a casa.
-              </h1>
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-muted">
-                Los diseñamos y construimos contigo — proceso claro, precios transparentes
-                y experiencia que vale la pena.
-              </p>
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Link
-                  href="/proyectos"
-                  className="inline-flex items-center justify-center border border-ink bg-ink px-6 py-4 text-sm font-medium tracking-wide text-paper hover:bg-neutral-800"
-                >
-                  Cotizar mi proyecto
-                </Link>
-                <Link
-                  href="/proyectos"
-                  className="inline-flex items-center justify-center border border-ink px-6 py-4 text-sm font-medium tracking-wide text-ink hover:bg-ink hover:text-paper"
-                >
-                  Ver cómo funciona
-                </Link>
-                <a
-                  href={wa}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-track-location="hero"
-                  className="inline-flex items-center justify-center px-2 py-4 text-sm text-ink-muted underline underline-offset-4 hover:text-ink sm:px-4"
-                >
-                  Hablar por WhatsApp
-                </a>
-              </div>
+        {/* Overlay oscuro para legibilidad del texto */}
+        <div className="absolute inset-0 bg-ink/55" />
+
+        {/* Contenido superpuesto */}
+        <div className="relative z-10 flex min-h-[85vh] items-center">
+          <div className="mx-auto max-w-6xl px-6 py-24 md:px-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
+              Colombia · Carpintería digital
+            </p>
+            <h1 className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-paper md:text-5xl lg:text-6xl">
+              Hay espacios que cambian cómo te sientes al llegar a casa.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-paper/80">
+              Los diseñamos y construimos contigo — proceso claro, precios transparentes
+              y experiencia que vale la pena.
+            </p>
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link
+                href="/proyectos"
+                className="inline-flex items-center justify-center border border-paper bg-paper px-6 py-4 text-sm font-medium tracking-wide text-ink hover:bg-paper/90"
+              >
+                Cotizar mi proyecto
+              </Link>
+              <Link
+                href="/proyectos"
+                className="inline-flex items-center justify-center border border-paper/60 px-6 py-4 text-sm font-medium tracking-wide text-paper hover:border-paper hover:bg-paper/10"
+              >
+                Ver cómo funciona
+              </Link>
+              <a
+                href={wa}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-track-location="hero"
+                className="inline-flex items-center justify-center px-2 py-4 text-sm text-paper/70 underline underline-offset-4 hover:text-paper sm:px-4"
+              >
+                Hablar por WhatsApp
+              </a>
             </div>
-
-            {/* Imagen hero — placeholder */}
-            <div className="hidden lg:col-span-2 lg:block">
-              <div className="aspect-[4/5] w-full overflow-hidden border border-neutral-200 bg-neutral-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="https://picsum.photos/seed/hm-hero-main/800/1000"
-                  alt="Espacio a medida por Hechomadera"
-                  width={800}
-                  height={1000}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </div>
-
           </div>
         </div>
       </section>
