@@ -1,18 +1,33 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+function isAuthenticated(request: NextRequest): boolean {
+  const session = request.cookies.get("hm_admin")?.value;
+  const expected = process.env.ADMIN_PASSWORD;
+  return !!expected && session === expected;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protect all /admin routes except the login page itself
-  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
-    const session = request.cookies.get("hm_admin")?.value;
-    const expected = process.env.ADMIN_PASSWORD;
+  // Skip the login page and the auth API endpoint
+  if (pathname === "/admin/login" || pathname === "/api/admin/auth") {
+    return NextResponse.next();
+  }
 
-    if (!expected || session !== expected) {
+  // Protect /admin/* UI routes — redirect to login
+  if (pathname.startsWith("/admin")) {
+    if (!isAuthenticated(request)) {
       const url = request.nextUrl.clone();
       url.pathname = "/admin/login";
       return NextResponse.redirect(url);
+    }
+  }
+
+  // Protect /api/admin/* routes — return 401
+  if (pathname.startsWith("/api/admin")) {
+    if (!isAuthenticated(request)) {
+      return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 401 });
     }
   }
 
@@ -20,5 +35,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { isValidAdminToken } from "@/lib/admin-auth";
 import { listOrders, type StoredOrder } from "@/lib/orders-store";
+import { LogoutButton } from "@/components/admin/LogoutButton";
 
 export const metadata: Metadata = {
   title: "Admin · Órdenes",
@@ -10,7 +10,6 @@ export const metadata: Metadata = {
 
 type Props = {
   searchParams: Promise<{
-    token?: string;
     status?: string;
     limit?: string;
     from?: string;
@@ -75,21 +74,7 @@ function KPICard({ label, value, sub, highlight }: KPICardProps) {
 }
 
 export default async function AdminOrdersPage({ searchParams }: Props) {
-  const { token, status, limit, from, to } = await searchParams;
-  const authorized = isValidAdminToken(token ?? null);
-
-  if (!authorized) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-16 md:px-6">
-        <h1 className="font-display text-3xl font-semibold text-ink">Admin (protegido)</h1>
-        <p className="mt-4 text-sm text-ink-muted">
-          Acceso restringido. Abre esta ruta con{" "}
-          <code className="rounded bg-neutral-100 px-1">?token=TU_ADMIN_API_TOKEN</code>.
-        </p>
-      </div>
-    );
-  }
-
+  const { status, limit, from, to } = await searchParams;
   const parsedLimit = Math.max(1, Math.min(200, Number(limit) || 50));
   const all = await listOrders(parsedLimit);
 
@@ -102,20 +87,21 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   // KPIs calculados sobre órdenes con fecha aplicada (sin filtro de estado)
   const kpis = computeKPIs(dateFiltered);
 
-  const tokenQ = encodeURIComponent(token!);
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-semibold text-ink">Admin · Órdenes</h1>
-        <Link
-          href={`/api/admin/orders/export?token=${tokenQ}${from ? `&from=${from}` : ""}${to ? `&to=${to}` : ""}`}
-          className="inline-flex items-center justify-center border border-ink bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-neutral-800"
-        >
-          Exportar CSV
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href={`/api/admin/orders/export${from || to ? `?${from ? `from=${from}` : ""}${from && to ? "&" : ""}${to ? `to=${to}` : ""}` : ""}`}
+            className="inline-flex items-center justify-center border border-ink bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-neutral-800"
+          >
+            Exportar CSV
+          </Link>
+          <LogoutButton />
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -155,7 +141,6 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
       {/* Filtros */}
       <form method="get" className="mt-8 grid gap-3 rounded border border-neutral-200 bg-white p-4 sm:grid-cols-5">
-        <input type="hidden" name="token" value={token} />
 
         <label className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
           Estado
@@ -213,7 +198,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             Aplicar
           </button>
           <Link
-            href={`/admin?token=${tokenQ}`}
+            href="/admin"
             className="border border-neutral-200 px-4 py-2 text-sm text-ink-muted hover:border-neutral-400"
           >
             Limpiar
@@ -248,7 +233,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
               <tr key={o.order_id} className="border-b border-neutral-100 hover:bg-neutral-50">
                 <td className="px-3 py-2">
                   <Link
-                    href={`/admin/orders/${encodeURIComponent(o.order_id)}?token=${tokenQ}`}
+                    href={`/admin/orders/${encodeURIComponent(o.order_id)}`}
                     className="underline"
                   >
                     {o.order_id}

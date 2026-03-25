@@ -1,4 +1,3 @@
-import { isAdminAuthorized } from "@/lib/admin-auth";
 import { listOrders } from "@/lib/orders-store";
 
 export const runtime = "nodejs";
@@ -16,13 +15,6 @@ function esc(value: unknown): string {
  * Exporta órdenes a CSV para análisis externo.
  */
 export async function GET(request: Request) {
-  if (!isAdminAuthorized(request)) {
-    return new Response(JSON.stringify({ ok: false, error: "No autorizado" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   const url = new URL(request.url);
   const limit = Number(url.searchParams.get("limit") ?? "500");
   const from = url.searchParams.get("from") ?? "";
