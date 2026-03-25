@@ -24,12 +24,12 @@ const steps = [
 ] as const;
 
 const gallery = [
-  { seed: "hm-cocina-1", label: "Cocina a medida" },
-  { seed: "hm-closet-2", label: "Closet integrado" },
-  { seed: "hm-sala-3", label: "Sala y comedor" },
-  { seed: "hm-detalle-4", label: "Acabado en madera" },
-  { seed: "hm-bano-5", label: "Mueble de baño" },
-  { seed: "hm-taller-6", label: "Proceso de fabricación" },
+  { seed: "hm-cocina-1", label: "Cocina integral a medida", alt: "Cocina integral a medida en madera — carpintería arquitectónica Hechomadera Colombia" },
+  { seed: "hm-closet-2", label: "Closet integrado", alt: "Closet a medida empotrado — ebanistería y muebles de madera Colombia" },
+  { seed: "hm-sala-3", label: "Sala y comedor", alt: "Muebles de sala y comedor a medida — carpintería y ebanistería Colombia" },
+  { seed: "hm-detalle-4", label: "Acabado en madera", alt: "Detalle de mueble de madera — muebles a medida con herrajes Blum Colombia" },
+  { seed: "hm-bano-5", label: "Mueble de baño", alt: "Mueble de baño a medida en MDF lacado — vanitorios y ebanistería Colombia" },
+  { seed: "hm-taller-6", label: "Proceso de fabricación", alt: "Taller de fabricación Hechomadera — cocinas integrales y closets a medida en Colombia" },
 ] as const;
 
 const reviews = [
@@ -69,7 +69,7 @@ export default function HomePage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/banner.png"
-          alt="Cocina a medida por Hechomadera"
+          alt="Cocina integral a medida — carpintería arquitectónica y ebanistería por Hechomadera Colombia"
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
 
@@ -233,7 +233,7 @@ export default function HomePage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`https://picsum.photos/seed/${item.seed}/800/600`}
-                    alt={item.label}
+                    alt={item.alt}
                     width={800}
                     height={600}
                     className="h-full w-full object-cover"

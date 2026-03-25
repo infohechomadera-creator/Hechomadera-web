@@ -6,7 +6,8 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PromoBanner } from "@/components/layout/PromoBanner";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { WhatsAppFloat } from "@/components/layout/WhatsAppFloat";
-import { JsonLdOrganization } from "@/components/seo/JsonLdOrganization";
+import { JsonLdSite } from "@/components/seo/JsonLdSite";
+import { JsonLdFaq } from "@/components/seo/JsonLdFaq";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { PageTracker } from "@/components/analytics/PageTracker";
 import { Analytics } from "@vercel/analytics/react";
@@ -32,6 +33,31 @@ export const metadata: Metadata = {
   description:
     "Cocinas integrales, closets, muebles de madera y carpintería arquitectónica a medida. Ebanistería con 30 años de oficio, diseño digital y fabricación en Bogotá, Medellín, Cali, Barranquilla y más ciudades de Colombia.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  keywords: [
+    "cocinas integrales", "cocinas integrales Colombia", "cocinas de madera",
+    "muebles de cocina", "gabinetes de cocina", "cocina integral Bogotá",
+    "cocina integral Medellín", "cocina integral Cali", "cocina integral Barranquilla",
+    "carpintería arquitectónica", "carpintería", "carpintero", "carpinteros en Colombia",
+    "carpinterías en Colombia", "la carpintería", "ebanistería", "ebanista",
+    "muebles de carpintería", "muebles de madera", "muebles a medida", "muebles para hogar",
+    "muebles de baño", "closets", "closets modernos", "closets a medida", "vestidores",
+    "roperos", "closet empotrado", "remodelación", "reformas", "remodelación de cocinas",
+    "madecentro", "jamar", "homecenter", "sodimac", "muebles togo",
+    "fabricación e instalación", "carpintería para apartamentos",
+    "muebles modulares", "centros de entretenimiento", "bibliotecas en madera",
+    "mesones", "diseño de interiores", "renders de interiores", "diseño a medida",
+    "carpinteros Bogotá", "carpinteros Medellín", "carpinteros Cali", "carpinteros Barranquilla",
+    "muebles de madera Colombia", "cocinas integrales Bogotá", "cocinas integrales Medellín",
+  ],
+  verification: {
+    google: "JJpntGyiY1E9ijUChHkIIFWqCEh5Aqtv9GzfQnlBhG0",
+  },
+  other: {
+    "geo.region": "CO",
+    "geo.placename": "Colombia",
+    "geo.position": "4.570868;-74.297333",
+    "ICBM": "4.570868, -74.297333",
+  },
   openGraph: {
     locale: "es_CO",
     siteName: "Hechomadera",
@@ -68,7 +94,8 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${inter.variable} ${display.variable} min-h-screen font-sans antialiased`}>
-        <JsonLdOrganization />
+        <JsonLdSite />
+        <JsonLdFaq />
         <PromoBanner />
         <SiteHeader />
         <main>{children}</main>

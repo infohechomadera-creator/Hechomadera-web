@@ -20,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${base}${path}`,
     lastModified,
     changeFrequency: path === "" ? "weekly" : "monthly",
-    priority: path === "" ? 1 : path === "/tienda" || path === "/contacto" ? 0.9 : 0.7,
+    priority: path === "" ? 1 : path === "/tienda" || path === "/contacto" || path === "/proyectos" ? 0.9 : 0.7,
   }));
 
   const list = products as StoreProduct[];

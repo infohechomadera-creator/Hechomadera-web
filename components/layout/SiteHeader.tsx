@@ -17,7 +17,7 @@ export function SiteHeader() {
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.png"
-            alt="Hechomadera"
+            alt="Hechomadera — Cocinas Integrales y Carpintería a Medida en Colombia"
             width={226}
             height={22}
             className="h-6 w-auto object-contain"
@@ -31,6 +31,7 @@ export function SiteHeader() {
               key={item.href}
               href={item.href}
               data-track-nav={item.href}
+              title={item.label}
               className="rounded px-3 py-2 text-sm text-ink-muted transition-colors hover:bg-ink hover:text-paper"
             >
               {item.label}

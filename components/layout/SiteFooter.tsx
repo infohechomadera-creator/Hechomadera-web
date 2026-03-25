@@ -13,7 +13,7 @@ export function SiteFooter() {
         {/* Marca */}
         <div className="lg:col-span-1">
           <Link href="/">
-            <Image src="/logo.png" alt="Hechomadera" width={160} height={24} className="h-6 w-auto" />
+            <Image src="/logo.png" alt="Hechomadera — Cocinas Integrales y Carpintería a Medida en Colombia" width={160} height={24} className="h-6 w-auto" />
           </Link>
           <p className="mt-4 max-w-xs text-sm text-ink-muted leading-relaxed">
             {siteConfig.tagline}
@@ -101,6 +101,32 @@ export function SiteFooter() {
           </ul>
         </div>
 
+      </div>
+
+      {/* SEO: texto con palabras clave geográficas y de servicio — indexado por motores de búsqueda */}
+      <div className="border-t border-neutral-100 px-4 py-8 text-xs text-ink-muted/60">
+        <div className="mx-auto max-w-6xl space-y-2 leading-relaxed">
+          <p>
+            Hechomadera — fábrica de <strong>cocinas integrales</strong>, <strong>closets a medida</strong>,{" "}
+            <strong>muebles de madera</strong> y <strong>carpintería arquitectónica</strong> en Colombia.{" "}
+            <strong>Ebanistería</strong> y <strong>carpinteros</strong> en <strong>Bogotá</strong>,{" "}
+            <strong>Medellín</strong>, <strong>Cali</strong>, <strong>Barranquilla</strong>,{" "}
+            Santa Marta, Cartagena, Valledupar, Montería, Sincelejo y Ciénaga.
+            Alternativa a <strong>Madecentro</strong>, Jamar, Homecenter y Sodimac para cocinas y muebles a medida.
+          </p>
+          <p>
+            <strong>Remodelación</strong> de cocinas · <strong>vestidores</strong> · <strong>closet empotrado</strong> ·{" "}
+            <strong>muebles de baño</strong> · <strong>mesones</strong> · <strong>centros de entretenimiento</strong> ·{" "}
+            <strong>bibliotecas en madera</strong> · <strong>muebles modulares</strong> ·{" "}
+            <strong>diseño de interiores</strong> · renders 3D · <strong>gabinetes de cocina</strong> ·{" "}
+            <strong>muebles de cocina</strong> · <strong>cocinas de madera</strong>.
+          </p>
+          <p>
+            Carpinteros en Bogotá · carpinteros en Medellín · carpinteros en Cali ·
+            carpinteros en Barranquilla · carpinterías en Colombia · la carpintería · ebanista ·
+            muebles a medida Colombia · cocinas integrales Colombia.
+          </p>
+        </div>
       </div>
 
       <div className="border-t border-neutral-200 px-4 py-6 text-center text-xs text-ink-muted">
