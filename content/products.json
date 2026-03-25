@@ -1,15 +1,5 @@
 [
   {
-    "id": "ej-001",
-    "name": "Ejemplo — producto estándar",
-    "slug": "ejemplo-producto-estandar",
-    "priceCOP": 150000,
-    "description": "Producto de muestra para probar el checkout con Mercado Pago. Sustituye por artículos reales del catálogo cuando los tengas.",
-    "category": "cocinas",
-    "material": "MDF lacado",
-    "imageSlug": "hm-kitchen-1"
-  },
-  {
     "id": "coc-001",
     "name": "Cocina lineal en MDF blanco",
     "slug": "cocina-lineal-mdf-blanco",
@@ -18,8 +8,16 @@
     "category": "cocinas",
     "material": "MDF lacado blanco mate",
     "imageSlug": "hm-kitchen-2",
-    "gallerySlug": ["hm-kitchen-2b", "hm-kitchen-2c", "hm-kitchen-2d"],
-    "dimensions": { "ancho": "A medida", "alto": "220 cm", "profundidad": "60 cm" },
+    "gallerySlug": [
+      "hm-kitchen-2b",
+      "hm-kitchen-2c",
+      "hm-kitchen-2d"
+    ],
+    "dimensions": {
+      "ancho": "A medida",
+      "alto": "220 cm",
+      "profundidad": "60 cm"
+    },
     "features": [
       "Herrajes ocultos de apertura táctil",
       "Encimera de cuarzo blanco incluida",
@@ -37,8 +35,15 @@
     "category": "cocinas",
     "material": "Madera natural + lacado gris antracita",
     "imageSlug": "hm-kitchen-3",
-    "gallerySlug": ["hm-kitchen-3b", "hm-kitchen-3c"],
-    "dimensions": { "ancho": "A medida", "alto": "220 cm", "profundidad": "60 cm" },
+    "gallerySlug": [
+      "hm-kitchen-3b",
+      "hm-kitchen-3c"
+    ],
+    "dimensions": {
+      "ancho": "A medida",
+      "alto": "220 cm",
+      "profundidad": "60 cm"
+    },
     "features": [
       "Isla central con espacio de almacenamiento inferior",
       "Combinación madera natural con lacado antracita",
@@ -56,8 +61,15 @@
     "category": "closets",
     "material": "Roble natural cepillado",
     "imageSlug": "hm-closet-1",
-    "gallerySlug": ["hm-closet-1b", "hm-closet-1c"],
-    "dimensions": { "ancho": "A medida", "alto": "240 cm", "profundidad": "65 cm" },
+    "gallerySlug": [
+      "hm-closet-1b",
+      "hm-closet-1c"
+    ],
+    "dimensions": {
+      "ancho": "A medida",
+      "alto": "240 cm",
+      "profundidad": "65 cm"
+    },
     "features": [
       "Puertas correderas en roble natural cepillado",
       "Interior con colgadores dobles y simples",
@@ -75,7 +87,9 @@
     "category": "closets",
     "material": "Melamínico blanco + nogal",
     "imageSlug": "hm-closet-2",
-    "gallerySlug": ["hm-closet-2b"],
+    "gallerySlug": [
+      "hm-closet-2b"
+    ],
     "features": [
       "Espejo de cuerpo completo con iluminación lateral",
       "Cajoneras con guías telescópicas",
@@ -93,7 +107,11 @@
     "category": "banos",
     "material": "MDF lacado blanco",
     "imageSlug": "hm-bath-1",
-    "dimensions": { "ancho": "80 cm", "alto": "45 cm", "profundidad": "46 cm" },
+    "dimensions": {
+      "ancho": "80 cm",
+      "alto": "45 cm",
+      "profundidad": "46 cm"
+    },
     "features": [
       "Suspendido en pared — sin contacto con el piso",
       "Dos cajones con cierre suave",
@@ -111,7 +129,11 @@
     "category": "banos",
     "material": "Nogal vaporizado + herrajes dorados",
     "imageSlug": "hm-bath-2",
-    "dimensions": { "ancho": "120 cm", "alto": "50 cm", "profundidad": "46 cm" },
+    "dimensions": {
+      "ancho": "120 cm",
+      "alto": "50 cm",
+      "profundidad": "46 cm"
+    },
     "features": [
       "Doble espacio para dos lavamanos",
       "Nogal vaporizado con acabado premium",
@@ -146,7 +168,11 @@
     "category": "sala-comedor",
     "material": "Nogal sólido + mármol",
     "imageSlug": "hm-living-2",
-    "dimensions": { "ancho": "160 cm", "alto": "85 cm", "profundidad": "45 cm" },
+    "dimensions": {
+      "ancho": "160 cm",
+      "alto": "85 cm",
+      "profundidad": "45 cm"
+    },
     "features": [
       "Nogal sólido de primera calidad",
       "Sobre en mármol Carrara natural incluido",
@@ -164,7 +190,11 @@
     "category": "estudios",
     "material": "Melamínico wengué + acero negro",
     "imageSlug": "hm-study-1",
-    "dimensions": { "ancho": "160 cm", "alto": "75 cm", "profundidad": "140 cm" },
+    "dimensions": {
+      "ancho": "160 cm",
+      "alto": "75 cm",
+      "profundidad": "140 cm"
+    },
     "features": [
       "Superficie en L de 160 × 140 cm",
       "Cajonera móvil con ruedas incluida",

@@ -115,7 +115,8 @@ export default function NosotrosPage() {
         </div>
       </section>
 
-      {/* Placeholder equipo / taller */}
+      {/* Placeholder equipo / taller — OCULTO hasta tener fotos reales */}
+      {false && (
       <section data-track-section="nosotros-team" className="border-b border-neutral-200 bg-paper-dim">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">
@@ -127,20 +128,16 @@ export default function NosotrosPage() {
           <p className="mt-3 text-ink-muted">
             Próximamente: fotos del equipo y el taller.
           </p>
-
-          {/* Grid de placeholders */}
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="aspect-[4/3] border border-dashed border-neutral-300 bg-neutral-100 flex items-center justify-center"
-              >
+              <div key={i} className="aspect-[4/3] border border-dashed border-neutral-300 bg-neutral-100 flex items-center justify-center">
                 <p className="text-xs text-ink-muted">Foto por agregar</p>
               </div>
             ))}
           </div>
         </div>
       </section>
+      )}
 
       {/* CTA final */}
       <section data-track-section="nosotros-cta" className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">

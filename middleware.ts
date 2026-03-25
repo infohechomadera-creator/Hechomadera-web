@@ -31,9 +31,18 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Protect /pago/prueba — solo admins
+  if (pathname === "/pago/prueba") {
+    if (!isAuthenticated(request)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/pago/prueba"],
 };

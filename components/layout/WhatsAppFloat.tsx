@@ -10,7 +10,7 @@ export function WhatsAppFloat() {
       rel="noopener noreferrer"
       aria-label="Abrir WhatsApp"
       data-track-location="float_button"
-      className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center bg-ink shadow-lg transition-transform hover:scale-105 hover:bg-neutral-800"
+      className="fixed bottom-36 right-6 z-[110] flex h-14 w-14 items-center justify-center bg-ink shadow-lg transition-transform hover:scale-105 hover:bg-neutral-800 sm:bottom-6"
     >
       {/* WhatsApp icon */}
       <svg
