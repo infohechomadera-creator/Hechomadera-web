@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import products from "@/content/products.json";
 import { StartCheckoutButton } from "@/components/payments/StartCheckoutButton";
 import { ProductGallery } from "@/components/business/ProductGallery";
+import { ProductViewTracker } from "@/components/analytics/ProductViewTracker";
 import { siteConfig } from "@/lib/site-config";
 import { formatPriceCOP, CATEGORY_LABELS, type StoreProduct } from "@/lib/products";
 import { getWhatsAppHref } from "@/lib/whatsapp";
@@ -77,6 +78,8 @@ export default async function ProductoPage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
       />
 
+      <ProductViewTracker productId={product.id} productName={product.name} price={product.priceCOP} />
+
       {/* breadcrumb */}
       <p className="mb-6 text-xs font-semibold uppercase tracking-wider text-ink-muted">
         <Link href="/tienda" className="hover:underline">Tienda</Link>
@@ -135,6 +138,7 @@ export default async function ProductoPage({ params }: Props) {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
+              data-track-location="producto_cta"
               className="mt-3 inline-flex w-full items-center justify-center border border-neutral-300 px-5 py-3 text-sm font-medium text-ink hover:border-ink"
             >
               Preguntar por WhatsApp
@@ -241,6 +245,7 @@ export default async function ProductoPage({ params }: Props) {
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
+            data-track-location="producto_proceso"
             className="inline-flex items-center justify-center border border-neutral-300 px-5 py-2.5 text-sm font-medium text-ink hover:border-ink"
           >
             Preguntar antes de comprar

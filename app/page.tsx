@@ -61,7 +61,7 @@ export default function HomePage() {
     <div>
 
       {/* ── 1. HERO ─────────────────────────────────────────────── */}
-      <section className="border-b border-neutral-200 bg-paper">
+      <section data-track-section="home-hero" className="border-b border-neutral-200 bg-paper">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
           <div className="grid gap-12 lg:grid-cols-5 lg:items-center">
 
@@ -94,6 +94,7 @@ export default function HomePage() {
                   href={wa}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-track-location="hero"
                   className="inline-flex items-center justify-center px-2 py-4 text-sm text-ink-muted underline underline-offset-4 hover:text-ink sm:px-4"
                 >
                   Hablar por WhatsApp
@@ -120,7 +121,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 2. BARRA DE PRUEBA ──────────────────────────────────── */}
-      <section className="border-b border-neutral-200 bg-ink">
+      <section data-track-section="home-proof-bar" className="border-b border-neutral-200 bg-ink">
         <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
           <ul className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-12 md:gap-20">
             {stats.map((s) => (
@@ -134,7 +135,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 3. PROCESO ──────────────────────────────────────────── */}
-      <section className="border-b border-neutral-200">
+      <section data-track-section="home-proceso" className="border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">El proceso</p>
           <h2 className="font-display mt-3 max-w-xl text-3xl font-semibold text-ink md:text-4xl">
@@ -166,7 +167,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 4. DOS FORMAS DE TRABAJAR ───────────────────────────── */}
-      <section className="border-b border-neutral-200 bg-paper-dim">
+      <section data-track-section="home-dos-formas" className="border-b border-neutral-200 bg-paper-dim">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">Cómo trabajamos</p>
           <h2 className="font-display mt-3 max-w-xl text-3xl font-semibold text-ink md:text-4xl">
@@ -223,7 +224,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 5. GALERÍA ──────────────────────────────────────────── */}
-      <section className="border-b border-neutral-200">
+      <section data-track-section="home-galeria" className="border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">Nuestro trabajo</p>
           <h2 className="font-display mt-3 text-3xl font-semibold text-ink md:text-4xl">
@@ -263,7 +264,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 6. COBERTURA ────────────────────────────────────────── */}
-      <section className="border-b border-neutral-200 bg-paper-dim">
+      <section data-track-section="home-cobertura" className="border-b border-neutral-200 bg-paper-dim">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
@@ -300,7 +301,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 7. RESEÑAS (placeholders) ───────────────────────────── */}
-      <section className="border-b border-neutral-200">
+      <section data-track-section="home-resenas" className="border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">Reseñas</p>
           <h2 className="font-display mt-3 text-3xl font-semibold text-ink md:text-4xl">
@@ -338,7 +339,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 8. CTA FINAL ────────────────────────────────────────── */}
-      <section className="bg-ink">
+      <section data-track-section="home-cta-final" className="bg-ink">
         <div className="mx-auto max-w-6xl px-4 py-20 md:px-6 md:py-28">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="font-display text-3xl font-semibold leading-tight text-paper md:text-4xl lg:text-5xl">
@@ -359,6 +360,7 @@ export default function HomePage() {
                 href={waContact}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-track-location="cta_final"
                 className="inline-flex items-center justify-center border border-paper/30 px-8 py-4 text-sm font-medium tracking-wide text-paper hover:border-paper"
               >
                 Escribir por WhatsApp

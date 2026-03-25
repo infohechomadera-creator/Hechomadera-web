@@ -14,15 +14,28 @@ declare global {
 
 /* ─── event catalogue ────────────────────────────────────── */
 export type AnalyticsEvent =
+  // conversion
   | "whatsapp_click"
   | "contact_form_submit"
   | "checkout_start"
   | "checkout_error"
+  // tools
+  | "estimator_start"
   | "estimator_complete"
+  | "quiz_start"
   | "quiz_complete"
   | "pdf_download"
+  // store
+  | "product_view"
   | "filter_apply"
-  | "category_click";
+  | "category_click"
+  // engagement
+  | "scroll_depth"
+  | "time_on_page"
+  | "section_view"
+  | "cta_click"
+  | "nav_click"
+  | "outbound_click";
 
 export interface EventParams {
   [key: string]: string | number | boolean | undefined;

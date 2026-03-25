@@ -8,6 +8,7 @@ import { CookieConsent } from "@/components/layout/CookieConsent";
 import { WhatsAppFloat } from "@/components/layout/WhatsAppFloat";
 import { JsonLdOrganization } from "@/components/seo/JsonLdOrganization";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { PageTracker } from "@/components/analytics/PageTracker";
 import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({
@@ -75,6 +76,7 @@ export default function RootLayout({
         <WhatsAppFloat />
         <CookieConsent />
         <GoogleAnalytics />
+        <PageTracker />
         <Analytics />
       </body>
     </html>

@@ -16,7 +16,7 @@ export default function ContactoPage() {
   const wa = getWhatsAppHref("Hola Hechomadera, quiero hablar con un asesor.");
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
+    <div data-track-section="contacto-main" className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
       <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Contacto</h1>
       <p className="mt-4 max-w-2xl text-ink-muted">
         Cobertura inicial: {siteConfig.cities.join(", ")}. Prioridad: WhatsApp &lt; 15 min · formulario &lt; 3h (objetivo
@@ -42,6 +42,7 @@ export default function ContactoPage() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
+              data-track-location="contacto_page"
               className="mt-6 inline-flex w-full items-center justify-center border border-ink bg-ink px-4 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
             >
               Abrir WhatsApp

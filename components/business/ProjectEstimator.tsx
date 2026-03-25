@@ -191,7 +191,10 @@ export function ProjectEstimator() {
                   label={s.label}
                   desc={s.desc}
                   selected={space === s.key}
-                  onClick={() => setSpace(s.key)}
+                  onClick={() => {
+                    if (!space) track("estimator_start", {});
+                    setSpace(s.key);
+                  }}
                 />
               ))}
             </div>
@@ -339,6 +342,7 @@ export function ProjectEstimator() {
                 href={wa}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-track-location="estimator_result"
                 className="inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
               >
                 Cotizar por WhatsApp

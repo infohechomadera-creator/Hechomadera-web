@@ -22,6 +22,7 @@ export function SiteHeader() {
             <Link
               key={item.href}
               href={item.href}
+              data-track-nav={item.href}
               className="rounded px-3 py-2 text-sm text-ink-muted transition-colors hover:bg-ink hover:text-paper"
             >
               {item.label}
@@ -40,6 +41,7 @@ export function SiteHeader() {
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
+            data-track-location="header"
             className="inline-flex items-center justify-center border border-ink bg-ink px-3 py-2 text-xs font-medium text-paper hover:bg-neutral-800"
           >
             WhatsApp
@@ -79,6 +81,7 @@ export function SiteHeader() {
                 href={wa}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-track-location="header_mobile"
                 className="inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper"
               >
                 WhatsApp

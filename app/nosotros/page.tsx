@@ -37,7 +37,7 @@ export default function NosotrosPage() {
     <div>
 
       {/* WHY — apertura emocional */}
-      <section className="border-b border-neutral-200 bg-paper">
+      <section data-track-section="nosotros-why" className="border-b border-neutral-200 bg-paper">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">
             Por qué existimos
@@ -54,7 +54,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* HOW — cómo lo hacemos */}
-      <section className="border-b border-neutral-200">
+      <section data-track-section="nosotros-how" className="border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">
             Cómo lo hacemos
@@ -80,7 +80,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* Stats */}
-      <section className="border-b border-neutral-200 bg-ink">
+      <section data-track-section="nosotros-stats" className="border-b border-neutral-200 bg-ink">
         <div className="mx-auto max-w-6xl px-4 py-14 md:px-6">
           <ul className="grid gap-10 sm:grid-cols-3">
             {stats.map((s) => (
@@ -94,7 +94,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* WHAT — quiénes somos */}
-      <section className="border-b border-neutral-200">
+      <section data-track-section="nosotros-what" className="border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">
             Qué somos
@@ -116,7 +116,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* Placeholder equipo / taller */}
-      <section className="border-b border-neutral-200 bg-paper-dim">
+      <section data-track-section="nosotros-team" className="border-b border-neutral-200 bg-paper-dim">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">
             El equipo
@@ -143,7 +143,7 @@ export default function NosotrosPage() {
       </section>
 
       {/* CTA final */}
-      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
+      <section data-track-section="nosotros-cta" className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
         <h2 className="font-display max-w-xl text-3xl font-semibold text-ink md:text-4xl">
           ¿Quieres ver cómo quedaría tu espacio?
         </h2>
@@ -162,6 +162,7 @@ export default function NosotrosPage() {
             href={wa}
             target="_blank"
             rel="noopener noreferrer"
+            data-track-location="nosotros_page"
             className="inline-flex items-center justify-center border border-ink px-6 py-3 text-sm font-medium text-ink hover:bg-ink hover:text-paper"
           >
             Hablar por WhatsApp

@@ -191,6 +191,9 @@ export function StyleQuiz() {
   const resultKey = done ? computeResult(answers) : null;
 
   function pick(style: StyleKey) {
+    if (current === 0 && answers.length === 0 && !selected) {
+      track("quiz_start", {});
+    }
     setSelected(style);
   }
 
@@ -245,6 +248,7 @@ export function StyleQuiz() {
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
+              data-track-location="quiz_result"
               className="inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
             >
               Cotizar con este estilo

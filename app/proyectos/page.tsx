@@ -85,7 +85,7 @@ export default function ProyectosPage() {
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
 
       {/* ── Hero ────────────────────────────────────────────── */}
-      <div className="max-w-3xl">
+      <div data-track-section="proyectos-hero" className="max-w-3xl">
         <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl lg:text-5xl">
           Tu espacio, diseñado<br className="hidden sm:block" /> antes de fabricar.
         </h1>
@@ -99,6 +99,7 @@ export default function ProyectosPage() {
             href="https://wa.me/573012890552?text=Hola%20Hechomadera%2C%20quiero%20cotizar%20un%20proyecto%20a%20medida."
             target="_blank"
             rel="noopener noreferrer"
+            data-track-location="proyectos_hero"
             className="inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
           >
             Solicitar cotización
@@ -113,7 +114,7 @@ export default function ProyectosPage() {
       </div>
 
       {/* ── What's included ─────────────────────────────────── */}
-      <div className="mt-16 border-t border-neutral-200 pt-12">
+      <div data-track-section="proyectos-incluido" className="mt-16 border-t border-neutral-200 pt-12">
         <h2 className="font-display text-xl font-semibold text-ink">Todo incluido en el proceso</h2>
         <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {included.map((item) => (
@@ -131,7 +132,7 @@ export default function ProyectosPage() {
       </div>
 
       {/* ── Timeline ─────────────────────────────────────────── */}
-      <div className="mt-16 border-t border-neutral-200 pt-12">
+      <div data-track-section="proyectos-timeline" className="mt-16 border-t border-neutral-200 pt-12">
         <h2 className="font-display text-xl font-semibold text-ink">Cómo avanza tu proyecto</h2>
         <p className="mt-2 text-sm text-ink-muted">Cinco fases, un asesor de principio a fin.</p>
 
@@ -200,7 +201,7 @@ export default function ProyectosPage() {
       </div>
 
       {/* ── Project Estimator ────────────────────────────────── */}
-      <div className="mt-16 border-t border-neutral-200 pt-12">
+      <div data-track-section="proyectos-estimador" className="mt-16 border-t border-neutral-200 pt-12">
         <div className="max-w-2xl">
           <h2 className="font-display text-xl font-semibold text-ink">
             ¿Cuánto puede costar tu proyecto?
@@ -216,7 +217,7 @@ export default function ProyectosPage() {
       </div>
 
       {/* ── Style Quiz ───────────────────────────────────────── */}
-      <div className="mt-16 border-t border-neutral-200 pt-12">
+      <div data-track-section="proyectos-quiz" className="mt-16 border-t border-neutral-200 pt-12">
         <div className="max-w-2xl">
           <h2 className="font-display text-xl font-semibold text-ink">
             ¿Cuál es tu estilo?
@@ -232,7 +233,7 @@ export default function ProyectosPage() {
       </div>
 
       {/* ── PDF Guide ────────────────────────────────────────── */}
-      <div className="mt-16 border-t border-neutral-200 pt-12">
+      <div data-track-section="proyectos-guia" className="mt-16 border-t border-neutral-200 pt-12">
         <div className="flex flex-col gap-6 border border-neutral-200 bg-paper-dim p-8 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-display text-lg font-semibold text-ink">
@@ -248,7 +249,7 @@ export default function ProyectosPage() {
       </div>
 
       {/* ── Final CTA ────────────────────────────────────────── */}
-      <div className="mt-16 border-t border-neutral-200 pt-12">
+      <div data-track-section="proyectos-cta" className="mt-16 border-t border-neutral-200 pt-12">
         <div className="bg-ink px-8 py-12 text-center text-paper">
           <h2 className="font-display text-2xl font-semibold">
             Tu proyecto empieza con una conversación.
@@ -261,6 +262,7 @@ export default function ProyectosPage() {
               href="https://wa.me/573012890552?text=Hola%20Hechomadera%2C%20quiero%20cotizar%20un%20proyecto%20a%20medida."
               target="_blank"
               rel="noopener noreferrer"
+              data-track-location="proyectos_cta_final"
               className="inline-flex items-center justify-center border border-paper bg-paper px-6 py-3 text-sm font-medium text-ink hover:bg-neutral-100"
             >
               WhatsApp — respuesta en 15 min

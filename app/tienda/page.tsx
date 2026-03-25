@@ -35,7 +35,7 @@ export default function TiendaPage() {
       </div>
 
       {/* ── category grid ────────────────────────────────────── */}
-      <div className="mt-10">
+      <div data-track-section="tienda-categorias" className="mt-10">
         <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
           Explorar por categoría
         </p>
@@ -64,7 +64,7 @@ export default function TiendaPage() {
       </div>
 
       {/* ── catalog ──────────────────────────────────────────── */}
-      <section id="catalogo" className="mt-16 border-t border-neutral-200 pt-10">
+      <section id="catalogo" data-track-section="tienda-catalogo" className="mt-16 border-t border-neutral-200 pt-10">
         <TiendaCatalog products={list} />
       </section>
     </div>
