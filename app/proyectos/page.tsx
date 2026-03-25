@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ProjectEstimator } from "@/components/business/ProjectEstimator";
 import { StyleQuiz } from "@/components/business/StyleQuiz";
 import { PdfDownloadButton } from "@/components/business/PdfDownloadButton";
+import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -203,33 +204,27 @@ export default function ProyectosPage() {
       {/* ── Project Estimator ────────────────────────────────── */}
       <div data-track-section="proyectos-estimador" className="mt-16 border-t border-neutral-200 pt-12">
         <div className="max-w-2xl">
-          <h2 className="font-display text-xl font-semibold text-ink">
-            ¿Cuánto puede costar tu proyecto?
-          </h2>
-          <p className="mt-2 text-sm text-ink-muted">
-            Usa el estimador para tener un rango orientativo. Los valores finales los define la
-            cotización formal con medidas y materiales exactos.
-          </p>
-        </div>
-        <div className="mt-6 max-w-2xl">
-          <ProjectEstimator />
+          <CollapsibleSection
+            title="¿Cuánto puede costar tu proyecto?"
+            description="Estimador orientativo en 3 pasos — espacio, tamaño y acabado."
+          >
+            <div className="p-6">
+              <ProjectEstimator />
+            </div>
+          </CollapsibleSection>
         </div>
       </div>
 
       {/* ── Style Quiz ───────────────────────────────────────── */}
-      <div data-track-section="proyectos-quiz" className="mt-16 border-t border-neutral-200 pt-12">
-        <div className="max-w-2xl">
-          <h2 className="font-display text-xl font-semibold text-ink">
-            ¿Cuál es tu estilo?
-          </h2>
-          <p className="mt-2 text-sm text-ink-muted">
-            8 preguntas para descubrir la línea estética de tu proyecto. Al final te decimos qué
-            materiales y acabados van contigo.
-          </p>
-        </div>
-        <div className="mt-6 max-w-2xl">
-          <StyleQuiz />
-        </div>
+      <div data-track-section="proyectos-quiz" className="mt-8 max-w-2xl">
+        <CollapsibleSection
+          title="¿Cuál es tu estilo?"
+          description="8 preguntas para descubrir la línea estética de tu proyecto."
+        >
+          <div className="p-6">
+            <StyleQuiz />
+          </div>
+        </CollapsibleSection>
       </div>
 
       {/* ── PDF Guide ────────────────────────────────────────── */}
