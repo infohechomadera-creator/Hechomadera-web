@@ -300,8 +300,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 7. RESEÑAS (placeholders) ───────────────────────────── */}
-      <section data-track-section="home-resenas" className="border-b border-neutral-200">
+      {/* ── 7. RESEÑAS (placeholders) — OCULTO hasta tener reseñas reales ── */}
+      {false && <section data-track-section="home-resenas" className="border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">Reseñas</p>
           <h2 className="font-display mt-3 text-3xl font-semibold text-ink md:text-4xl">
@@ -336,7 +336,7 @@ export default function HomePage() {
             {/* TODO: conectar Google Reviews o Trustpilot */}
           </p>
         </div>
-      </section>
+      </section>}
 
       {/* ── 8. CTA FINAL ────────────────────────────────────────── */}
       <section data-track-section="home-cta-final" className="bg-ink">

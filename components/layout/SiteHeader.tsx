@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { navItems } from "@/lib/site-config";
 import { getWhatsAppHref } from "@/lib/whatsapp";
@@ -13,8 +14,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-200 bg-paper/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
-        <Link href="/" className="font-display text-lg font-semibold tracking-tight text-ink md:text-xl">
-          Hechomadera
+        <Link href="/" className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="Hechomadera"
+            width={140}
+            height={40}
+            className="h-10 w-auto object-contain"
+            priority
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
