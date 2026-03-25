@@ -18,9 +18,9 @@ export function SiteHeader() {
           <Image
             src="/logo.png"
             alt="Hechomadera"
-            width={140}
-            height={40}
-            className="h-10 w-auto object-contain"
+            width={226}
+            height={22}
+            className="h-6 w-auto object-contain"
             priority
           />
         </Link>
