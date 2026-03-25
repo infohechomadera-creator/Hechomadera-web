@@ -103,30 +103,13 @@ export function SiteFooter() {
 
       </div>
 
-      {/* SEO: texto con palabras clave geográficas y de servicio — indexado por motores de búsqueda */}
-      <div className="border-t border-neutral-100 px-4 py-8 text-xs text-ink-muted/60">
-        <div className="mx-auto max-w-6xl space-y-2 leading-relaxed">
-          <p>
-            Hechomadera — fábrica de <strong>cocinas integrales</strong>, <strong>closets a medida</strong>,{" "}
-            <strong>muebles de madera</strong> y <strong>carpintería arquitectónica</strong> en Colombia.{" "}
-            <strong>Ebanistería</strong> y <strong>carpinteros</strong> en <strong>Bogotá</strong>,{" "}
-            <strong>Medellín</strong>, <strong>Cali</strong>, <strong>Barranquilla</strong>,{" "}
-            Santa Marta, Cartagena, Valledupar, Montería, Sincelejo y Ciénaga.
-            Alternativa a <strong>Madecentro</strong>, Jamar, Homecenter y Sodimac para cocinas y muebles a medida.
-          </p>
-          <p>
-            <strong>Remodelación</strong> de cocinas · <strong>vestidores</strong> · <strong>closet empotrado</strong> ·{" "}
-            <strong>muebles de baño</strong> · <strong>mesones</strong> · <strong>centros de entretenimiento</strong> ·{" "}
-            <strong>bibliotecas en madera</strong> · <strong>muebles modulares</strong> ·{" "}
-            <strong>diseño de interiores</strong> · renders 3D · <strong>gabinetes de cocina</strong> ·{" "}
-            <strong>muebles de cocina</strong> · <strong>cocinas de madera</strong>.
-          </p>
-          <p>
-            Carpinteros en Bogotá · carpinteros en Medellín · carpinteros en Cali ·
-            carpinteros en Barranquilla · carpinterías en Colombia · la carpintería · ebanista ·
-            muebles a medida Colombia · cocinas integrales Colombia.
-          </p>
-        </div>
+      {/* SEO: palabras clave — invisible para usuarios, indexado por Google (sr-only) */}
+      <div className="sr-only" aria-hidden="true">
+        Hechomadera — fábrica de cocinas integrales, closets a medida, muebles de madera y carpintería arquitectónica en Colombia.
+        Ebanistería y carpinteros en Bogotá, Medellín, Cali, Barranquilla, Santa Marta, Cartagena, Valledupar, Montería, Sincelejo y Ciénaga.
+        Alternativa a Madecentro, Jamar, Homecenter y Sodimac para cocinas y muebles a medida.
+        Remodelación de cocinas, vestidores, closet empotrado, muebles de baño, mesones, centros de entretenimiento, bibliotecas en madera, muebles modulares, diseño de interiores, renders 3D, gabinetes de cocina, muebles de cocina, cocinas de madera.
+        Carpinteros en Bogotá, carpinteros en Medellín, carpinteros en Cali, carpinteros en Barranquilla, carpinterías en Colombia, la carpintería, ebanista, muebles a medida Colombia, cocinas integrales Colombia.
       </div>
 
       <div className="border-t border-neutral-200 px-4 py-6 text-center text-xs text-ink-muted">

@@ -24,7 +24,7 @@ const steps = [
 ] as const;
 
 const gallery = [
-  { seed: "hm-cocina-1", label: "Cocina integral a medida", alt: "Cocina integral a medida en madera — carpintería arquitectónica Hechomadera Colombia" },
+  { seed: "hm-cocina-1", label: "Cocina a medida", alt: "Cocina integral a medida en madera — carpintería arquitectónica Hechomadera Colombia" },
   { seed: "hm-closet-2", label: "Closet integrado", alt: "Closet a medida empotrado — ebanistería y muebles de madera Colombia" },
   { seed: "hm-sala-3", label: "Sala y comedor", alt: "Muebles de sala y comedor a medida — carpintería y ebanistería Colombia" },
   { seed: "hm-detalle-4", label: "Acabado en madera", alt: "Detalle de mueble de madera — muebles a medida con herrajes Blum Colombia" },
@@ -80,13 +80,14 @@ export default function HomePage() {
         <div className="relative z-10 flex min-h-[85vh] items-center">
           <div className="mx-auto max-w-6xl px-6 py-24 md:px-10">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
-              Cocinas integrales · Closets · Carpintería arquitectónica · Colombia
+              Colombia · Carpintería digital
             </p>
             <h1 className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-paper md:text-5xl lg:text-6xl">
               Hay espacios que cambian cómo te sientes al llegar a casa.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-paper/80">
-              Fabricamos cocinas integrales, closets, vestidores y muebles de madera a medida — con diseño, renders y proceso claro. Carpinteros y ebanistas en 10 ciudades de Colombia.
+              Los diseñamos y construimos contigo — proceso claro, precios transparentes
+              y experiencia que vale la pena.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link

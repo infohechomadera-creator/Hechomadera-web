@@ -27,9 +27,10 @@ export default function TiendaPage() {
 
       {/* ── heading ──────────────────────────────────────────── */}
       <div className="max-w-2xl">
-        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Cocinas Integrales, Closets y Muebles de Madera</h1>
+        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Tienda</h1>
         <p className="mt-3 text-sm text-ink-muted">
-          Carpintería arquitectónica a medida: cocinas integrales, closets modernos, vestidores, muebles de baño y ebanistería — precio fijo en pesos colombianos, pago 100% online.
+          Precio fijo en pesos colombianos. Pago 100% online con Mercado Pago — sin intermediarios,
+          sin sorpresas.
         </p>
       </div>
 
