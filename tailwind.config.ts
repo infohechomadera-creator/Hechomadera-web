@@ -9,14 +9,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        /* Hechomadera: paleta base blanco + negro (ajustable por prompt) */
+        /* Hechomadera: paleta 60-30-10 */
         ink: {
-          DEFAULT: "#0a0a0a",
-          muted: "#404040",
+          DEFAULT: "#000f08",   /* 30% — texto, bordes, estructura */
+          muted: "#4a524f",
         },
         paper: {
-          DEFAULT: "#fafafa",
-          dim: "#f5f5f5",
+          DEFAULT: "#f7f7ff",   /* 60% — fondos y superficies */
+          dim: "#eeeef6",
+        },
+        accent: {
+          DEFAULT: "#fb3640",   /* 10% — CTA primario */
+          hover: "#d42e37",
         },
       },
       fontFamily: {

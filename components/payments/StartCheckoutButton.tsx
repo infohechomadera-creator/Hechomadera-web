@@ -65,7 +65,7 @@ export function StartCheckoutButton({
         type="button"
         onClick={onClick}
         disabled={loading}
-        className="w-full border border-ink bg-ink px-4 py-3 text-sm font-medium text-paper hover:bg-neutral-800 disabled:opacity-60"
+        className="w-full border border-accent bg-accent px-4 py-3 text-sm font-medium text-paper hover:bg-accent-hover disabled:opacity-60"
       >
         {loading ? "Redirigiendo…" : label}
       </button>
