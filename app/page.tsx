@@ -68,9 +68,9 @@ export default function HomePage() {
         {/* Imagen de fondo */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="https://picsum.photos/seed/hm-hero-main/1600/900"
-          alt="Espacio a medida por Hechomadera"
-          className="absolute inset-0 h-full w-full object-cover"
+          src="/banner.png"
+          alt="Cocina a medida por Hechomadera"
+          className="absolute inset-0 h-full w-full object-cover object-center"
         />
 
         {/* Overlay oscuro para legibilidad del texto */}
