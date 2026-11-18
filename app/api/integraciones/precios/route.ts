@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { claveValida, dentroDelLimite, registrarEvento, respuestaPrecios } from "@/lib/integracion/operflow";
+import { LIMITE_IP_POR_MINUTO, claveValida, dentroDelLimite, ipDe, registrarEvento, respuestaPrecios } from "@/lib/integracion/operflow";
 import { clienteSistema } from "@/lib/supabase/servidor";
 import { CIUDADES_ACTIVAS, type CiudadActiva, type TablaPrecios } from "@/lib/precios/tipos";
 import { validarTablaPrecios } from "@/lib/precios/validar";
@@ -21,6 +21,13 @@ export async function GET(request: Request) {
 
   if (!process.env.OPERFLOW_API_KEY) {
     return NextResponse.json({ error: "Integración no configurada" }, { status: 503 });
+  }
+  // Primero el límite por IP, sin escribir en la base: así nadie llena el registro ni adivina la clave.
+  if (!(await dentroDelLimite(`ip:${ipDe(request)}`, LIMITE_IP_POR_MINUTO))) {
+    return NextResponse.json(
+      { error: "Demasiadas solicitudes; intenta en un minuto" },
+      { status: 429, headers: { "Cache-Control": "no-store" } },
+    );
   }
   if (!claveValida(request.headers.get("authorization"), process.env.OPERFLOW_API_KEY)) {
     return responder(401, { error: "Clave incorrecta" }, "clave inválida");

@@ -32,6 +32,12 @@ describe("acceso a zonas internas", () => {
     expect(decidirAcceso("/api/admin/orders", "asesor")).toBe("no_autorizado_api");
   });
 
+  it("asesor no entra al editor de precios", () => {
+    expect(decidirAcceso("/admin/precios", "asesor")).toBe("sin_permiso");
+    expect(decidirAcceso("/admin/precios", null)).toBe("ir_a_login");
+    expect(decidirAcceso("/admin/precios", "gerencia")).toBe("permitir");
+  });
+
   it("la API antigua de contraseña ya no existe como puerta abierta", () => {
     expect(decidirAcceso("/api/admin/auth", null)).toBe("no_autorizado_api");
   });

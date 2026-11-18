@@ -10,10 +10,12 @@ import { clienteSistema } from "@/lib/supabase/servidor";
 import type { TablaPrecios } from "@/lib/precios/tipos";
 
 export const LIMITE_POR_MINUTO = 60;
+/** Intentos por minuto desde una misma IP, antes de revisar la clave (frena a quien intente adivinarla). */
+export const LIMITE_IP_POR_MINUTO = 30;
 
 /** Compara la clave recibida con la esperada en tiempo constante. */
 export function claveValida(encabezado: string | null, esperada: string | undefined): boolean {
-  if (!esperada || !encabezado?.startsWith("Bearer ")) return false;
+  if (!esperada || !encabezado || !/^bearer /i.test(encabezado)) return false;
   const recibida = encabezado.slice("Bearer ".length).trim();
   const a = createHash("sha256").update(recibida).digest();
   const b = createHash("sha256").update(esperada).digest();
@@ -30,7 +32,7 @@ function clienteRedis(): Redis | null {
 }
 
 /** true si todavía hay cupo este minuto. Si Redis no está, no bloquea (se registra igual). */
-export async function dentroDelLimite(nombre: string): Promise<boolean> {
+export async function dentroDelLimite(nombre: string, limite = LIMITE_POR_MINUTO): Promise<boolean> {
   const r = clienteRedis();
   if (!r) return true;
   try {
@@ -38,7 +40,7 @@ export async function dentroDelLimite(nombre: string): Promise<boolean> {
     const clave = `hm:integracion:${nombre}:${ventana}`;
     const n = await r.incr(clave);
     if (n === 1) await r.expire(clave, 120);
-    return n <= LIMITE_POR_MINUTO;
+    return n <= limite;
   } catch {
     return true;
   }
@@ -57,6 +59,12 @@ export async function registrarEvento(evento: {
   } catch {
     // El registro nunca debe tumbar la respuesta.
   }
+}
+
+/** IP de quien llama (Vercel la pone primera en x-forwarded-for). */
+export function ipDe(request: Request): string {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return ip ? ip.slice(0, 64) : "desconocida";
 }
 
 /** Respuesta del mensaje D: precios vigentes de una ciudad, sin datos internos. */

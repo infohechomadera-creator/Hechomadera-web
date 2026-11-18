@@ -13,6 +13,8 @@ const asesorA = { tipo: "usuario", id: IDS.asesorA } as const;
 const asesorB = { tipo: "usuario", id: IDS.asesorB } as const;
 const inactivo = { tipo: "usuario", id: IDS.asesorInactivo } as const;
 const publico = { tipo: "publico" } as const;
+const SIN_PERFIL = "00000000-0000-4000-a000-0000000000d1";
+const GERENCIA_INACTIVA = "00000000-0000-4000-a000-0000000000d2";
 
 const contar = async (tx: { query: PGlite["query"] }, sql: string, params: unknown[] = []) =>
   Number(((await tx.query<{ n: number }>(`select count(*)::int as n from (${sql}) t`, params)).rows[0]).n);
@@ -23,6 +25,15 @@ beforeAll(async () => {
   await db.query(
     `insert into public.precios (ciudad, vigente_desde, datos, creado_por) values ('Barranquilla', '2026-01-01', '{"v":1}', $1)`,
     [IDS.gerencia],
+  );
+  // Alguien con sesión pero sin perfil (por si se reactivara el registro libre) y una gerencia inactiva.
+  await db.query(`insert into auth.users (id, email) values ($1, 'sin.perfil@prueba.test'), ($2, 'ger.inactiva@prueba.test')`, [
+    SIN_PERFIL,
+    GERENCIA_INACTIVA,
+  ]);
+  await db.query(
+    `insert into public.perfiles (id, rol, nombre, email, activo) values ($1, 'gerencia', 'Gerencia Inactiva', 'ger.inactiva@prueba.test', false)`,
+    [GERENCIA_INACTIVA],
   );
 }, 60_000);
 
@@ -199,7 +210,7 @@ describe("gerencia", () => {
     await como(db, gerencia, async (tx) => {
       expect(await contar(tx, "select 1 from public.leads")).toBe(3);
       expect(await contar(tx, "select 1 from public.clientes")).toBe(2);
-      expect(await contar(tx, "select 1 from public.perfiles")).toBe(4);
+      expect(await contar(tx, "select 1 from public.perfiles")).toBe(5);
     });
   });
 
@@ -284,6 +295,84 @@ describe("registro de integración con Operflow", () => {
         tx.query(`insert into public.eventos_integracion (direccion, mensaje) values ('entrada', 'D')`),
       ),
     ).rejects.toThrow(/row-level security/);
+  });
+});
+
+describe("correcciones del validador (estados, autorización y actividades)", () => {
+  for (const estado of ["diseno_pagado", "propuesta_enviada", "aprobado", "no_aprobo"]) {
+    it(`un asesor no puede poner su lead en '${estado}'`, async () => {
+      await expect(
+        como(db, asesorA, (tx) => tx.query(`update public.leads set estado = '${estado}' where id = $1`, [IDS.leadA])),
+      ).rejects.toThrow(/Solo gerencia o el sistema/);
+    });
+  }
+
+  it("un asesor sí puede marcar su lead como perdido", async () => {
+    const r = await como(db, asesorA, (tx) => tx.query("update public.leads set estado = 'perdido' where id = $1", [IDS.leadA]));
+    expect(r.affectedRows).toBe(1);
+  });
+
+  it("gerencia sí puede poner cualquier estado", async () => {
+    const r = await como(db, gerencia, (tx) => tx.query("update public.leads set estado = 'aprobado' where id = $1", [IDS.leadA]));
+    expect(r.affectedRows).toBe(1);
+  });
+
+  it("un asesor corrige el teléfono de su cliente, pero no la autorización de datos", async () => {
+    const ok = await como(db, asesorA, (tx) =>
+      tx.query("update public.clientes set telefono = '3000000099' where id = $1", [IDS.clienteA]),
+    );
+    expect(ok.affectedRows).toBe(1);
+    for (const cambio of ["autorizacion_datos_at = now() - interval '1 year'", "autorizacion_version = 'v0'", "creado_at = now()"]) {
+      await expect(
+        como(db, asesorA, (tx) => tx.query(`update public.clientes set ${cambio} where id = $1`, [IDS.clienteA])),
+      ).rejects.toThrow(/autorización de datos/);
+    }
+  });
+
+  it("un asesor no puede editar el cliente de otro asesor", async () => {
+    const r = await como(db, asesorA, (tx) => tx.query("update public.clientes set nombre = 'X' where id = $1", [IDS.clienteB]));
+    expect(r.affectedRows).toBe(0);
+  });
+
+  it("un asesor no puede registrar actividades de pago ni de Operflow", async () => {
+    for (const tipo of ["pago", "operflow", "asignacion"]) {
+      await expect(
+        como(db, asesorA, (tx) =>
+          tx.query(`insert into public.actividades (lead_id, autor_id, tipo, detalle) values ($1, $2, $3, 'x')`, [
+            IDS.leadA,
+            IDS.asesorA,
+            tipo,
+          ]),
+        ),
+      ).rejects.toThrow(/row-level security/);
+    }
+  });
+
+  it("un asesor no ve las actividades del lead de otro asesor", async () => {
+    await db.query(`insert into public.actividades (lead_id, tipo, detalle) values ($1, 'nota', 'De B')`, [IDS.leadB]);
+    await como(db, asesorA, async (tx) => {
+      expect(await contar(tx, "select 1 from public.actividades where lead_id = $1", [IDS.leadB])).toBe(0);
+    });
+  });
+
+  for (const [nombre, id] of [
+    ["gerencia inactiva", GERENCIA_INACTIVA],
+    ["usuario con sesión pero sin perfil", SIN_PERFIL],
+  ] as const) {
+    it(`${nombre} no ve ni cambia nada`, async () => {
+      await como(db, { tipo: "usuario", id }, async (tx) => {
+        // Solo su propio perfil (el login lo lee para saber que está inactivo).
+        expect(await contar(tx, "select 1 from public.perfiles where id <> $1", [id])).toBe(0);
+        for (const tabla of ["clientes", "leads", "actividades", "precios", "precios_vigentes", "eventos_integracion"]) {
+          expect(await contar(tx, `select 1 from public.${tabla}`)).toBe(0);
+        }
+        expect((await tx.query("update public.leads set estado = 'contactado'")).affectedRows).toBe(0);
+      });
+    });
+  }
+
+  it("nadie con sesión puede vaciar una tabla de un golpe", async () => {
+    await expect(como(db, gerencia, (tx) => tx.query("truncate public.actividades"))).rejects.toThrow(/permission denied/);
   });
 });
 
