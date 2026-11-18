@@ -28,4 +28,4 @@
 5. Abogado: revisar texto de autorización y política de privacidad (no menciona fotos).
 6. Abiertos de antes: `OPERFLOW_API_KEY`, fórmula de precios provisional, órdenes de Redis a Supabase en W4, 5 diseños definitivos, costo de la visita.
 
-**Commits del hito (rango hito-2..HEAD, últimos):** 6d4450c, 3a16dc0, 031684d, b50543c, d36ee6f. Lista completa por confirmar con `git log`.
+**Commits del hito (hito-2..hito-3):** e9de8e2, 26860e8, 743c344, 6d4450c, 3a16dc0, 031684d, b50543c, d36ee6f, c528e47.
