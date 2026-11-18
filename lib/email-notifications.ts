@@ -259,3 +259,42 @@ export async function sendNewOrderAlertToSeller({
     html,
   });
 }
+
+// ---------------------------------------------------------------------------
+// Email a gerencia — lead nuevo del configurador (W3). Sin teléfono ni fotos.
+// ---------------------------------------------------------------------------
+const escaparHtml = (t: string) =>
+  t.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
+
+export async function sendNewLeadAlertToSeller({
+  leadId,
+  nombre,
+  ciudad,
+  resumen,
+  rangoMin,
+  rangoMax,
+}: {
+  leadId: string;
+  nombre: string;
+  ciudad: string;
+  resumen: string;
+  rangoMin: number;
+  rangoMax: number;
+}): Promise<void> {
+  const from = process.env.RESEND_FROM ?? "Hechomadera <info@hechomadera.com>";
+  const to = process.env.CONTACT_TO_EMAIL ?? "infohechomadera@gmail.com";
+  const url = `${SITE_URL}/admin/leads/${encodeURIComponent(leadId)}`;
+  const html = `
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:24px 16px;background:#fafafa;font-family:system-ui,sans-serif;">
+  <div style="max-width:480px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;padding:24px;">
+    <p style="margin:0 0 12px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#666;">Lead nuevo del configurador</p>
+    <p style="margin:0 0 4px;font-size:18px;font-weight:700;color:#0a0a0a;">${escaparHtml(nombre)} · ${escaparHtml(ciudad)}</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#404040;">${escaparHtml(resumen)}</p>
+    <p style="margin:0 0 20px;font-size:14px;color:#0a0a0a;">Rango: <strong>${formatCOP(rangoMin)} – ${formatCOP(rangoMax)}</strong></p>
+    <a href="${url}" style="display:inline-block;background:#0a0a0a;color:#fafafa;padding:10px 18px;font-size:13px;text-decoration:none;">Ver el lead</a>
+  </div>
+</body></html>`;
+  await sendEmail({ from, to: [to], subject: `Lead nuevo: ${nombre.slice(0, 60)} (${ciudad})`, html });
+}
