@@ -1,3 +1,5 @@
+> **DESCARTADO (2026-11-18):** Alberto probó este rediseño y prefirió el diseño anterior. No aplicar. Se guarda solo como registro (ver docs/DECISIONES.md).
+
 # Diseño de Hechomadera (v1 · 2026-11-18)
 
 Inspiración: awesomic.com. Guía completa de la referencia: `docs/DISENO-REFERENCIA.md`.

@@ -32,35 +32,32 @@ function ProductCard({ product }: { product: StoreProduct }) {
     product.category ? CATEGORY_LABELS[product.category] : null;
 
   return (
-    <Link
-      href={`/tienda/${product.slug}`}
-      className="tarjeta group flex h-full flex-col overflow-hidden transition-colors hover:border-mist focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-    >
+    <Link href={`/tienda/${product.slug}`} className="group block">
       {/* image */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-paper-dim sm:aspect-[4/5]">
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imgSrc}
           alt={product.name}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
       </div>
 
       {/* info */}
-      <div className="flex flex-1 flex-col p-5 md:p-6">
+      <div className="mt-3">
         {categoryLabel && (
-          <p className="eyebrow">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
             {categoryLabel}
           </p>
         )}
-        <p className="mt-1.5 text-base font-semibold leading-snug text-ink">
+        <p className="mt-1 text-sm font-semibold text-ink group-hover:underline group-hover:underline-offset-2">
           {product.name}
         </p>
         {product.material && (
-          <p className="mt-1 text-sm text-ink-muted">{product.material}</p>
+          <p className="mt-0.5 text-xs text-ink-muted">{product.material}</p>
         )}
-        <p className="mt-auto pt-4 font-display text-subheading font-semibold text-ink">
+        <p className="mt-2 text-sm font-medium text-ink">
           {formatPriceCOP(product.priceCOP)}
         </p>
       </div>
@@ -121,21 +118,21 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
 
   /* ── sidebar content (shared desktop/mobile) ── */
   const FilterPanel = () => (
-    <div className="space-y-7">
+    <div className="space-y-8">
       {/* categories */}
       <div>
-        <p className="eyebrow">Categoría</p>
-        <ul className="mt-3 space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink">Categoría</p>
+        <ul className="mt-3 space-y-2">
           {categories.map((cat) => (
             <li key={cat}>
-              <label className="-mx-2 flex cursor-pointer items-center gap-2.5 rounded-button px-2 py-2 transition-colors hover:bg-paper">
+              <label className="flex cursor-pointer items-center gap-2.5">
                 <input
                   type="checkbox"
                   checked={activeCategories.includes(cat)}
                   onChange={() => toggleCategory(cat)}
-                  className="h-4 w-4 rounded accent-ink"
+                  className="h-4 w-4 border-neutral-300 accent-ink"
                 />
-                <span className="text-sm text-graphite">{CATEGORY_LABELS[cat]}</span>
+                <span className="text-sm text-ink">{CATEGORY_LABELS[cat]}</span>
               </label>
             </li>
           ))}
@@ -144,11 +141,11 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
 
       {/* price */}
       <div>
-        <p className="eyebrow">Precio</p>
-        <ul className="mt-3 space-y-1">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink">Precio</p>
+        <ul className="mt-3 space-y-2">
           {PRICE_RANGES.map((range, i) => (
             <li key={range.label}>
-              <label className="-mx-2 flex cursor-pointer items-center gap-2.5 rounded-button px-2 py-2 transition-colors hover:bg-paper">
+              <label className="flex cursor-pointer items-center gap-2.5">
                 <input
                   type="radio"
                   name="price-range"
@@ -156,9 +153,9 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
                   onChange={() =>
                     setActivePriceIdx(activePriceIdx === i ? null : i)
                   }
-                  className="h-4 w-4 accent-ink"
+                  className="h-4 w-4 border-neutral-300 accent-ink"
                 />
-                <span className="text-sm text-graphite">{range.label}</span>
+                <span className="text-sm text-ink">{range.label}</span>
               </label>
             </li>
           ))}
@@ -169,7 +166,7 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
         <button
           type="button"
           onClick={clearFilters}
-          className="boton-borde w-full py-2.5"
+          className="text-xs text-ink-muted underline hover:text-ink"
         >
           Limpiar filtros
         </button>
@@ -180,30 +177,30 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
   return (
     <div>
       {/* ── mobile filter toggle ── */}
-      <div className="flex items-center justify-between gap-3 lg:hidden">
+      <div className="flex items-center justify-between border-b border-neutral-200 pb-4 lg:hidden">
         <button
           type="button"
           onClick={() => setFiltersOpen((v) => !v)}
-          className="boton-neutro boton-pill shrink-0 border border-cloud py-2.5"
+          className="flex items-center gap-2 border border-neutral-300 px-4 py-2 text-sm font-medium text-ink hover:border-ink"
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
           {filtersOpen ? "Ocultar filtros" : "Filtrar"}
           {hasFilters && (
-            <span className="etiqueta-ember h-5 min-w-5 justify-center rounded-full px-1.5 py-0 leading-none">
+            <span className="flex h-4 w-4 items-center justify-center bg-ink text-xs font-bold text-paper">
               {activeCategories.length + (activePriceIdx !== null ? 1 : 0)}
             </span>
           )}
         </button>
 
-        <div className="flex min-w-0 flex-1 items-center justify-end">
+        <div className="flex items-center gap-2">
           <label htmlFor="sort-mobile" className="sr-only">Ordenar por</label>
           <select
             id="sort-mobile"
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            className="campo w-full max-w-[14rem] cursor-pointer py-2.5 pl-4 pr-3"
+            className="border border-neutral-300 bg-white px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.key} value={o.key}>{o.label}</option>
@@ -214,14 +211,14 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
 
       {/* mobile filter panel */}
       {filtersOpen && (
-        <div className="tarjeta mt-4 p-6 lg:hidden">
+        <div className="border-b border-neutral-200 py-6 lg:hidden">
           <FilterPanel />
         </div>
       )}
 
-      <div className="mt-6 flex gap-8 lg:mt-0">
+      <div className="mt-6 flex gap-10">
         {/* ── desktop sidebar ── */}
-        <aside className="tarjeta hidden w-60 shrink-0 self-start p-6 lg:sticky lg:top-24 lg:block">
+        <aside className="hidden w-52 shrink-0 lg:block">
           <FilterPanel />
         </aside>
 
@@ -234,12 +231,12 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
               {filtered.length === 1 ? "producto" : "productos"}
             </p>
             <div className="flex items-center gap-2">
-              <label htmlFor="sort-desktop" className="text-sm text-ink-soft">Ordenar:</label>
+              <label htmlFor="sort-desktop" className="text-xs text-ink-muted">Ordenar:</label>
               <select
                 id="sort-desktop"
                 value={sort}
                 onChange={(e) => setSort(e.target.value as SortKey)}
-                className="campo w-auto cursor-pointer py-2.5 pl-4 pr-3"
+                className="border border-neutral-300 bg-white px-3 py-2 text-sm text-ink focus:border-ink focus:outline-none"
               >
                 {SORT_OPTIONS.map((o) => (
                   <option key={o.key} value={o.key}>{o.label}</option>
@@ -249,20 +246,20 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="tarjeta-suave px-6 py-16 text-center">
-              <p className="text-body text-ink-muted">
+            <div className="py-16 text-center">
+              <p className="text-sm text-ink-muted">
                 Sin productos para los filtros seleccionados.
               </p>
               <button
                 type="button"
                 onClick={clearFilters}
-                className="boton-primario mt-5"
+                className="mt-4 text-sm text-ink underline"
               >
                 Ver todos
               </button>
             </div>
           ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 md:gap-5 xl:grid-cols-3">
+            <ul className="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
               {filtered.map((product) => (
                 <li key={product.id}>
                   <ProductCard product={product} />

@@ -2,89 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Sistema de diseño: ver docs/DISENO-REFERENCIA.md y tailwind.config.ts */
 :root {
-  --foreground: #18181b;
-  --background: #f4f4f5;
+  --foreground: #0a0a0a;
+  --background: #fafafa;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-size: 15px;
-  line-height: 1.45;
-}
-
-@layer components {
-  /* Contenedor de página (máx. 1200px) */
-  .contenedor {
-    @apply mx-auto w-full max-w-pagina px-4 md:px-8;
-  }
-  /* Ritmo vertical entre secciones (80px en escritorio) */
-  .seccion {
-    @apply py-14 md:py-20;
-  }
-
-  /* Tipografía */
-  .eyebrow {
-    @apply text-caption font-medium uppercase tracking-[0.08em] text-ink-soft;
-  }
-  .titulo-display {
-    @apply font-display text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-ink md:text-heading-lg lg:text-display;
-  }
-  .titulo-seccion {
-    @apply font-display text-heading-sm font-semibold tracking-[-0.015em] text-ink md:text-heading;
-  }
-  .titulo-tarjeta {
-    @apply font-display text-subheading font-semibold text-ink;
-  }
-
-  /* Superficies */
-  .tarjeta {
-    @apply rounded-card border border-cloud bg-snow;
-  }
-  .tarjeta-suave {
-    @apply rounded-card border border-cloud bg-paper-dim;
-  }
-  .bloque-oscuro {
-    @apply rounded-card bg-graphite text-snow;
-  }
-
-  /* Botones */
-  .boton {
-    @apply inline-flex items-center justify-center gap-2 rounded-button px-4 py-3 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink;
-  }
-  .boton-primario {
-    @apply boton bg-obsidian text-snow shadow-boton hover:bg-graphite;
-  }
-  .boton-neutro {
-    @apply boton bg-snow text-graphite shadow-pill hover:bg-paper-dim;
-  }
-  .boton-borde {
-    @apply boton border border-iron bg-transparent text-iron hover:bg-ink hover:text-snow;
-  }
-  .boton-claro {
-    @apply boton bg-snow text-ink hover:bg-paper;
-  }
-  .boton-pill {
-    @apply rounded-full px-5;
-  }
-
-  /* Etiquetas */
-  .etiqueta {
-    @apply inline-flex items-center rounded-badge border border-cloud px-2 py-1 text-[13px] text-graphite;
-  }
-  .etiqueta-llena {
-    @apply inline-flex items-center rounded-badge bg-iron px-2 py-1 text-[13px] text-paper-dim;
-  }
-  .etiqueta-ember {
-    @apply inline-flex items-center rounded-badge bg-ember px-2 py-1 text-caption font-medium text-snow;
-  }
-
-  /* Formularios */
-  .campo {
-    @apply w-full rounded-input border border-cloud bg-snow px-4 py-3 text-sm text-graphite placeholder:text-ash focus:border-iron focus:outline-none;
-  }
 }
 
 @layer utilities {

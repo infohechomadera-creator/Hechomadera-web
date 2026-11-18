@@ -60,28 +60,46 @@ export default function HomePage() {
   return (
     <div>
 
-      {/* ── 1. HERO — titular grande + imagen redondeada ───────────── */}
-      <section data-track-section="home-hero" className="contenedor pt-8 md:pt-14">
-        <div className="grid gap-8 lg:grid-cols-[1.35fr_1fr] lg:items-end">
-          <div>
-            <p className="etiqueta gap-2 bg-snow">
-              <span className="h-1.5 w-1.5 rounded-full bg-ember" aria-hidden="true" />
+      {/* ── 1. HERO — banner full width con texto superpuesto ────── */}
+      <section
+        data-track-section="home-hero"
+        className="relative min-h-[85vh] w-full overflow-hidden"
+      >
+        {/* Imagen de fondo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/banner.png"
+          alt="Cocina integral a medida — carpintería arquitectónica y ebanistería por Hechomadera Colombia"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+
+        {/* Overlay oscuro para legibilidad del texto */}
+        <div className="absolute inset-0 bg-ink/55" />
+
+        {/* Contenido superpuesto */}
+        <div className="relative z-10 flex min-h-[85vh] items-center">
+          <div className="mx-auto max-w-6xl px-6 py-24 md:px-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-paper/70">
               Colombia · Carpintería digital
             </p>
-            <h1 className="titulo-display mt-5 max-w-3xl text-balance">
+            <h1 className="font-display mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-paper md:text-5xl lg:text-6xl">
               Hay espacios que cambian cómo te sientes al llegar a casa.
             </h1>
-          </div>
-          <div className="lg:pb-2">
-            <p className="text-body-lg text-ink-muted">
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-paper/80">
               Los diseñamos y construimos contigo — proceso claro, precios transparentes
               y experiencia que vale la pena.
             </p>
-            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-              <Link href="/proyectos" className="boton-primario">
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <Link
+                href="/proyectos"
+                className="inline-flex items-center justify-center border border-paper bg-paper px-6 py-4 text-sm font-medium tracking-wide text-ink hover:bg-paper/90"
+              >
                 Cotizar mi proyecto
               </Link>
-              <Link href="/proyectos" className="boton-neutro">
+              <Link
+                href="/proyectos"
+                className="inline-flex items-center justify-center border border-paper/60 px-6 py-4 text-sm font-medium tracking-wide text-paper hover:border-paper hover:bg-paper/10"
+              >
                 Ver cómo funciona
               </Link>
               <a
@@ -89,219 +107,249 @@ export default function HomePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-track-location="hero"
-                className="inline-flex items-center justify-center px-3 py-3 text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
+                className="inline-flex items-center justify-center px-2 py-4 text-sm text-paper/70 underline underline-offset-4 hover:text-paper sm:px-4"
               >
                 Hablar por WhatsApp
               </a>
             </div>
           </div>
         </div>
-
-        <div className="mt-10 overflow-hidden rounded-card md:rounded-section">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/banner.png"
-            alt="Cocina integral a medida — carpintería arquitectónica y ebanistería por Hechomadera Colombia"
-            className="aspect-[4/3] w-full object-cover object-center md:aspect-[21/9]"
-          />
-        </div>
       </section>
 
-      {/* ── 2. BARRA DE PRUEBA — cifras ─────────────────────────────── */}
-      <section data-track-section="home-proof-bar" className="contenedor pt-10 md:pt-14">
-        <ul className="grid gap-px overflow-hidden rounded-card border border-cloud bg-cloud sm:grid-cols-3">
-          {stats.map((s) => (
-            <li key={s.label} className="flex items-baseline gap-3 bg-snow px-7 py-6">
-              <span className="font-display text-[32px] font-semibold leading-none tracking-[-0.02em] text-ink md:text-heading">
-                {s.value}
-              </span>
-              <span className="text-sm text-steel">{s.label}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ── 3. PROCESO ──────────────────────────────────────────── */}
-      <section data-track-section="home-proceso" className="contenedor seccion">
-        <div className="grid gap-4 md:grid-cols-[1fr_1fr] md:items-end">
-          <div>
-            <p className="eyebrow">El proceso</p>
-            <h2 className="titulo-seccion mt-3 max-w-xl">Así funciona, de principio a fin.</h2>
-          </div>
-          <p className="max-w-lg text-ink-muted md:justify-self-end">
-            Sabes exactamente qué pasa en cada paso — antes de comprometer un solo peso.
-          </p>
-        </div>
-
-        <ol className="mt-10 grid gap-4 md:grid-cols-3">
-          {steps.map((s) => (
-            <li key={s.number} className="tarjeta flex flex-col p-7">
-              <span className="text-sm font-medium text-ink-soft">{s.number}</span>
-              <h3 className="titulo-tarjeta mt-10">{s.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-muted">{s.body}</p>
-            </li>
-          ))}
-        </ol>
-
-        <div className="mt-6">
-          <Link href="/proyectos" className="boton-neutro">
-            Ver el proceso completo →
-          </Link>
-        </div>
-      </section>
-
-      {/* ── 4. DOS FORMAS DE TRABAJAR ───────────────────────────── */}
-      <section data-track-section="home-dos-formas" className="contenedor pb-14 md:pb-20">
-        <p className="eyebrow">Cómo trabajamos</p>
-        <h2 className="titulo-seccion mt-3 max-w-2xl text-balance">
-          ¿Ya sabes lo que quieres o estás empezando a imaginar?
-        </h2>
-
-        <div className="mt-10 grid gap-4 md:grid-cols-2">
-          {/* Tienda */}
-          <div className="tarjeta flex flex-col p-7 md:p-9">
-            <p className="etiqueta self-start">Tienda</p>
-            <h3 className="mt-8 font-display text-heading-sm font-semibold leading-tight tracking-[-0.015em] text-ink">
-              Productos con precio fijo.
-            </h3>
-            <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">
-              Elige, paga hoy y coordina la entrega. Precios en pesos colombianos,
-              pago 100% online con Mercado Pago.{" "}
-              <span className="text-ink">{siteConfig.business.marketplaceShippingNote}</span>
-            </p>
-            <div className="mt-8">
-              <Link href="/tienda" className="boton-borde">
-                Ver tienda →
-              </Link>
-            </div>
-          </div>
-
-          {/* Proyectos */}
-          <div className="bloque-oscuro flex flex-col p-7 md:p-9">
-            <p className="etiqueta-ember self-start">Proyectos a medida</p>
-            <h3 className="mt-8 font-display text-heading-sm font-semibold leading-tight tracking-[-0.015em] text-snow">
-              Tu espacio, exactamente como lo imaginaste.
-            </h3>
-            <p className="mt-3 flex-1 text-sm leading-relaxed text-ash">
-              Cotización sin costo. Diseño y renders antes de fabricar.
-              Abono inicial del {siteConfig.business.depositPercentDefault}% al confirmar —
-              saldo al finalizar.{" "}
-              <span className="text-mist">{siteConfig.business.projectShippingNote}</span>
-            </p>
-            <div className="mt-8">
-              <Link href="/proyectos" className="boton-claro">
-                Cotizar proyecto →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 5. GALERÍA ──────────────────────────────────────────── */}
-      <section data-track-section="home-galeria" className="contenedor pb-14 md:pb-20">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <p className="eyebrow">Nuestro trabajo</p>
-            <h2 className="titulo-seccion mt-3">El trabajo habla.</h2>
-          </div>
-          <Link href="/inspiracion" className="boton-neutro self-start md:self-auto">
-            Ver más en Inspiración →
-          </Link>
-        </div>
-
-        <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {gallery.map((item) => (
-            <li key={item.seed} className="tarjeta overflow-hidden">
-              <div className="aspect-[4/3] w-full overflow-hidden bg-paper">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`https://picsum.photos/seed/${item.seed}/800/600`}
-                  alt={item.alt}
-                  width={800}
-                  height={600}
-                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
-                  loading="lazy"
-                />
-              </div>
-              <div className="px-7 py-5">
-                <p className="titulo-tarjeta !text-base">{item.label}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      {/* ── 6. COBERTURA ────────────────────────────────────────── */}
-      <section data-track-section="home-cobertura" className="contenedor pb-14 md:pb-20">
-        <div className="tarjeta grid gap-10 p-7 md:grid-cols-2 md:items-center md:p-12">
-          <div>
-            <p className="eyebrow">Cobertura</p>
-            <h2 className="titulo-seccion mt-3">Llegamos a donde estás.</h2>
-            <p className="mt-4 text-ink-muted">
-              Presencia en {siteConfig.cities.length} ciudades de Colombia,
-              con asesores listos para acompañarte desde el primer contacto hasta la instalación.
-            </p>
-            <div className="mt-6">
-              <Link href="/contacto" className="boton-primario">
-                Consultar disponibilidad en mi ciudad →
-              </Link>
-            </div>
-          </div>
-
-          <ul className="flex flex-wrap gap-2">
-            {siteConfig.cities.map((city) => (
-              <li key={city} className="rounded-full border border-cloud bg-paper-dim px-4 py-2 text-sm text-graphite">
-                {city}
+      {/* ── 2. BARRA DE PRUEBA ──────────────────────────────────── */}
+      <section data-track-section="home-proof-bar" className="border-b border-neutral-200 bg-ink">
+        <div className="mx-auto max-w-6xl px-4 py-6 md:px-6">
+          <ul className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-12 md:gap-20">
+            {stats.map((s) => (
+              <li key={s.label} className="flex items-baseline gap-2">
+                <span className="font-display text-xl font-semibold text-paper">{s.value}</span>
+                <span className="text-xs uppercase tracking-wider text-paper/50">{s.label}</span>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      {/* ── 7. RESEÑAS (placeholders) — OCULTO hasta tener reseñas reales ── */}
-      {false && <section data-track-section="home-resenas" className="contenedor pb-14 md:pb-20">
-        <p className="eyebrow">Reseñas</p>
-        <h2 className="titulo-seccion mt-3">Lo que dicen quienes ya lo vivieron.</h2>
+      {/* ── 3. PROCESO ──────────────────────────────────────────── */}
+      <section data-track-section="home-proceso" className="border-b border-neutral-200">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">El proceso</p>
+          <h2 className="font-display mt-3 max-w-xl text-3xl font-semibold text-ink md:text-4xl">
+            Así funciona, de principio a fin.
+          </h2>
+          <p className="mt-3 max-w-lg text-ink-muted">
+            Sabes exactamente qué pasa en cada paso — antes de comprometer un solo peso.
+          </p>
 
-        <ul className="mt-10 grid gap-4 md:grid-cols-3">
-          {reviews.map((r) => (
-            <li key={r.name} className="tarjeta flex flex-col p-7">
-              {/* Estrellas placeholder */}
-              <div className="flex gap-0.5" aria-label="5 estrellas">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <span key={i} className="text-sm text-mist">★</span>
-                ))}
-              </div>
-              <p className="mt-4 flex-1 text-sm italic leading-relaxed text-ink-muted">
-                &ldquo;{r.text}&rdquo;
+          <ol className="mt-12 grid gap-8 md:grid-cols-3">
+            {steps.map((s) => (
+              <li key={s.number} className="border border-neutral-200 bg-white p-8">
+                <span className="font-display text-4xl font-semibold text-neutral-200">{s.number}</span>
+                <h3 className="mt-4 font-medium text-ink">{s.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-muted">{s.body}</p>
+              </li>
+            ))}
+          </ol>
+
+          <div className="mt-8">
+            <Link
+              href="/proyectos"
+              className="text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
+            >
+              Ver el proceso completo →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. DOS FORMAS DE TRABAJAR ───────────────────────────── */}
+      <section data-track-section="home-dos-formas" className="border-b border-neutral-200 bg-paper-dim">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">Cómo trabajamos</p>
+          <h2 className="font-display mt-3 max-w-xl text-3xl font-semibold text-ink md:text-4xl">
+            ¿Ya sabes lo que quieres o estás empezando a imaginar?
+          </h2>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
+            {/* Tienda */}
+            <div className="flex flex-col border border-neutral-200 bg-white p-8">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Tienda</p>
+              <h3 className="font-display mt-3 text-2xl font-semibold text-ink">
+                Productos con precio fijo.
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">
+                Elige, paga hoy y coordina la entrega. Precios en pesos colombianos,
+                pago 100% online con Mercado Pago.{" "}
+                <span className="text-ink">{siteConfig.business.marketplaceShippingNote}</span>
               </p>
-              <div className="mt-6 border-t border-cloud pt-4">
-                <p className="text-xs font-semibold text-ink">{r.name}</p>
-                <p className="text-xs text-ink-muted">{r.city}</p>
+              <div className="mt-8">
+                <Link
+                  href="/tienda"
+                  className="inline-flex items-center justify-center border border-ink px-5 py-3 text-sm font-medium text-ink hover:bg-ink hover:text-paper"
+                >
+                  Ver tienda →
+                </Link>
               </div>
-            </li>
-          ))}
-        </ul>
+            </div>
 
-        <p className="mt-6 text-xs text-ink-muted">
-          Próximamente: reseñas reales verificadas.
-          {/* TODO: conectar Google Reviews o Trustpilot */}
-        </p>
+            {/* Proyectos */}
+            <div className="flex flex-col border border-ink bg-ink p-8">
+              <p className="text-xs font-semibold uppercase tracking-wider text-paper/50">
+                Proyectos a medida
+              </p>
+              <h3 className="font-display mt-3 text-2xl font-semibold text-paper">
+                Tu espacio, exactamente como lo imaginaste.
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-paper/70">
+                Cotización sin costo. Diseño y renders antes de fabricar.
+                Abono inicial del {siteConfig.business.depositPercentDefault}% al confirmar —
+                saldo al finalizar.{" "}
+                <span className="text-paper/90">{siteConfig.business.projectShippingNote}</span>
+              </p>
+              <div className="mt-8">
+                <Link
+                  href="/proyectos"
+                  className="inline-flex items-center justify-center border border-paper bg-paper px-5 py-3 text-sm font-medium text-ink hover:bg-neutral-100"
+                >
+                  Cotizar proyecto →
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. GALERÍA ──────────────────────────────────────────── */}
+      <section data-track-section="home-galeria" className="border-b border-neutral-200">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">Nuestro trabajo</p>
+          <h2 className="font-display mt-3 text-3xl font-semibold text-ink md:text-4xl">
+            El trabajo habla.
+          </h2>
+
+          <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {gallery.map((item) => (
+              <li key={item.seed} className="overflow-hidden border border-neutral-200 bg-neutral-100">
+                <div className="aspect-[4/3] w-full">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`https://picsum.photos/seed/${item.seed}/800/600`}
+                    alt={item.alt}
+                    width={800}
+                    height={600}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="px-4 py-3 text-xs font-medium uppercase tracking-wider text-ink-muted">
+                  {item.label}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-8">
+            <Link
+              href="/inspiracion"
+              className="text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
+            >
+              Ver más en Inspiración →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 6. COBERTURA ────────────────────────────────────────── */}
+      <section data-track-section="home-cobertura" className="border-b border-neutral-200 bg-paper-dim">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
+          <div className="grid gap-10 md:grid-cols-2 md:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">Cobertura</p>
+              <h2 className="font-display mt-3 text-3xl font-semibold text-ink md:text-4xl">
+                Llegamos a donde estás.
+              </h2>
+              <p className="mt-4 text-ink-muted">
+                Presencia en {siteConfig.cities.length} ciudades de Colombia,
+                con asesores listos para acompañarte desde el primer contacto hasta la instalación.
+              </p>
+              <div className="mt-6">
+                <Link
+                  href="/contacto"
+                  className="text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
+                >
+                  Consultar disponibilidad en mi ciudad →
+                </Link>
+              </div>
+            </div>
+
+            <ul className="grid grid-cols-2 gap-2">
+              {siteConfig.cities.map((city) => (
+                <li
+                  key={city}
+                  className="border border-neutral-200 bg-white px-4 py-3 text-sm text-ink"
+                >
+                  {city}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 7. RESEÑAS (placeholders) — OCULTO hasta tener reseñas reales ── */}
+      {false && <section data-track-section="home-resenas" className="border-b border-neutral-200">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">Reseñas</p>
+          <h2 className="font-display mt-3 text-3xl font-semibold text-ink md:text-4xl">
+            Lo que dicen quienes ya lo vivieron.
+          </h2>
+
+          <ul className="mt-10 grid gap-4 md:grid-cols-3">
+            {reviews.map((r) => (
+              <li
+                key={r.name}
+                className="flex flex-col border border-dashed border-neutral-300 bg-paper-dim p-6"
+              >
+                {/* Estrellas placeholder */}
+                <div className="flex gap-0.5" aria-label="5 estrellas">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} className="text-sm text-neutral-300">★</span>
+                  ))}
+                </div>
+                <p className="mt-4 flex-1 text-sm italic leading-relaxed text-ink-muted">
+                  &ldquo;{r.text}&rdquo;
+                </p>
+                <div className="mt-6 border-t border-neutral-200 pt-4">
+                  <p className="text-xs font-semibold text-ink">{r.name}</p>
+                  <p className="text-xs text-ink-muted">{r.city}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-6 text-xs text-ink-muted">
+            Próximamente: reseñas reales verificadas.
+            {/* TODO: conectar Google Reviews o Trustpilot */}
+          </p>
+        </div>
       </section>}
 
       {/* ── 8. CTA FINAL ────────────────────────────────────────── */}
-      <section data-track-section="home-cta-final" className="contenedor">
-        <div className="bloque-oscuro px-6 py-16 md:px-12 md:py-24">
+      <section data-track-section="home-cta-final" className="bg-ink">
+        <div className="mx-auto max-w-6xl px-4 py-20 md:px-6 md:py-28">
           <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-[36px] font-semibold leading-[1.1] tracking-[-0.02em] text-snow md:text-heading-lg">
+            <h2 className="font-display text-3xl font-semibold leading-tight text-paper md:text-4xl lg:text-5xl">
               Tu proyecto empieza con una conversación.
             </h2>
-            <p className="mt-6 text-body-lg text-ash">
+            <p className="mt-6 text-base leading-relaxed text-paper/70">
               Sin compromiso. Sin visita previa.
               Solo cuéntanos qué tienes en mente.
             </p>
-            <div className="mt-10 flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
-              <Link href="/proyectos" className="boton-claro w-full sm:w-auto">
+            <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Link
+                href="/proyectos"
+                className="inline-flex items-center justify-center border border-paper bg-paper px-8 py-4 text-sm font-medium tracking-wide text-ink hover:bg-neutral-100"
+              >
                 Cotizar mi proyecto
               </Link>
               <a
@@ -309,7 +357,7 @@ export default function HomePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-track-location="cta_final"
-                className="boton w-full border border-iron text-snow hover:bg-slate sm:w-auto"
+                className="inline-flex items-center justify-center border border-paper/30 px-8 py-4 text-sm font-medium tracking-wide text-paper hover:border-paper"
               >
                 Escribir por WhatsApp
               </a>

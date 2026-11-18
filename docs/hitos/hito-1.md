@@ -9,7 +9,7 @@
 - Motor de precios `lib/precios/` (rango, anticipo, saldo, devolución) con pruebas; semilla de precios de ejemplo y su SQL.
 - Página `/cocinas` provisional (20 escenas, precio desde por ciudad, sin indexar).
 - Clientes de Supabase listos en `lib/supabase/` (sin usarse aún). Guía para Alberto: `supabase/APLICAR.md`.
-- Rediseño visual inspirado en awesomic.com (`docs/DISENO.md`), sin cambiar textos. Respaldo: etiqueta `respaldo-2026-11-18-antes-rediseno`.
+- Rediseño visual inspirado en awesomic.com (`docs/DISENO.md`), sin cambiar textos. Alberto lo revisó y prefirió el anterior: se restauró desde la etiqueta `respaldo-2026-11-18-antes-rediseno`.
 
 **Aprendido**
 - `npm run build` mientras corre el servidor de desarrollo rompe el servidor (comparten `.next`). Reiniciarlo después.
@@ -20,3 +20,6 @@
 - Alberto: aplicar migraciones y poner llaves (`supabase/APLICAR.md`).
 - Claude: login de gerencia y asesor, reemplazar `ADMIN_API_TOKEN`, cargar precios desde Supabase.
 - Fórmula de precios provisional: confirmar con Alberto (suma de paredes, recargos, ±12%).
+
+**Aprendido (rediseño)**
+- Antes de un cambio visual grande, mostrar primero una muestra (una página o una sección) para validar el gusto de Alberto, en vez de rediseñar todo el sitio.

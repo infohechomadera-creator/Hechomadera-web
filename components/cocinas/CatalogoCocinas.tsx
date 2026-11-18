@@ -16,15 +16,15 @@ export function CatalogoCocinas({ desde, ciudades }: { desde: DesdePorCiudad; ci
   const visibles = ESCENAS.filter((e) => forma === "todas" || e.forma.id === forma);
 
   const chip = (activo: boolean) =>
-    `rounded-full px-4 py-2 text-sm border transition-colors ${
-      activo ? "bg-ink text-snow border-ink" : "bg-snow text-graphite border-cloud hover:border-iron"
+    `px-4 py-2 text-sm border transition-colors ${
+      activo ? "bg-ink text-paper border-ink" : "bg-transparent text-ink border-neutral-300 hover:border-ink"
     }`;
 
   return (
     <div>
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <fieldset>
-          <legend className="eyebrow">Tu ciudad</legend>
+          <legend className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Tu ciudad</legend>
           <div className="mt-2 flex flex-wrap gap-2">
             {ciudades.map((c) => (
               <button key={c} type="button" className={chip(c === ciudad)} aria-pressed={c === ciudad} onClick={() => setCiudad(c)}>
@@ -34,7 +34,7 @@ export function CatalogoCocinas({ desde, ciudades }: { desde: DesdePorCiudad; ci
           </div>
         </fieldset>
         <fieldset>
-          <legend className="eyebrow">Forma</legend>
+          <legend className="text-xs font-semibold uppercase tracking-widest text-ink-muted">Forma</legend>
           <div className="mt-2 flex flex-wrap gap-2">
             <button type="button" className={chip(forma === "todas")} aria-pressed={forma === "todas"} onClick={() => setForma("todas")}>
               Todas
@@ -54,20 +54,20 @@ export function CatalogoCocinas({ desde, ciudades }: { desde: DesdePorCiudad; ci
         </p>
       )}
 
-      <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {visibles.map((e) => {
           const titulo = `Cocina ${e.forma.nombre.toLowerCase()} · ${e.diseno.nombre}`;
           return (
-            <li key={e.id} className="tarjeta overflow-hidden">
+            <li key={e.id} className="border border-neutral-200 bg-white">
               <div className="aspect-[2/1] w-full overflow-hidden">
                 <EscenaCocina forma={e.forma.id} diseno={e.diseno} titulo={titulo} />
               </div>
-              <div className="px-7 pb-7 pt-5">
-                <p className="etiqueta">{e.forma.nombre}</p>
-                <h3 className="titulo-tarjeta mt-4">{e.diseno.nombre}</h3>
+              <div className="p-4">
+                <p className="text-xs uppercase tracking-widest text-ink-muted">{e.forma.nombre}</p>
+                <h3 className="mt-1 font-display text-xl font-semibold text-ink">{e.diseno.nombre}</h3>
                 <p className="mt-1 text-sm text-ink-muted">{e.diseno.descripcion}</p>
-                <p className="mt-4 border-t border-cloud pt-4 text-sm text-ink-muted">
-                  Desde <span className="font-semibold text-ink">{pesos.format(desde[ciudad][e.id])}</span>
+                <p className="mt-3 text-sm text-ink">
+                  Desde <span className="font-semibold">{pesos.format(desde[ciudad][e.id])}</span>
                 </p>
               </div>
             </li>

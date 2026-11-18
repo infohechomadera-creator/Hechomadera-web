@@ -36,14 +36,14 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="contenedor flex min-h-[80vh] items-center justify-center py-14">
-      <div className="tarjeta w-full max-w-sm p-7 md:p-9">
-        <p className="titulo-tarjeta">Panel de administración</p>
-        <p className="mt-1 text-sm text-ink-muted">Ingresa la contraseña para continuar.</p>
+    <div className="flex min-h-[80vh] items-center justify-center px-4">
+      <div className="w-full max-w-sm border border-neutral-200 bg-white p-8">
+        <p className="font-display text-xl font-semibold text-ink">Panel de administración</p>
+        <p className="mt-1 text-xs text-ink-muted">Ingresa la contraseña para continuar.</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div>
-            <label htmlFor="password" className="eyebrow block">
+            <label htmlFor="password" className="block text-xs font-semibold uppercase tracking-wider text-ink-muted">
               Contraseña
             </label>
             <input
@@ -53,18 +53,18 @@ export default function AdminLoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="campo mt-2"
+              className="mt-2 w-full border border-neutral-300 bg-paper px-3 py-2.5 text-sm text-ink outline-none focus:border-ink"
             />
           </div>
 
           {error && (
-            <p className="rounded-input border border-cloud bg-paper-dim px-4 py-3 text-sm font-medium text-red-700">{error}</p>
+            <p className="text-xs font-medium text-red-600">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading || !password}
-            className="boton-primario w-full disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full border border-ink bg-ink py-3 text-sm font-medium text-paper hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "Verificando..." : "Entrar"}
           </button>

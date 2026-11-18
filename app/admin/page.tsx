@@ -59,15 +59,15 @@ type KPICardProps = {
 
 function KPICard({ label, value, sub, highlight }: KPICardProps) {
   return (
-    <div className={`p-6 ${highlight ? "bloque-oscuro" : "tarjeta"}`}>
-      <p className={`text-caption font-medium uppercase tracking-[0.08em] ${highlight ? "text-ash" : "text-ink-soft"}`}>
+    <div className={`border p-5 ${highlight ? "border-ink bg-ink text-paper" : "border-neutral-200 bg-white"}`}>
+      <p className={`text-xs font-semibold uppercase tracking-wider ${highlight ? "text-paper/60" : "text-ink-muted"}`}>
         {label}
       </p>
-      <p className={`mt-2 break-words font-display text-heading-sm font-semibold leading-tight tracking-[-0.015em] ${highlight ? "text-snow" : "text-ink"}`}>
+      <p className={`mt-2 text-2xl font-semibold tracking-tight ${highlight ? "text-paper" : "text-ink"}`}>
         {value}
       </p>
       {sub && (
-        <p className={`mt-1 text-caption ${highlight ? "text-ash" : "text-ink-muted"}`}>{sub}</p>
+        <p className={`mt-1 text-xs ${highlight ? "text-paper/50" : "text-ink-muted"}`}>{sub}</p>
       )}
     </div>
   );
@@ -88,15 +88,15 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
   const kpis = computeKPIs(dateFiltered);
 
   return (
-    <div className="contenedor py-10 md:py-14">
+    <div className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="titulo-seccion">Admin · Órdenes</h1>
-        <div className="flex flex-wrap gap-2">
+        <h1 className="font-display text-3xl font-semibold text-ink">Admin · Órdenes</h1>
+        <div className="flex gap-2">
           <Link
             href={`/api/admin/orders/export${from || to ? `?${from ? `from=${from}` : ""}${from && to ? "&" : ""}${to ? `to=${to}` : ""}` : ""}`}
-            className="boton-primario !py-2.5"
+            className="inline-flex items-center justify-center border border-ink bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-neutral-800"
           >
             Exportar CSV
           </Link>
@@ -105,7 +105,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
       </div>
 
       {/* KPI Cards */}
-      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <KPICard
           label="Total vendido"
           value={formatCOP(kpis.totalVentas)}
@@ -140,14 +140,14 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
       </div>
 
       {/* Filtros */}
-      <form method="get" className="tarjeta mt-3 grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
+      <form method="get" className="mt-8 grid gap-3 rounded border border-neutral-200 bg-white p-4 sm:grid-cols-5">
 
-        <label className="eyebrow block">
+        <label className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
           Estado
           <select
             name="status"
             defaultValue={status ?? ""}
-            className="campo mt-2 block normal-case tracking-normal"
+            className="mt-1 block w-full border border-neutral-300 bg-paper px-2 py-2 text-sm text-ink"
           >
             <option value="">Todos</option>
             <option value="created">created</option>
@@ -158,27 +158,27 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
           </select>
         </label>
 
-        <label className="eyebrow block">
+        <label className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
           Desde
           <input
             name="from"
             type="date"
             defaultValue={from ?? ""}
-            className="campo mt-2 block normal-case tracking-normal"
+            className="mt-1 block w-full border border-neutral-300 bg-paper px-2 py-2 text-sm text-ink"
           />
         </label>
 
-        <label className="eyebrow block">
+        <label className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
           Hasta
           <input
             name="to"
             type="date"
             defaultValue={to ?? ""}
-            className="campo mt-2 block normal-case tracking-normal"
+            className="mt-1 block w-full border border-neutral-300 bg-paper px-2 py-2 text-sm text-ink"
           />
         </label>
 
-        <label className="eyebrow block">
+        <label className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
           Límite
           <input
             name="limit"
@@ -186,20 +186,20 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
             min={1}
             max={200}
             defaultValue={String(parsedLimit)}
-            className="campo mt-2 block normal-case tracking-normal"
+            className="mt-1 block w-full border border-neutral-300 bg-paper px-2 py-2 text-sm text-ink"
           />
         </label>
 
-        <div className="flex items-end gap-2 sm:col-span-2 lg:col-span-1">
+        <div className="flex items-end gap-2">
           <button
             type="submit"
-            className="boton-primario flex-1"
+            className="border border-neutral-300 px-4 py-2 text-sm font-medium text-ink hover:border-ink"
           >
             Aplicar
           </button>
           <Link
             href="/admin"
-            className="boton-neutro flex-1"
+            className="border border-neutral-200 px-4 py-2 text-sm text-ink-muted hover:border-neutral-400"
           >
             Limpiar
           </Link>
@@ -207,7 +207,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
       </form>
 
       {/* Conteo */}
-      <p className="mt-6 px-1 text-caption text-ink-muted">
+      <p className="mt-3 text-xs text-ink-muted">
         Mostrando {rows.length} de {dateFiltered.length} órdenes
         {(from || to) && (
           <span className="ml-1 text-ink">
@@ -217,51 +217,51 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
       </p>
 
       {/* Tabla */}
-      <div className="tarjeta mt-3 overflow-x-auto">
+      <div className="mt-3 overflow-x-auto border border-neutral-200 bg-white">
         <table className="min-w-full text-left text-sm">
-          <thead className="border-b border-cloud text-caption uppercase tracking-[0.08em] text-ink-soft">
+          <thead className="border-b border-neutral-200 bg-neutral-50 text-xs uppercase tracking-wider text-ink-muted">
             <tr>
-              <th className="whitespace-nowrap px-6 py-4 font-medium">Orden</th>
-              <th className="whitespace-nowrap px-6 py-4 font-medium">Estado</th>
-              <th className="whitespace-nowrap px-6 py-4 font-medium">Total COP</th>
-              <th className="whitespace-nowrap px-6 py-4 font-medium">Pago MP</th>
-              <th className="whitespace-nowrap px-6 py-4 font-medium">Fecha</th>
+              <th className="px-3 py-2">Orden</th>
+              <th className="px-3 py-2">Estado</th>
+              <th className="px-3 py-2">Total COP</th>
+              <th className="px-3 py-2">Pago MP</th>
+              <th className="px-3 py-2">Fecha</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((o) => (
-              <tr key={o.order_id} className="border-b border-cloud last:border-b-0 hover:bg-paper-dim">
-                <td className="px-6 py-4">
+              <tr key={o.order_id} className="border-b border-neutral-100 hover:bg-neutral-50">
+                <td className="px-3 py-2">
                   <Link
                     href={`/admin/orders/${encodeURIComponent(o.order_id)}`}
-                    className="whitespace-nowrap font-medium text-ink underline underline-offset-4 hover:text-ink-muted"
+                    className="underline"
                   >
                     {o.order_id}
                   </Link>
                 </td>
-                <td className="px-6 py-4">
-                  <span className={
+                <td className="px-3 py-2">
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                     o.status === "approved"
-                      ? "etiqueta-llena"
+                      ? "bg-emerald-50 text-emerald-700"
                       : o.status === "rejected"
-                      ? "etiqueta-ember"
+                      ? "bg-red-50 text-red-700"
                       : o.status === "pending"
-                      ? "etiqueta bg-snow"
-                      : "etiqueta bg-paper text-ink-muted"
-                  }>
+                      ? "bg-amber-50 text-amber-700"
+                      : "bg-neutral-100 text-ink-muted"
+                  }`}>
                     {o.status}
                   </span>
                 </td>
-                <td className="whitespace-nowrap px-6 py-4 font-medium text-ink">{formatCOP(o.total_cop)}</td>
-                <td className="px-6 py-4 text-ink-muted">{o.payment.status ?? "—"}</td>
-                <td className="whitespace-nowrap px-6 py-4 text-ink-muted">
+                <td className="px-3 py-2 font-medium">{formatCOP(o.total_cop)}</td>
+                <td className="px-3 py-2 text-ink-muted">{o.payment.status ?? "—"}</td>
+                <td className="px-3 py-2 text-ink-muted">
                   {new Date(o.created_at).toLocaleDateString("es-CO")}
                 </td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-10 text-center text-ink-muted">
+                <td colSpan={5} className="px-3 py-6 text-center text-ink-muted">
                   No hay órdenes con esos filtros.
                 </td>
               </tr>

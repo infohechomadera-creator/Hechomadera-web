@@ -54,6 +54,10 @@
 - **Los textos de la web no se cambian:** cada frase pasó por un filtro de tono y contenido. Se permite reorganizar textos e imágenes, no reescribirlos. Se verifica comparando el texto renderizado antes y después. Motivo: instrucción de Alberto.
 - Respaldo antes del rediseño: etiqueta `respaldo-2026-11-18-antes-rediseno` (subida a GitHub). Para volver atrás basta con regresar a esa etiqueta.
 
+## 2026-11-18 · Rediseño descartado (reemplaza la decisión anterior)
+- Alberto revisó el rediseño en la vista previa y **prefiere el diseño anterior**. Se restauraron páginas, componentes y estilos desde la etiqueta `respaldo-2026-11-18-antes-rediseno`. Se conserva el resto del trabajo (base de datos, precios, clientes de Supabase, documentos). `docs/DISENO.md` y `docs/DISENO-REFERENCIA.md` quedan solo como registro. Motivo: decisión de Alberto.
+- Se mantiene la regla: los textos de la web no se cambian sin aprobación.
+
 ## 2026-11-18 · Proyecto de Supabase creado
 - Alberto creó el proyecto de Supabase de la web, llamado `hechomadera`. Falta: poner las llaves en `.env.local` y en Vercel (lo hace Alberto) y aplicar las migraciones de `supabase/migrations/`.
 

@@ -32,32 +32,38 @@ export function CookieConsent() {
     <div
       role="dialog"
       aria-label="Aviso de cookies"
-      className="tarjeta fixed inset-x-3 bottom-3 z-[120] p-5 shadow-suave sm:inset-x-auto sm:bottom-6 sm:left-6 sm:max-w-md sm:p-6"
+      className="fixed bottom-0 left-0 right-0 z-[100] border-t border-neutral-200 bg-paper shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
     >
-      <p className="text-sm font-semibold text-ink">Cookies y privacidad</p>
-      <p className="mt-1 text-[13px] leading-relaxed text-ink-muted sm:text-sm">
-        Usamos cookies necesarias para el funcionamiento del sitio. Con tu permiso,
-        activamos también Google Analytics para entender cómo mejorar la experiencia.
-        Ningún dato se vende a terceros. Más en nuestra{" "}
-        <Link href="/legal/cookies" className="text-ink underline underline-offset-2">política de cookies</Link>{" "}
-        y{" "}
-        <Link href="/legal/privacidad" className="text-ink underline underline-offset-2">privacidad</Link>.
-      </p>
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={decline}
-          className="boton-neutro !py-2.5"
-        >
-          Solo necesarias
-        </button>
-        <button
-          type="button"
-          onClick={accept}
-          className="boton-primario !py-2.5"
-        >
-          Aceptar todas
-        </button>
+      <div className="mx-auto max-w-6xl px-4 py-5 md:px-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-10">
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-ink">Cookies y privacidad</p>
+            <p className="mt-1 text-sm text-ink-muted">
+              Usamos cookies necesarias para el funcionamiento del sitio. Con tu permiso,
+              activamos también Google Analytics para entender cómo mejorar la experiencia.
+              Ningún dato se vende a terceros. Más en nuestra{" "}
+              <Link href="/legal/cookies" className="underline text-ink">política de cookies</Link>{" "}
+              y{" "}
+              <Link href="/legal/privacidad" className="underline text-ink">privacidad</Link>.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2 md:flex-nowrap md:items-center">
+            <button
+              type="button"
+              onClick={decline}
+              className="border border-neutral-300 px-4 py-2.5 text-sm font-medium text-ink hover:border-ink"
+            >
+              Solo necesarias
+            </button>
+            <button
+              type="button"
+              onClick={accept}
+              className="border border-ink bg-ink px-5 py-2.5 text-sm font-medium text-paper hover:bg-neutral-800"
+            >
+              Aceptar todas
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

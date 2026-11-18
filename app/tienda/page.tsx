@@ -23,37 +23,38 @@ export default function TiendaPage() {
   const categories = Object.keys(CATEGORY_LABELS) as ProductCategory[];
 
   return (
-    <div className="contenedor py-12 md:py-20">
+    <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
 
       {/* ── heading ──────────────────────────────────────────── */}
-      <div className="max-w-3xl">
-        <h1 className="titulo-display">Tienda</h1>
-        <p className="mt-5 max-w-xl text-body text-ink-muted md:text-body-lg">
+      <div className="max-w-2xl">
+        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Tienda</h1>
+        <p className="mt-3 text-sm text-ink-muted">
           Precio fijo en pesos colombianos. Pago 100% online con Mercado Pago — sin intermediarios,
           sin sorpresas.
         </p>
       </div>
 
       {/* ── category grid ────────────────────────────────────── */}
-      <div data-track-section="tienda-categorias" className="mt-12 md:mt-16">
-        <p className="eyebrow">
+      <div data-track-section="tienda-categorias" className="mt-10">
+        <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
           Explorar por categoría
         </p>
-        <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-5">
+        <ul className="mt-4 grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {categories.map((cat) => (
             <li key={cat}>
               <a
                 href="#catalogo"
-                className="group relative block aspect-square overflow-hidden rounded-card border border-cloud bg-paper-dim focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+                className="group relative block aspect-square overflow-hidden bg-neutral-100"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={`https://picsum.photos/seed/${CATEGORY_IMAGES[cat]}/400/400`}
                   alt={CATEGORY_LABELS[cat]}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
                 />
-                <span className="absolute bottom-3 left-3 inline-flex max-w-[calc(100%-1.5rem)] items-center rounded-badge bg-snow px-2.5 py-1 text-[13px] font-medium text-graphite transition-colors group-hover:bg-paper md:bottom-4 md:left-4">
+                <div className="absolute inset-0 bg-ink/40 transition-colors group-hover:bg-ink/55" />
+                <span className="absolute inset-x-0 bottom-0 p-3 font-display text-sm font-semibold text-paper">
                   {CATEGORY_LABELS[cat]}
                 </span>
               </a>
@@ -63,7 +64,7 @@ export default function TiendaPage() {
       </div>
 
       {/* ── catalog ──────────────────────────────────────────── */}
-      <section id="catalogo" data-track-section="tienda-catalogo" className="mt-16 scroll-mt-24 md:mt-24">
+      <section id="catalogo" data-track-section="tienda-catalogo" className="mt-16 border-t border-neutral-200 pt-10">
         <TiendaCatalog products={list} />
       </section>
     </div>
