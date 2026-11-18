@@ -41,5 +41,10 @@
 - **`curl`, `python3`, `node`, `pip3 install` y `npx` de herramientas externas pasan a "preguntar".** Motivo: con ellos se podría borrar o enviar archivos sin permiso (riesgo señalado en el traspaso §6).
 - **Lista `deny`:** lectura de `.env` y `.env.*`, force push, `reset --hard`, `git clean`, `rm -rf`, `rebase`. Hook anti-secretos activo en commit y push.
 
+## 2026-11-18 · Autonomía ampliada para avanzar de forma fluida
+- Alberto autoriza a Claude a avanzar en el desarrollo sin pedir aprobación de cada plan, y a crear agentes, subagentes, artifacts, skills, hooks, MCP y otras herramientas. **Límites que siguen:** nada que cueste dinero; no borrar fuera de las carpetas autorizadas; se mantiene pedir permiso para borrar, salir de la carpeta, contraseñas o inicios de sesión y aceptar términos. Motivo: instrucción de Alberto.
+- Mientras no exista el proyecto de Supabase (lo crea Alberto), W1 se adelanta con migraciones SQL y pruebas de permisos en una base Postgres local dentro del proyecto (PGlite, gratis). La conexión real a Supabase queda para cuando exista. Motivo: avanzar sin depender de una cuenta.
+- W2 se adelanta en paralelo (motor de precios y página de cocinas), porque no depende de la base de datos para probarse. Los precios de ejemplo viven en una semilla que se cargará a la tabla de precios en Supabase, que sigue siendo la única fuente.
+
 ## Por aprobar
 - Pasar las órdenes de Redis a Supabase durante el hito del CRM (W4), para tener una sola base de datos. Mientras tanto, Redis sigue funcionando.
