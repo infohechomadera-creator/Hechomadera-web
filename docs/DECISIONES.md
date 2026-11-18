@@ -90,6 +90,8 @@
 - **Pendiente W5:** al borrar un cliente (o "no aprobó") hay que borrar también sus fotos de la cubeta: la cascada borra las filas de `archivos`, no los archivos. Hoy no hay clientes reales.
 - **Pendiente W5:** el asesor no puede poner "no aprobó" por la base (lo bloquea el disparador); esa acción pasará por el servidor.
 - Alberto pidió usar Chrome (su sesión) para Supabase y Vercel siempre que se pueda.
+- Texto de autorización Ley 1581 (versión `2026-11-18-v1`) y política de privacidad (hoy no menciona las fotos): el abogado debe revisarlos **antes de pasar a producción** (`main`). Motivo: ya se guardan datos personales y fotos de clientes.
+- Alberto pidió avanzar sin pedir permiso salvo en temas de seguridad o contraseñas (2026-11-18).
 
 | Servicio | Qué se hizo | Cómo revertir |
 | --- | --- | --- |

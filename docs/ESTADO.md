@@ -2,26 +2,28 @@
 > Página única para retomar. Máximo ~50 líneas. Última actualización: 2026-11-18.
 
 ## Dónde vamos
-- W0 cerrado (etiqueta `hito-0`). W1 hecho (base, permisos, login). **W2 hecho**: editor de precios (`/admin/precios`, probado con un cambio real) y API de precios para Operflow (espera `OPERFLOW_API_KEY`). Todo en la rama `w1-w2-base` (no está en producción). Diarios: `docs/hitos/hito-1.md`, `docs/hitos/hito-2.md`.
-- Listo y probado: migraciones con RLS, pruebas por rol (`npm test`), motor de precios, página `/cocinas` provisional.
-- Rediseño estilo awesomic.com probado y **descartado** por Alberto: la web sigue con su diseño original.
-- Supabase (proyecto Hechomadera, ref `seazgghpynhflxvrjpee`): migraciones y precios aplicados; llaves en `.env.local` y Vercel (conexión verificada con `/api/salud`); usuario `infohechomadera@gmail.com` con rol gerencia; registro libre desactivado; URLs de redirección configuradas.
-- **Login con Supabase** en `/admin/login`, probado por Alberto. Se retiró la contraseña única (`ADMIN_PASSWORD`) y el token (`ADMIN_API_TOKEN`) del código; las APIs revisan el rol dos veces.
-- `/cocinas` lee los precios de Supabase (con la semilla como respaldo si falla).
-- Autonomía nivel 3: todo dentro del proyecto sin preguntar; nunca llaves, contraseñas, dinero ni términos (ver `CLAUDE.md`).
+- W0 cerrado (etiqueta `hito-0`). W1 y W2 hechos. **W3 hecho**: configurador `/cocinas/configurar` (9 pasos, rango en el servidor, fotos opcionales) y panel `/admin/leads` para gerencia. Todo en la rama `w1-w2-base` (no está en producción). Diarios: `docs/hitos/hito-1.md`, `hito-2.md`, `hito-3.md`.
+- Probado: 149 pruebas, lint y build sin errores; validador (2 pasadas) y auditor sin desviaciones graves. Alberto envió el lead real 4DAF4A75 desde su celular y lo vio en el panel.
+- Supabase (proyecto Hechomadera, ref `seazgghpynhflxvrjpee`): migraciones hasta `…0600` aplicadas; cubeta privada `fotos-espacio`; usuario `infohechomadera@gmail.com` con rol gerencia; registro libre desactivado.
+- Login con Supabase en `/admin/login`. Contraseña única y token retirados del código; las APIs revisan el rol dos veces.
+- Límites: 30 intentos/h y 8 envíos/h por IP; tope de 60 envíos con fotos por hora en todo el sitio (luego se guarda sin fotos).
+- Vista previa de la rama: https://hechomadera-web-git-w1-dce765-infohechomadera-creators-projects.vercel.app
+- Rediseño estilo awesomic.com descartado por Alberto.
+- Autonomía nivel 3: todo dentro del proyecto sin preguntar; nunca llaves, contraseñas, dinero ni términos (ver `CLAUDE.md`). Chrome siempre que se pueda.
 
 ## Siguiente paso exacto
-1. **Sesión nueva** con `/retomar`: correr `validador` sobre `hito-0..HEAD` y empezar W3 (configurador guiado) en modo plan.
-2. Alberto: ajustar los precios reales en `/admin/precios` (el D1 de Barranquilla quedó en $2.000.000 de prueba).
-3. Alberto: cambiar en Vercel `SUPABASE_SECRET_KEY` a tipo **Secret** (hoy está como Config, legible).
-4. Con la aprobación de Alberto, pasar la rama a `main` (publica en producción) y luego quitar `ADMIN_PASSWORD` y `ADMIN_API_TOKEN` de Vercel.
+1. **Sesión nueva** con `/retomar` para **W4** (CRM mínimo: el asesor ve sus leads, cambia estados, deja notas, marca el filtro; un asesor no ve leads ajenos), en modo plan. El lead 4DAF4A75 sirve para probar.
+2. Alberto: cambiar en Vercel `SUPABASE_SECRET_KEY` a tipo **Secret** (sube de prioridad: ya hay datos personales y fotos de clientes).
+3. Alberto: ajustar precios reales en `/admin/precios` (D1 Barranquilla está en $2.000.000 de prueba).
+4. Con visto bueno de Alberto: pasar la rama a `main` y luego quitar `ADMIN_PASSWORD` y `ADMIN_API_TOKEN` de Vercel.
 
 ## Pendientes abiertos
-- `OPERFLOW_API_KEY` en Vercel cuando Operflow la genere (hasta entonces la API de precios responde 503).
+- Abogado: revisar texto de autorización Ley 1581 (`2026-11-18-v1`) y política de privacidad (no menciona fotos) antes de producción.
+- W5: borrar fotos de la cubeta al borrar cliente o "no aprobó"; "no aprobó" del asesor pasa por el servidor.
+- `OPERFLOW_API_KEY` en Vercel cuando Operflow la genere (la API de precios responde 503 hasta entonces).
 - Confirmar la fórmula de precios provisional (suma de paredes, recargos, ±12%).
 - Por aprobar: pasar las órdenes de Redis a Supabase en W4.
 - Por definir: los 5 diseños base definitivos; costo de la visita de medición; métricas de conversión.
-- Revisión de términos por un abogado antes de W7.
 
 ## Antes de empezar una sesión
 - Leer solo este archivo (o `/retomar`). Trabajar en la rama `w1-w2-base`.
