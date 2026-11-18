@@ -43,6 +43,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 401 });
   }
   const destino = request.nextUrl.clone();
+  if (decision === "ir_a_leads") {
+    destino.pathname = "/admin/leads";
+    destino.search = "";
+    return NextResponse.redirect(destino);
+  }
   destino.pathname = "/admin/login";
   destino.search = decision === "sin_permiso" ? "?aviso=sin_permiso" : "";
   return NextResponse.redirect(destino);

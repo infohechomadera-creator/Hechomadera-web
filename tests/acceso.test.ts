@@ -27,14 +27,19 @@ describe("acceso a zonas internas", () => {
   });
 
   it("asesor no ve órdenes ni pagos de prueba", () => {
-    expect(decidirAcceso("/admin", "asesor")).toBe("sin_permiso");
+    expect(decidirAcceso("/admin", "asesor")).toBe("ir_a_leads");
+    expect(decidirAcceso("/admin/orders/abc", "asesor")).toBe("sin_permiso");
+    expect(decidirAcceso("/api/admin/orders/export", "asesor")).toBe("no_autorizado_api");
     expect(decidirAcceso("/pago/prueba", "asesor")).toBe("sin_permiso");
     expect(decidirAcceso("/api/admin/orders", "asesor")).toBe("no_autorizado_api");
   });
 
-  it("el panel de leads es solo de gerencia por ahora", () => {
-    expect(decidirAcceso("/admin/leads", "asesor")).toBe("sin_permiso");
-    expect(decidirAcceso("/admin/leads/abc", "asesor")).toBe("sin_permiso");
+  it("el asesor entra a su panel de leads y a la ficha de cada lead", () => {
+    expect(decidirAcceso("/admin/leads", "asesor")).toBe("permitir");
+    expect(decidirAcceso("/admin/leads/abc", "asesor")).toBe("permitir");
+    expect(decidirAcceso("/admin/leads/abc/otra", "asesor")).toBe("sin_permiso");
+    expect(decidirAcceso("/admin/leadsx", "asesor")).toBe("sin_permiso");
+    expect(decidirAcceso("/api/admin/leads", "asesor")).toBe("no_autorizado_api");
     expect(decidirAcceso("/admin/leads", null)).toBe("ir_a_login");
     expect(decidirAcceso("/admin/leads", "gerencia")).toBe("permitir");
   });
