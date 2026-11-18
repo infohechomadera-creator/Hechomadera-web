@@ -307,6 +307,32 @@ describe("correcciones del validador (estados, autorización y actividades)", ()
     });
   }
 
+  for (const desde of ["diseno_pagado", "aprobado"]) {
+    it(`un asesor no saca su lead de '${desde}'`, async () => {
+      await expect(
+        como(db, asesorA, async (tx) => {
+          // Primero el sistema (sin usuario) deja el lead en ese estado…
+          await tx.exec("reset role");
+          await tx.query("select set_config('request.jwt.claim.sub', '', true)");
+          const r = await tx.query(`update public.leads set estado = '${desde}' where id = $1`, [IDS.leadA]);
+          expect(r.affectedRows).toBe(1);
+          // …y luego el asesor intenta devolverlo.
+          await tx.query("select set_config('request.jwt.claim.sub', $1, true)", [IDS.asesorA]);
+          await tx.exec("set local role authenticated");
+          await tx.query("update public.leads set estado = 'nuevo' where id = $1", [IDS.leadA]);
+        }),
+      ).rejects.toThrow(/Solo gerencia o el sistema/);
+    });
+  }
+
+  it("un asesor no cambia el envio_id de su lead", async () => {
+    await expect(
+      como(db, asesorA, (tx) =>
+        tx.query("update public.leads set envio_id = '40000000-0000-4000-a000-0000000000aa' where id = $1", [IDS.leadA]),
+      ),
+    ).rejects.toThrow(/envío de origen/);
+  });
+
   it("un asesor sí puede marcar su lead como perdido", async () => {
     const r = await como(db, asesorA, (tx) => tx.query("update public.leads set estado = 'perdido' where id = $1", [IDS.leadA]));
     expect(r.affectedRows).toBe(1);
@@ -446,8 +472,8 @@ describe("W3 · fotos del espacio (archivos) y envíos", () => {
     });
   }
 
-  it("la ruta de una foto no admite rutas raras ni otros tipos", async () => {
-    for (const r of ["../otro/archivo.jpg", `${IDS.leadA}/foto.exe`, "/abs/x.jpg"]) {
+  it("la ruta de una foto no admite rutas raras, otros tipos ni la carpeta de otro lead", async () => {
+    for (const r of ["../otro/archivo.jpg", `${IDS.leadA}/foto.exe`, "/abs/x.jpg", `${IDS.leadB}/30000000-0000-4000-a000-0000000000f1.jpg`]) {
       await expect(
         db.query(`insert into public.archivos (lead_id, ruta, tipo, bytes) values ($1, $2, 'image/jpeg', 10)`, [IDS.leadA, r]),
       ).rejects.toThrow(/check constraint/);

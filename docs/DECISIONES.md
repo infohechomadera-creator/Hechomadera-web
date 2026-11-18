@@ -83,5 +83,17 @@
 - **Estrategia de tokens:** una sesión por hito; al cerrar un hito se ejecuta `/cierre`, se etiqueta `hito-N` y se sigue en una sesión nueva que arranca solo con `docs/ESTADO.md` (`/retomar`). Búsquedas, revisiones y rediseños van a subagentes, que devuelven solo la conclusión. Cambios visuales: primero una muestra pequeña. Motivo: la sesión del 2026-11-18 cubrió W0–W2 y se volvió muy larga.
 - Dependencias de desarrollo fijadas exactas (`@electric-sql/pglite@0.5.15`, `vitest@3.2.7`), con más de 2 semanas de publicadas. Motivo: hallazgo del auditor.
 
+## 2026-11-18 · W3 configurador: decisiones de Alberto y correcciones del validador
+- Decisiones de Alberto: el cliente ve el rango **antes** de dejar datos; los electrodomésticos **no** cambian el precio (solo informan); fotos **opcionales, hasta 5**; el botón "Quiero mi cocina" de `/cocinas` lleva a `/cocinas/configurar` (mismo texto). Se incluye un aviso por correo a gerencia por cada lead nuevo (sin teléfono ni fotos).
+- Validador (hito-0..HEAD): un asesor solo mueve su lead entre `nuevo`, `contactado` y `perdido`; no cambia la autorización de datos ni crea actividades de pago u Operflow; la vigencia de precios usa la fecha de Colombia; la API de Operflow frena por IP antes de revisar la clave. Motivo: problemas reales encontrados por el validador.
+- Fotos en la cubeta privada `fotos-espacio`, sin políticas en `storage.objects`: solo el servidor sube y firma enlaces de 10 minutos. Texto de autorización versionado (`2026-11-18-v1`), borrador para el abogado.
+- **Pendiente W5:** al borrar un cliente (o "no aprobó") hay que borrar también sus fotos de la cubeta: la cascada borra las filas de `archivos`, no los archivos. Hoy no hay clientes reales.
+- **Pendiente W5:** el asesor no puede poner "no aprobó" por la base (lo bloquea el disparador); esa acción pasará por el servidor.
+- Alberto pidió usar Chrome (su sesión) para Supabase y Vercel siempre que se pueda.
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| Supabase Hechomadera (`seazgghpynhflxvrjpee`) | Migraciones `…0500` (correcciones del validador) y `…0600` (tabla `archivos`, `leads.envio_id`, cubeta privada `fotos-espacio`, disparador de `envio_id`), cada una en una transacción, desde Chrome. Verificado: RLS activo, cubeta no pública, 0 políticas en `storage.objects`, precios vigentes intactos. La base no tenía leads ni clientes (sin datos que respaldar) | Migración nueva que revierta; la cubeta se borra vacía desde Storage |
+
 ## Por aprobar
 - Pasar las órdenes de Redis a Supabase durante el hito del CRM (W4), para tener una sola base de datos. Mientras tanto, Redis sigue funcionando.

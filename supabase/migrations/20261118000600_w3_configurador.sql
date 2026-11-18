@@ -11,6 +11,8 @@ create table public.archivos (
   id         uuid primary key default gen_random_uuid(),
   lead_id    uuid not null references public.leads (id) on delete cascade,
   ruta       text not null unique check (ruta ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}\.(jpg|png|webp)$'),
+  -- La carpeta de la foto es siempre la de su lead.
+  constraint archivos_ruta_del_lead check (split_part(ruta, '/', 1) = lead_id::text),
   tipo       text not null check (tipo in ('image/jpeg', 'image/png', 'image/webp')),
   bytes      integer not null check (bytes between 1 and 5242880),
   creado_at  timestamptz not null default now()
@@ -33,3 +35,22 @@ on conflict (id) do update
   set public = false,
       file_size_limit = excluded.file_size_limit,
       allowed_mime_types = excluded.allowed_mime_types;
+
+-- Nadie con sesión cambia el envio_id de un lead (solo lo pone el servidor al crearlo).
+create function public.proteger_envio_id() returns trigger
+language plpgsql security definer set search_path = ''
+as $$
+begin
+  if auth.uid() is not null and new.envio_id is distinct from old.envio_id then
+    raise exception 'El envío de origen del lead no se cambia' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger leads_proteger_envio_id
+  before update on public.leads
+  for each row execute function public.proteger_envio_id();
+
+-- Higiene también para las tablas que se creen después.
+alter default privileges in schema public revoke truncate, references, trigger on tables from authenticated;

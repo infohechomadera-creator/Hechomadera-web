@@ -1,5 +1,5 @@
 -- W2 · Correcciones del validador (2026-11-18). Se aplica sobre lo ya publicado; no cambia datos.
---  1. Un asesor solo puede poner su lead en 'nuevo', 'contactado' o 'perdido'.
+--  1. Un asesor solo mueve su lead entre 'nuevo', 'contactado' y 'perdido' (ni hacia ni desde otro estado).
 --     Los estados que dependen de un pago o de Operflow los pone el sistema o gerencia.
 --  2. La prueba de la autorización de datos (Ley 1581) no la cambia un asesor.
 --  3. Un asesor solo deja actividades de tipo 'nota' o 'cambio_estado'.
@@ -25,7 +25,8 @@ begin
        or new.ciudad is distinct from old.ciudad
        or new.creado_at is distinct from old.creado_at
        or (new.estado is distinct from old.estado
-           and new.estado not in ('nuevo', 'contactado', 'perdido')) then
+           and (new.estado not in ('nuevo', 'contactado', 'perdido')
+                or old.estado not in ('nuevo', 'contactado', 'perdido'))) then
       raise exception 'Solo gerencia o el sistema pueden cambiar ese dato del lead'
         using errcode = '42501';
     end if;
