@@ -95,6 +95,12 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
         <h1 className="font-display text-3xl font-semibold text-ink">Admin · Órdenes</h1>
         <div className="flex gap-2">
           <Link
+            href="/admin/leads"
+            className="inline-flex items-center justify-center border border-neutral-300 px-4 py-2 text-sm font-medium text-ink hover:border-ink"
+          >
+            Leads
+          </Link>
+          <Link
             href="/admin/precios"
             className="inline-flex items-center justify-center border border-neutral-300 px-4 py-2 text-sm font-medium text-ink hover:border-ink"
           >

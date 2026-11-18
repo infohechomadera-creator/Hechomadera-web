@@ -32,6 +32,18 @@ describe("acceso a zonas internas", () => {
     expect(decidirAcceso("/api/admin/orders", "asesor")).toBe("no_autorizado_api");
   });
 
+  it("el panel de leads es solo de gerencia por ahora", () => {
+    expect(decidirAcceso("/admin/leads", "asesor")).toBe("sin_permiso");
+    expect(decidirAcceso("/admin/leads/abc", "asesor")).toBe("sin_permiso");
+    expect(decidirAcceso("/admin/leads", null)).toBe("ir_a_login");
+    expect(decidirAcceso("/admin/leads", "gerencia")).toBe("permitir");
+  });
+
+  it("el configurador y sus API son públicos", () => {
+    expect(decidirAcceso("/cocinas/configurar", null)).toBe("permitir");
+    expect(decidirAcceso("/api/configurador/lead", null)).toBe("permitir");
+  });
+
   it("asesor no entra al editor de precios", () => {
     expect(decidirAcceso("/admin/precios", "asesor")).toBe("sin_permiso");
     expect(decidirAcceso("/admin/precios", null)).toBe("ir_a_login");

@@ -70,7 +70,7 @@ export default async function CocinasPage() {
       </section>
 
       <div className="mt-10">
-        <Button href="/contacto">Quiero mi cocina</Button>
+        <Button href="/cocinas/configurar">Quiero mi cocina</Button>
       </div>
     </div>
   );
