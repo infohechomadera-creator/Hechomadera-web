@@ -16,6 +16,12 @@ const IMITACION_SUPABASE = `
   create function auth.uid() returns uuid language sql stable as $$
     select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid
   $$;
+  -- Almacenamiento de Supabase (solo lo que usan las migraciones).
+  create schema storage;
+  create table storage.buckets (
+    id text primary key, name text not null, public boolean default false,
+    file_size_limit bigint, allowed_mime_types text[]
+  );
   create role anon nologin;
   create role authenticated nologin;
   grant usage on schema public, auth to anon, authenticated;

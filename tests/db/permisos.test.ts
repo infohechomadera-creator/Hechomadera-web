@@ -376,6 +376,110 @@ describe("correcciones del validador (estados, autorización y actividades)", ()
   });
 });
 
+describe("W3 · fotos del espacio (archivos) y envíos", () => {
+  const FOTO_A = "30000000-0000-4000-a000-00000000000a";
+  const FOTO_B = "30000000-0000-4000-a000-00000000000b";
+  const ruta = (lead: string, foto: string) => `${lead}/${foto}.jpg`;
+
+  beforeAll(async () => {
+    await db.query(
+      `insert into public.archivos (id, lead_id, ruta, tipo, bytes) values
+        ($1, $2, $3, 'image/jpeg', 1000), ($4, $5, $6, 'image/jpeg', 1000)`,
+      [FOTO_A, IDS.leadA, ruta(IDS.leadA, FOTO_A), FOTO_B, IDS.leadB, ruta(IDS.leadB, FOTO_B)],
+    );
+  });
+
+  it("el público no ve ni sube fotos", async () => {
+    await expect(como(db, publico, (tx) => tx.query("select * from public.archivos"))).rejects.toThrow(/permission denied/);
+    await expect(
+      como(db, publico, (tx) =>
+        tx.query(`insert into public.archivos (lead_id, ruta, tipo, bytes) values ($1, $2, 'image/jpeg', 10)`, [
+          IDS.leadA,
+          ruta(IDS.leadA, "30000000-0000-4000-a000-0000000000ff"),
+        ]),
+      ),
+    ).rejects.toThrow(/permission denied/);
+  });
+
+  it("un asesor ve solo las fotos de sus leads", async () => {
+    const ids = await como(db, asesorA, async (tx) =>
+      (await tx.query<{ id: string }>("select id from public.archivos")).rows.map((r) => r.id),
+    );
+    expect(ids).toEqual([FOTO_A]);
+  });
+
+  it("gerencia ve todas las fotos", async () => {
+    await como(db, gerencia, async (tx) => {
+      expect(await contar(tx, "select 1 from public.archivos")).toBe(2);
+    });
+  });
+
+  for (const [nombre, quien] of [
+    ["asesor", asesorA],
+    ["gerencia", gerencia],
+  ] as const) {
+    it(`${nombre} no registra, cambia ni borra fotos directamente (solo el servidor)`, async () => {
+      await expect(
+        como(db, quien, (tx) =>
+          tx.query(`insert into public.archivos (lead_id, ruta, tipo, bytes) values ($1, $2, 'image/jpeg', 10)`, [
+            IDS.leadA,
+            ruta(IDS.leadA, "30000000-0000-4000-a000-0000000000fe"),
+          ]),
+        ),
+      ).rejects.toThrow(/row-level security/);
+      await como(db, quien, async (tx) => {
+        expect((await tx.query("update public.archivos set bytes = 2")).affectedRows).toBe(0);
+        expect((await tx.query("delete from public.archivos")).affectedRows).toBe(0);
+      });
+    });
+  }
+
+  for (const [nombre, id] of [
+    ["asesor inactivo", IDS.asesorInactivo],
+    ["gerencia inactiva", GERENCIA_INACTIVA],
+    ["usuario sin perfil", SIN_PERFIL],
+  ] as const) {
+    it(`${nombre} no ve fotos`, async () => {
+      await como(db, { tipo: "usuario", id }, async (tx) => {
+        expect(await contar(tx, "select 1 from public.archivos")).toBe(0);
+      });
+    });
+  }
+
+  it("la ruta de una foto no admite rutas raras ni otros tipos", async () => {
+    for (const r of ["../otro/archivo.jpg", `${IDS.leadA}/foto.exe`, "/abs/x.jpg"]) {
+      await expect(
+        db.query(`insert into public.archivos (lead_id, ruta, tipo, bytes) values ($1, $2, 'image/jpeg', 10)`, [IDS.leadA, r]),
+      ).rejects.toThrow(/check constraint/);
+    }
+  });
+
+  it("un envío repetido (mismo envio_id) no crea otro lead", async () => {
+    const envio = "40000000-0000-4000-a000-000000000001";
+    await como(db, { tipo: "sistema" }, async (tx) => {
+      await tx.query(`insert into public.leads (cliente_id, ciudad, envio_id) values ($1, 'Barranquilla', $2)`, [IDS.clienteA, envio]);
+      await expect(
+        tx.query(`insert into public.leads (cliente_id, ciudad, envio_id) values ($1, 'Barranquilla', $2)`, [IDS.clienteA, envio]),
+      ).rejects.toThrow(/duplicate key/);
+    });
+  });
+
+  it("la cubeta fotos-espacio es privada y solo acepta imágenes", async () => {
+    const r = await db.query<{ public: boolean; allowed_mime_types: string[] }>(
+      "select public, allowed_mime_types from storage.buckets where id = 'fotos-espacio'",
+    );
+    expect(r.rows[0].public).toBe(false);
+    expect(r.rows[0].allowed_mime_types).toEqual(["image/jpeg", "image/png", "image/webp"]);
+  });
+
+  it("borrar el cliente borra el registro de sus fotos", async () => {
+    await como(db, { tipo: "sistema" }, async (tx) => {
+      await tx.query("delete from public.clientes where id = $1", [IDS.clienteB]);
+      expect(await contar(tx, "select 1 from public.archivos where lead_id = $1", [IDS.leadB])).toBe(0);
+    });
+  });
+});
+
 describe("sistema (servidor)", () => {
   it("puede registrar el pago del diseño en un lead", async () => {
     const r = await como(db, { tipo: "sistema" }, (tx) =>

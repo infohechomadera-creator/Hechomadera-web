@@ -1,11 +1,10 @@
 /**
  * Integración Web ↔ Operflow (docs/CONTRATO-INTEGRACION.md). Solo servidor a servidor.
  *  - Clave compartida `OPERFLOW_API_KEY` en `Authorization: Bearer ...`.
- *  - Límite de solicitudes por minuto por clave.
+ *  - Límite de solicitudes por minuto por IP y por clave (lib/limite.ts).
  *  - Registro de cada llamada en `eventos_integracion`, sin datos sensibles.
  */
 import { createHash, timingSafeEqual } from "node:crypto";
-import { Redis } from "@upstash/redis";
 import { clienteSistema } from "@/lib/supabase/servidor";
 import type { TablaPrecios } from "@/lib/precios/tipos";
 
@@ -22,30 +21,6 @@ export function claveValida(encabezado: string | null, esperada: string | undefi
   return timingSafeEqual(a, b);
 }
 
-let redis: Redis | null | undefined;
-function clienteRedis(): Redis | null {
-  if (redis !== undefined) return redis;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  redis = url && token ? new Redis({ url, token }) : null;
-  return redis;
-}
-
-/** true si todavía hay cupo este minuto. Si Redis no está, no bloquea (se registra igual). */
-export async function dentroDelLimite(nombre: string, limite = LIMITE_POR_MINUTO): Promise<boolean> {
-  const r = clienteRedis();
-  if (!r) return true;
-  try {
-    const ventana = Math.floor(Date.now() / 60_000);
-    const clave = `hm:integracion:${nombre}:${ventana}`;
-    const n = await r.incr(clave);
-    if (n === 1) await r.expire(clave, 120);
-    return n <= limite;
-  } catch {
-    return true;
-  }
-}
-
 export async function registrarEvento(evento: {
   direccion: "entrada" | "salida";
   mensaje: "A" | "B" | "C" | "D" | "E";
@@ -59,12 +34,6 @@ export async function registrarEvento(evento: {
   } catch {
     // El registro nunca debe tumbar la respuesta.
   }
-}
-
-/** IP de quien llama (Vercel la pone primera en x-forwarded-for). */
-export function ipDe(request: Request): string {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return ip ? ip.slice(0, 64) : "desconocida";
 }
 
 /** Respuesta del mensaje D: precios vigentes de una ciudad, sin datos internos. */
