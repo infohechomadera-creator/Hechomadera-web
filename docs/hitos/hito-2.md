@@ -18,3 +18,8 @@
 - Auditor (subagente con `.claude/agents/auditor.md`): sin secretos ni fugas graves. Corregido: registro de acciones externas en DECISIONES; contradicción de CLAUDE.md sobre la sesión de Alberto; `/api/salud` ya no devuelve mensajes de error; PGlite fijado a 0.5.15 y vitest a 3.2.7 exactos; URL de vistas previas acotada en Supabase.
 - Pendiente del auditor: `SUPABASE_SECRET_KEY` como Secret en Vercel (Alberto) antes de pasar a `main`; `/cierre` y sesión nueva.
 - Hallazgo: en `localhost:3000` hay una cookie de otro proyecto de Supabase (`hahrzpgnqmtpprfgytkn`, probablemente otra app local en el mismo puerto). No afecta a esta web, pero conviene no correr dos apps en el mismo puerto.
+
+## 2026-11-18 (prueba real del editor)
+- Claude guardó desde el navegador integrado (sesión abierta por Alberto) una versión de prueba: Barranquilla, D1 Moderno liso de $1.900.000 a **$2.000.000** (valor genérico; Alberto lo cambia después). Historial: versión a nombre de "Alberto", 11:07. `/cocinas` pasó de "desde $5.000.000" a "desde $5.250.000" en la cocina lineal Moderno liso (3 m × 2.000.000 − 12%, redondeado). Funciona de punta a punta.
+- Aprendido: Alberto inicia sesión en el navegador integrado de la app, no en Chrome; la sesión de uno no sirve en el otro.
+- Detalle menor: tras guardar, el botón queda en "Guardando..." unos segundos mientras se refresca la página.
