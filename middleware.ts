@@ -3,13 +3,6 @@ import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { decidirAcceso, zonaProtegida, type Rol } from "@/lib/acceso";
 
-/** Respaldo temporal: la contraseña única anterior (se retira al cerrar W1). */
-function respaldoAntiguo(request: NextRequest): boolean {
-  const session = request.cookies.get("hm_admin")?.value;
-  const expected = process.env.ADMIN_PASSWORD;
-  return !!expected && session === expected;
-}
-
 /** Lee la sesión de Supabase (y la renueva) y devuelve el rol activo del usuario, si tiene. */
 async function rolDeSesion(request: NextRequest, response: NextResponse): Promise<Rol | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -43,7 +36,7 @@ export async function middleware(request: NextRequest) {
   if (!zonaProtegida(pathname)) return response;
 
   const rol = await rolDeSesion(request, response).catch(() => null);
-  const decision = decidirAcceso(pathname, rol, respaldoAntiguo(request));
+  const decision = decidirAcceso(pathname, rol);
 
   if (decision === "permitir") return response;
   if (decision === "no_autorizado_api") {

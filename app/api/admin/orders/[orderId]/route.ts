@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthorized } from "@/lib/admin-auth";
+import { exigirGerencia } from "@/lib/sesion";
 import { getOrder } from "@/lib/orders-store";
 
 export const runtime = "nodejs";
 
 /**
- * GET /api/admin/orders/:orderId?token=...
+ * GET /api/admin/orders/:orderId
  * Detalle de orden para operación interna.
  */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ orderId: string }> },
 ) {
-  if (!isAdminAuthorized(request)) {
-    return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 401 });
-  }
+  const negado = await exigirGerencia();
+  if (negado) return negado;
 
   const { orderId } = await params;
   const order = await getOrder(orderId);

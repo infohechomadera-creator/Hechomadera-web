@@ -8,9 +8,8 @@ describe("acceso a zonas internas", () => {
     expect(decidirAcceso("/cocinas", null)).toBe("permitir");
   });
 
-  it("el login y su API siempre están abiertos", () => {
+  it("el login siempre está abierto", () => {
     expect(decidirAcceso("/admin/login", null)).toBe("permitir");
-    expect(decidirAcceso("/api/admin/auth", null)).toBe("permitir");
   });
 
   it("sin sesión: páginas van al login y las API responden 401", () => {
@@ -33,12 +32,7 @@ describe("acceso a zonas internas", () => {
     expect(decidirAcceso("/api/admin/orders", "asesor")).toBe("no_autorizado_api");
   });
 
-  it("la contraseña antigua sirve como respaldo de gerencia", () => {
-    expect(decidirAcceso("/admin", null, true)).toBe("permitir");
-    expect(decidirAcceso("/api/admin/orders", null, true)).toBe("permitir");
-  });
-
-  it("un asesor con sesión no sube a gerencia por tener la cookie antigua", () => {
-    expect(decidirAcceso("/admin", "asesor", true)).toBe("sin_permiso");
+  it("la API antigua de contraseña ya no existe como puerta abierta", () => {
+    expect(decidirAcceso("/api/admin/auth", null)).toBe("no_autorizado_api");
   });
 });

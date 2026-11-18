@@ -1,4 +1,5 @@
 import { listOrders } from "@/lib/orders-store";
+import { exigirGerencia } from "@/lib/sesion";
 
 export const runtime = "nodejs";
 
@@ -11,10 +12,12 @@ function esc(value: unknown): string {
 }
 
 /**
- * GET /api/admin/orders/export?token=...
+ * GET /api/admin/orders/export (solo gerencia)
  * Exporta órdenes a CSV para análisis externo.
  */
 export async function GET(request: Request) {
+  const negado = await exigirGerencia();
+  if (negado) return negado;
   const url = new URL(request.url);
   const limit = Number(url.searchParams.get("limit") ?? "500");
   const from = url.searchParams.get("from") ?? "";

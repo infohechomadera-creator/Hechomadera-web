@@ -34,3 +34,9 @@
 - Login nuevo con Supabase (`lib/acceso.ts` + `middleware.ts` + `/admin/login`): gerencia entra a órdenes y pago de prueba; asesor no (su panel llega en W4). Pruebas: `tests/acceso.test.ts`. Respaldo temporal con `ADMIN_PASSWORD`.
 - Pendiente de Alberto: probar el ingreso; cambiar `SUPABASE_SECRET_KEY` a Secret en Vercel.
 - El clasificador de seguridad no dejó a Claude editar `.claude/settings.json` (ampliar sus propios permisos). Queda como está; si Alberto quiere, lo edita él.
+
+## 2026-11-18 (cierre del login)
+- Alberto confirmó que entra con su correo y contraseña.
+- Se borraron `app/api/admin/auth/route.ts` y `lib/admin-auth.ts`; el login ya no tiene la opción de contraseña anterior. Las APIs de órdenes (incluida la de exportar, que antes no se revisaba por dentro) exigen gerencia con `lib/sesion.ts`.
+- `/cocinas` usa `lib/precios/fuente.ts`: lee `precios_vigentes` de Supabase y cae a la semilla si algo falla. `/api/salud` confirma origen "supabase" en las 2 ciudades.
+- Pruebas: 59.

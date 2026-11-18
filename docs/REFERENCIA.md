@@ -10,7 +10,7 @@
 | Resend | Correo de contacto y avisos al cliente; dominio verificado | Activo |
 | Upstash Redis | Órdenes de la tienda y eventos del webhook | Activo |
 | Vercel Analytics | Métricas básicas | Activo |
-| Supabase (de la web) | Leads, CRM, usuarios, fotos, precios | **Por crear en W1** (lo crea Alberto) |
+| Supabase (de la web), proyecto Hechomadera, ref `seazgghpynhflxvrjpee` | Leads, CRM, usuarios, fotos, precios | Activo (plan gratis) |
 | API de Anthropic | Agente de IA | **Por crear en W6** (tope de gasto aprobado) |
 
 ## Variables de entorno (solo nombres; ver `.env.example`)
@@ -18,7 +18,8 @@
 - Mercado Pago: `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `MERCADOPAGO_WEBHOOK_ENFORCE`, `ENABLE_PAYMENT_TEST_PAGE`, `DEBUG_WEBHOOK_TOKEN`.
 - Resend: `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `RESEND_FROM`.
 - Redis: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
-- Admin: `ADMIN_API_TOKEN` (se reemplaza por usuarios en W1).
+- Admin: `ADMIN_API_TOKEN` y `ADMIN_PASSWORD` **obsoletos** desde W1 (login con Supabase). Quitarlos de Vercel tras pasar a producción.
+- Supabase: `NEXT_PUBLIC_SUPABASE_URL` (`https://seazgghpynhflxvrjpee.supabase.co`), `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`.
 - Futuras (contrato): `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`; Supabase en W1.
 
 ## Dónde está cada cosa en el código
@@ -49,10 +50,10 @@ En cualquier nivel se pide permiso para: borrar cualquier archivo o dato, salir 
 - Respaldos: etiqueta `respaldo-AAAA-MM-DD-tema`; datos en `respaldos/` (fuera de git).
 
 ## Cómo se prueban los permisos
-- Por definir en W1: usuarios ficticios (gerencia, asesor A, asesor B) que se crean y se borran solos; muestran el total y solo las fallas.
+- `npm test`: base Postgres local (PGlite) que imita Supabase, con usuarios ficticios (gerencia, asesor A, asesor B, inactivo, público, sistema) que desaparecen al terminar. Reglas de acceso de páginas en `tests/acceso.test.ts`.
 
 ## Cómo se ejecuta SQL
-- Por definir en W1: cada cambio de base en un archivo de migración versionado.
+- Cada cambio va en `supabase/migrations/AAAAMMDDHHMMSS_nombre.sql`, se prueba con `npm test` y se aplica en el SQL Editor de Supabase dentro de `begin; … commit;`, comprobando la huella SHA-1 del archivo antes de ejecutar.
 
 ## Trucos aprendidos
 - (vacío)

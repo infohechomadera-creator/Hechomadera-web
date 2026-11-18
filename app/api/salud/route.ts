@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { configSupabase } from "@/lib/supabase/config";
 import { clienteSistema } from "@/lib/supabase/servidor";
+import { obtenerPrecios } from "@/lib/precios/fuente";
 
 /**
  * Diagnóstico de conexión (solo desarrollo y vistas previas; nunca en producción).
@@ -31,5 +32,13 @@ export async function GET() {
       error = e instanceof Error ? e.message : "error desconocido";
     }
   }
-  return NextResponse.json({ supabase_configurado: lista, llave_secreta: secreta, conexion, ciudadesConPrecio, error });
+  const { origen } = await obtenerPrecios();
+  return NextResponse.json({
+    supabase_configurado: lista,
+    llave_secreta: secreta,
+    conexion,
+    ciudadesConPrecio,
+    origen_precios: origen,
+    error,
+  });
 }

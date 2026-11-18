@@ -3,8 +3,11 @@ import { Button } from "@/components/ui/Button";
 import { CatalogoCocinas, type DesdePorCiudad } from "@/components/cocinas/CatalogoCocinas";
 import { ESCENAS } from "@/content/cocinas";
 import { calcularRango } from "@/lib/precios/calcular";
-import { PRECIOS_EJEMPLO } from "@/lib/precios/semilla";
-import { CIUDADES_ACTIVAS } from "@/lib/precios/tipos";
+import { obtenerPrecios, opcionMasEconomica, type PreciosPorCiudad } from "@/lib/precios/fuente";
+import { CIUDADES_ACTIVAS, type NivelHerrajes } from "@/lib/precios/tipos";
+
+// Los precios se leen de Supabase; la página se regenera cada 5 minutos.
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Cocinas integrales a medida — formas, diseños y precio desde",
@@ -14,17 +17,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** "Desde" = mínimo del rango para una cocina de referencia, blanco y herrajes estándar. */
-function calcularDesde(): DesdePorCiudad {
+/** "Desde" = mínimo del rango para una cocina de referencia, con el color y los herrajes más económicos. */
+function calcularDesde({ tablas }: PreciosPorCiudad): DesdePorCiudad {
   const resultado = {} as DesdePorCiudad;
   for (const ciudad of CIUDADES_ACTIVAS) {
+    const tabla = tablas[ciudad];
     resultado[ciudad] = {};
     for (const e of ESCENAS) {
-      resultado[ciudad][e.id] = calcularRango(PRECIOS_EJEMPLO[ciudad], {
+      resultado[ciudad][e.id] = calcularRango(tabla, {
         forma: e.forma.id,
         diseno: e.diseno.id,
-        color: "blanco",
-        herrajes: "estandar",
+        color: opcionMasEconomica(tabla.colores),
+        herrajes: opcionMasEconomica(tabla.herrajes) as NivelHerrajes,
         medidas_mm: e.forma.referencia_mm,
       }).min;
     }
@@ -32,8 +36,9 @@ function calcularDesde(): DesdePorCiudad {
   return resultado;
 }
 
-export default function CocinasPage() {
-  const valorDiseno = PRECIOS_EJEMPLO.Barranquilla.valor_diseno.cocina;
+export default async function CocinasPage() {
+  const precios = await obtenerPrecios();
+  const valorDiseno = precios.tablas.Barranquilla.valor_diseno.cocina;
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
       <div className="max-w-2xl">
@@ -45,7 +50,7 @@ export default function CocinasPage() {
       </div>
 
       <section className="mt-10">
-        <CatalogoCocinas desde={calcularDesde()} ciudades={[...CIUDADES_ACTIVAS]} />
+        <CatalogoCocinas desde={calcularDesde(precios)} ciudades={[...CIUDADES_ACTIVAS]} />
       </section>
 
       <section className="mt-16 grid gap-6 border-t border-neutral-200 pt-10 md:grid-cols-3">

@@ -6,14 +6,14 @@
 - Listo y probado: migraciones con RLS, pruebas por rol (`npm test`), motor de precios, página `/cocinas` provisional.
 - Rediseño estilo awesomic.com probado y **descartado** por Alberto: la web sigue con su diseño original.
 - Supabase (proyecto Hechomadera, ref `seazgghpynhflxvrjpee`): migraciones y precios aplicados; llaves en `.env.local` y Vercel (conexión verificada con `/api/salud`); usuario `infohechomadera@gmail.com` con rol gerencia; registro libre desactivado; URLs de redirección configuradas.
-- **Login nuevo** de gerencia/asesor con Supabase en `/admin/login`. La contraseña única anterior sigue como respaldo temporal.
+- **Login con Supabase** en `/admin/login`, probado por Alberto. Se retiró la contraseña única (`ADMIN_PASSWORD`) y el token (`ADMIN_API_TOKEN`) del código; las APIs revisan el rol dos veces.
+- `/cocinas` lee los precios de Supabase (con la semilla como respaldo si falla).
 - Autonomía nivel 3: todo dentro del proyecto sin preguntar; nunca llaves, contraseñas, dinero ni términos (ver `CLAUDE.md`).
 
 ## Siguiente paso exacto
-1. Alberto prueba entrar en `/admin/login` (local o vista previa) con su correo y contraseña.
-2. Con eso, Claude retira la contraseña única anterior (`ADMIN_PASSWORD`) y el token `ADMIN_API_TOKEN`, y lee los precios desde Supabase en `/cocinas`.
-3. Alberto: cambiar en Vercel `SUPABASE_SECRET_KEY` a tipo **Secret** (hoy está como Config, legible).
-4. Con la aprobación de Alberto, pasar la rama a `main` (publica en producción).
+1. Cerrar W1 con `/cierre` (validador + auditor) y empezar W2: editor de precios para gerencia y consulta de precios para Operflow (mensaje D).
+2. Alberto: cambiar en Vercel `SUPABASE_SECRET_KEY` a tipo **Secret** (hoy está como Config, legible).
+3. Con la aprobación de Alberto, pasar la rama a `main` (publica en producción) y luego quitar `ADMIN_PASSWORD` y `ADMIN_API_TOKEN` de Vercel.
 
 ## Pendientes abiertos
 - Confirmar la fórmula de precios provisional (suma de paredes, recargos, ±12%).
