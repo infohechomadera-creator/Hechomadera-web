@@ -234,6 +234,59 @@ describe("gerencia", () => {
   });
 });
 
+describe("versiones de precios", () => {
+  it("si gerencia publica dos versiones el mismo día, manda la más reciente", async () => {
+    await como(db, gerencia, async (tx) => {
+      for (const [n, hora] of [[1, "08:00"], [2, "15:00"]] as const) {
+        await tx.query(
+          `insert into public.precios (ciudad, vigente_desde, datos, creado_por, creado_at) values ('Barranquilla', '2026-02-01', $1, $2, $3)`,
+          [JSON.stringify({ v: n }), IDS.gerencia, `2026-02-01 ${hora}-05`],
+        );
+      }
+      const r = await tx.query<{ datos: { v: number } }>(
+        "select datos from public.precios_vigentes where ciudad = 'Barranquilla'",
+      );
+      expect(r.rows[0].datos.v).toBe(2);
+    });
+  });
+
+  it("una versión con fecha futura no se aplica antes de tiempo", async () => {
+    await como(db, gerencia, async (tx) => {
+      await tx.query(
+        `insert into public.precios (ciudad, vigente_desde, datos, creado_por) values ('Barranquilla', current_date + 30, '{"v":"futuro"}', $1)`,
+        [IDS.gerencia],
+      );
+      const r = await tx.query<{ datos: { v: unknown } }>(
+        "select datos from public.precios_vigentes where ciudad = 'Barranquilla'",
+      );
+      expect(r.rows[0].datos.v).not.toBe("futuro");
+    });
+  });
+});
+
+describe("registro de integración con Operflow", () => {
+  it("el público no lo ve", async () => {
+    await expect(como(db, publico, (tx) => tx.query("select * from public.eventos_integracion"))).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it("solo el sistema escribe; gerencia lee; asesor no ve nada", async () => {
+    await db.query(`insert into public.eventos_integracion (direccion, mensaje, estado_http) values ('entrada', 'D', 200)`);
+    await como(db, gerencia, async (tx) => {
+      expect(await contar(tx, "select 1 from public.eventos_integracion")).toBeGreaterThan(0);
+    });
+    await como(db, asesorA, async (tx) => {
+      expect(await contar(tx, "select 1 from public.eventos_integracion")).toBe(0);
+    });
+    await expect(
+      como(db, gerencia, (tx) =>
+        tx.query(`insert into public.eventos_integracion (direccion, mensaje) values ('entrada', 'D')`),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+});
+
 describe("sistema (servidor)", () => {
   it("puede registrar el pago del diseño en un lead", async () => {
     const r = await como(db, { tipo: "sistema" }, (tx) =>

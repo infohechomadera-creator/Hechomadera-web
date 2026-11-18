@@ -26,7 +26,9 @@
 - Reglas de negocio: `lib/site-config.ts` (ciudades, marketplace, "precio desde", abono 35%).
 - Catálogo: `content/products.json`.
 - Contacto: `POST /api/contact` (Resend).
-- Admin: `app/admin` (login y órdenes, exporta CSV).
+- Admin: `app/admin` (login, órdenes, exporta CSV, `/admin/precios`).
+- Precios: `lib/precios/` (cálculo, validación, fuente Supabase con respaldo en la semilla).
+- Integración Operflow: `lib/integracion/operflow.ts`, `app/api/integraciones/precios` (mensaje D).
 - Documentos operativos previos: `docs/` (dominio, cutover, Resend, admin, lanzamiento, migración, Mercado Pago).
 
 ## Integración con Operflow
