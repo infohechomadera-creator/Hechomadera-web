@@ -5,7 +5,7 @@ import { obtenerPrecios } from "@/lib/precios/fuente";
 
 /**
  * Diagnóstico de conexión (solo desarrollo y vistas previas; nunca en producción).
- * Responde únicamente sí/no y conteos: nunca muestra llaves ni datos personales.
+ * Responde únicamente sí/no y conteos: nunca muestra llaves, datos personales ni mensajes de error.
  */
 export const dynamic = "force-dynamic";
 
@@ -17,19 +17,19 @@ export async function GET() {
   const secreta = Boolean(process.env.SUPABASE_SECRET_KEY);
   let conexion = false;
   let ciudadesConPrecio: number | null = null;
-  let error: string | null = null;
+  let error = false;
   if (lista && secreta) {
     try {
       const { count, error: e } = await clienteSistema()
         .from("precios_vigentes")
         .select("ciudad", { count: "exact", head: true });
-      if (e) error = e.message;
+      if (e) error = true;
       else {
         conexion = true;
         ciudadesConPrecio = count ?? 0;
       }
-    } catch (e) {
-      error = e instanceof Error ? e.message : "error desconocido";
+    } catch {
+      error = true;
     }
   }
   const { origen } = await obtenerPrecios();

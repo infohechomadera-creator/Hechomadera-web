@@ -13,3 +13,8 @@
 - Alberto: probar el editor guardando un cambio real.
 - `OPERFLOW_API_KEY` en Vercel cuando Operflow la genere.
 - Renders reales para las 20 escenas y los 5 diseños definitivos.
+
+## 2026-11-18 (auditoría)
+- Auditor (subagente con `.claude/agents/auditor.md`): sin secretos ni fugas graves. Corregido: registro de acciones externas en DECISIONES; contradicción de CLAUDE.md sobre la sesión de Alberto; `/api/salud` ya no devuelve mensajes de error; PGlite fijado a 0.5.15 y vitest a 3.2.7 exactos; URL de vistas previas acotada en Supabase.
+- Pendiente del auditor: `SUPABASE_SECRET_KEY` como Secret en Vercel (Alberto) antes de pasar a `main`; `/cierre` y sesión nueva.
+- Hallazgo: en `localhost:3000` hay una cookie de otro proyecto de Supabase (`hahrzpgnqmtpprfgytkn`, probablemente otra app local en el mismo puerto). No afecta a esta web, pero conviene no correr dos apps en el mismo puerto.
