@@ -54,9 +54,11 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
 
   const rutas = (lead.archivos ?? []).map((a) => a.ruta);
   let fotos: string[] = [];
+  let fallaFotos = false;
   if (rutas.length) {
-    const { data } = await clienteSistema().storage.from(CUBETA_FOTOS).createSignedUrls(rutas, VIDA_ENLACE_SEG);
+    const { data, error } = await clienteSistema().storage.from(CUBETA_FOTOS).createSignedUrls(rutas, VIDA_ENLACE_SEG);
     fotos = (data ?? []).flatMap((f) => (f.signedUrl ? [f.signedUrl] : []));
+    fallaFotos = Boolean(error) || fotos.length < rutas.length;
   }
 
   const c = lead.configuracion ?? {};
@@ -119,9 +121,14 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
       </dl>
 
       <h2 className="mt-10 font-display text-xl font-semibold text-ink">Fotos del espacio</h2>
-      {fotos.length === 0 ? (
+      {fallaFotos && (
+        <p className="mt-2 border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+          {rutas.length - fotos.length} de {rutas.length} foto(s) no se pudieron cargar. Recarga la página.
+        </p>
+      )}
+      {rutas.length === 0 ? (
         <p className="mt-2 text-sm text-ink-muted">El cliente no envió fotos.</p>
-      ) : (
+      ) : fotos.length === 0 ? null : (
         <>
           <p className="mt-1 text-xs text-ink-muted">Los enlaces vencen en 10 minutos; recarga la página para verlas de nuevo.</p>
           <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">

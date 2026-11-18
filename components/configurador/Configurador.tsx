@@ -7,6 +7,7 @@ import { EscenaCocina } from "@/components/cocinas/EscenaCocina";
 import type { CiudadActiva, DisenoBase, Forma, MedidasAprox, NivelHerrajes } from "@/lib/precios/tipos";
 import { ELECTRODOMESTICOS, type Electrodomestico } from "@/lib/configurador/validar";
 import { AUTORIZACION_TEXTO, AUTORIZACION_VERSION } from "@/lib/configurador/autorizacion";
+import { MAX_BYTES_TOTAL } from "@/lib/configurador/fotos";
 import { reducirFoto } from "./reducirFoto";
 
 /** Opciones de cada ciudad (de su tabla de precios), sin montos: los montos los calcula el servidor. */
@@ -15,6 +16,26 @@ export type OpcionesCiudad = Record<CiudadActiva, { colores: { id: string; nombr
 const PASOS = ["Forma", "Diseño", "Colores", "Herrajes", "Electrodomésticos", "Medidas", "Tu rango", "Fotos", "Tus datos"] as const;
 const P = Object.fromEntries(PASOS.map((p, i) => [p, i])) as Record<(typeof PASOS)[number], number>;
 const MAX_FOTOS = 5;
+
+/** Identificador del envío (evita leads repetidos). Alternativa para celulares viejos sin randomUUID. */
+function nuevoEnvioId(): string {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map((x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
+/** Lee la respuesta del servidor aunque no sea JSON (por ejemplo, un 413 de Vercel). */
+async function leerRespuesta(r: Response): Promise<{ ok: boolean; cuerpo: Record<string, unknown> }> {
+  if (r.status === 413) return { ok: false, cuerpo: { error: "Las fotos pesan demasiado. Quita una o dos e intenta de nuevo." } };
+  try {
+    return { ok: r.ok, cuerpo: await r.json() };
+  } catch {
+    return { ok: false, cuerpo: { error: "Algo falló de nuestro lado. Intenta de nuevo en un momento." } };
+  }
+}
 
 const PAREDES: Record<Forma, { campo: keyof MedidasAprox; etiqueta: string }[]> = {
   lineal: [{ campo: "pared_a", etiqueta: "Largo de la pared" }],
@@ -83,7 +104,7 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
   const [contacto, setContacto] = useState({ nombre: "", telefono: "", email: "" });
   const [autoriza, setAutoriza] = useState(false);
   const [trampa, setTrampa] = useState("");
-  const [envioId] = useState(() => crypto.randomUUID());
+  const [envioId] = useState(nuevoEnvioId);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [enviado, setEnviado] = useState<{ referencia: string | null; rango: Rango | null } | null>(null);
@@ -137,9 +158,9 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(configuracion()),
       });
-      const cuerpo = await r.json();
-      if (!r.ok) return setError(cuerpo.error ?? "No pudimos calcular el rango");
-      setRango(cuerpo.rango);
+      const { ok, cuerpo } = await leerRespuesta(r);
+      if (!ok) return setError(String(cuerpo.error ?? "No pudimos calcular el rango"));
+      setRango(cuerpo.rango as Rango);
       irA(P["Tu rango"]);
     } catch {
       setError("Sin conexión. Revisa tu internet e intenta de nuevo.");
@@ -154,10 +175,19 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
     setOcupado(true);
     try {
       const nuevas: Foto[] = [];
+      let total = fotos.reduce((suma, f) => suma + f.blob.size, 0);
       for (const archivo of Array.from(lista).slice(0, MAX_FOTOS - fotos.length)) {
         const blob = await reducirFoto(archivo);
-        if (blob) nuevas.push({ blob, url: URL.createObjectURL(blob) });
-        else setError("Una de las fotos no se pudo leer. Prueba con otra.");
+        if (!blob) {
+          setError("Una de las fotos no se pudo leer. Prueba con otra.");
+          continue;
+        }
+        if (total + blob.size > MAX_BYTES_TOTAL) {
+          setError("Ya no caben más fotos en este envío. Quita una si quieres cambiarla.");
+          break;
+        }
+        total += blob.size;
+        nuevas.push({ blob, url: URL.createObjectURL(blob) });
       }
       setFotos((f) => [...f, ...nuevas].slice(0, MAX_FOTOS));
     } finally {
@@ -182,9 +212,9 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
     if (trampa) form.set("sitio_web", trampa);
     try {
       const r = await fetch("/api/configurador/lead", { method: "POST", body: form });
-      const cuerpo = await r.json();
-      if (!r.ok) return setError(cuerpo.error ?? "No pudimos enviar tu solicitud");
-      setEnviado({ referencia: cuerpo.referencia, rango: cuerpo.rango ?? rango });
+      const { ok, cuerpo } = await leerRespuesta(r);
+      if (!ok) return setError(String(cuerpo.error ?? "No pudimos enviar tu solicitud"));
+      setEnviado({ referencia: (cuerpo.referencia as string | null) ?? null, rango: (cuerpo.rango as Rango | undefined) ?? rango });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       setError("Sin conexión. Revisa tu internet e intenta de nuevo.");

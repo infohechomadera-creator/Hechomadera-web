@@ -11,7 +11,13 @@ import { DISENOS_COCINA, FORMAS_COCINA } from "@/content/cocinas";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const LIMITE_LEADS_POR_HORA = 5;
+/** Toda solicitud por IP y hora (incluye las que tienen errores al escribir). */
+const LIMITE_INTENTOS_POR_HORA = 30;
+/** Envíos válidos por IP y hora (varios clientes pueden compartir IP en redes móviles). */
+const LIMITE_LEADS_POR_HORA = 8;
+/** Envíos válidos de todo el sitio por hora: frena a quien intente llenar el almacenamiento. */
+const LIMITE_GLOBAL_POR_HORA = 60;
+const MUCHAS = { error: "Ya recibimos varias solicitudes desde aquí. Intenta más tarde o escríbenos por WhatsApp." };
 const sinCache = { "Cache-Control": "no-store" };
 const responder = (estado: number, cuerpo: object) => NextResponse.json(cuerpo, { status: estado, headers: sinCache });
 
@@ -23,9 +29,8 @@ const responder = (estado: number, cuerpo: object) => NextResponse.json(cuerpo, 
  * El rango se recalcula aquí; cualquier monto que mande el navegador se ignora.
  */
 export async function POST(request: Request) {
-  if (!(await dentroDelLimite(`config-lead:${ipDe(request)}`, LIMITE_LEADS_POR_HORA, 3600))) {
-    return responder(429, { error: "Ya recibimos varias solicitudes desde aquí. Intenta más tarde o escríbenos por WhatsApp." });
-  }
+  const ip = ipDe(request);
+  if (!(await dentroDelLimite(`config-intento:${ip}`, LIMITE_INTENTOS_POR_HORA, 3600))) return responder(429, MUCHAS);
 
   let form: FormData;
   try {
@@ -50,6 +55,10 @@ export async function POST(request: Request) {
   const archivos = form.getAll("fotos").filter((f): f is File => typeof f === "object" && f !== null && "arrayBuffer" in f);
   const fotos = await validarFotos(archivos);
   if (!fotos.ok) return responder(400, { error: fotos.error, campo: "fotos" });
+
+  // Solo los envíos válidos gastan el cupo estricto.
+  if (!(await dentroDelLimite(`config-lead:${ip}`, LIMITE_LEADS_POR_HORA, 3600))) return responder(429, MUCHAS);
+  if (!(await dentroDelLimite("config-lead:global", LIMITE_GLOBAL_POR_HORA, 3600))) return responder(429, MUCHAS);
 
   const c = solicitud.valor.configuracion;
   let rango;
@@ -79,6 +88,7 @@ export async function POST(request: Request) {
   return responder(200, {
     ok: true,
     referencia: guardado.leadId.slice(0, 8).toUpperCase(),
-    rango: { min: rango.min, max: rango.max, ciudad: rango.ciudad },
+    // En un envío repetido se devuelve el rango que quedó guardado, no el de este intento.
+    rango: guardado.repetido ? guardado.rango : { min: rango.min, max: rango.max, ciudad: rango.ciudad },
   });
 }

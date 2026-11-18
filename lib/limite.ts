@@ -28,8 +28,17 @@ export async function dentroDelLimite(nombre: string, limite: number, ventanaSeg
   }
 }
 
-/** IP de quien llama (Vercel la pone primera en x-forwarded-for). */
+/**
+ * IP de quien llama (Vercel la pone primera en x-forwarded-for). Las IPv6 se agrupan por
+ * su prefijo /64, porque una misma conexión puede cambiar libremente los últimos 64 bits.
+ */
 export function ipDe(request: Request): string {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return ip ? ip.slice(0, 64) : "desconocida";
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().toLowerCase();
+  if (!ip) return "desconocida";
+  if (!ip.includes(":")) return ip.slice(0, 64);
+  const [cabeza, cola = ""] = ip.split("::");
+  const izq = cabeza ? cabeza.split(":") : [];
+  const der = cola ? cola.split(":") : [];
+  const bloques = ip.includes("::") ? [...izq, ...Array(Math.max(0, 8 - izq.length - der.length)).fill("0"), ...der] : izq;
+  return `${bloques.slice(0, 4).map((b) => b.replace(/^0+(?=.)/, "")).join(":")}::/64`;
 }

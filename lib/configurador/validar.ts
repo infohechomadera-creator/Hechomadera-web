@@ -104,8 +104,14 @@ const TELEFONO = /^\+?[0-9 ]{7,20}$/; // la misma regla de la base (clientes.tel
 const CORREO = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
+// eslint-disable-next-line no-control-regex
+const CONTROL = /[\u0000-\u001f\u007f]/;
+
 export function validarContacto(datos: unknown): Resultado<Contacto> {
   const d = (datos && typeof datos === "object" ? datos : {}) as Record<string, unknown>;
+  for (const campo of ["nombre", "telefono", "email"] as const) {
+    if (esTexto(d[campo]) && CONTROL.test(d[campo] as string)) return mal(campo, "Hay caracteres no válidos");
+  }
   const nombre = esTexto(d.nombre) ? d.nombre.trim().replace(/\s+/g, " ") : "";
   if (nombre.length < 2 || nombre.length > 120) return mal("nombre", "Escribe tu nombre");
   const telefono = esTexto(d.telefono) ? d.telefono.replace(/[\s().-]/g, "") : "";

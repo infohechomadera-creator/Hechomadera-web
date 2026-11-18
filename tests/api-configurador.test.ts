@@ -6,12 +6,21 @@ import { AUTORIZACION_VERSION } from "@/lib/configurador/autorizacion";
 
 // Base simulada en memoria.
 const base = { clientes: [] as Record<string, unknown>[], leads: [] as Record<string, unknown>[], archivos: [] as unknown[], subidas: [] as string[], borradas: [] as string[] };
-let fallarSubida = false;
+let fallarEnSubida = 0; // 0 = nunca; n = falla la subida número n
+let subidasHechas = 0;
+let fallarArchivos = false;
+let carrera = false;
+const bloqueados = new Set<string>();
 let n = 0;
 const nuevoId = () => `00000000-0000-4000-a000-${String(++n).padStart(12, "0")}`;
 
 vi.mock("@/lib/precios/fuente", () => ({ obtenerPrecios: async () => ({ tablas: PRECIOS_EJEMPLO }) }));
-vi.mock("@/lib/email-notifications", () => ({ sendNewLeadAlertToSeller: vi.fn(async () => undefined) }));
+const aviso = vi.hoisted(() => ({ llamadas: 0 }));
+vi.mock("@/lib/email-notifications", () => ({ sendNewLeadAlertToSeller: async () => void aviso.llamadas++ }));
+vi.mock("@/lib/limite", () => ({
+  ipDe: () => "203.0.113.9",
+  dentroDelLimite: async (nombre: string) => ![...bloqueados].some((b) => nombre.startsWith(b)),
+}));
 vi.mock("@/lib/supabase/servidor", () => ({
   clienteSistema: () => ({
     from: (tabla: "clientes" | "leads" | "archivos") => {
@@ -22,6 +31,16 @@ vi.mock("@/lib/supabase/servidor", () => ({
         maybeSingle: async () => ({ data: (base[tabla] as Record<string, unknown>[]).find((f) => filtro && f[filtro[0]] === filtro[1]) ?? null, error: null }),
         insert: (fila: Record<string, unknown> | Record<string, unknown>[]) => {
           const filas = (Array.isArray(fila) ? fila : [fila]).map((f) => ({ id: nuevoId(), ...f }));
+          if (tabla === "archivos" && fallarArchivos) {
+            const r = { error: { message: "x" }, data: null };
+            return Object.assign(Promise.resolve(r), { select: () => ({ single: async () => r }) });
+          }
+          if (tabla === "leads" && carrera) {
+            // Otro envío igual llegó primero.
+            base.leads.push({ ...filas[0], id: "99999999-0000-4000-a000-000000000999", cliente_id: "otro-cliente", rango_min: 1, rango_max: 2 });
+            const r = { error: { code: "23505", message: "duplicate" }, data: null };
+            return Object.assign(Promise.resolve(r), { select: () => ({ single: async () => r }) });
+          }
           (base[tabla] as unknown[]).push(...filas);
           const r = { error: null, data: filas[0] };
           return Object.assign(Promise.resolve(r), { select: () => ({ single: async () => r }) });
@@ -38,7 +57,8 @@ vi.mock("@/lib/supabase/servidor", () => ({
     },
     storage: {
       from: () => ({
-        upload: async (ruta: string) => (fallarSubida ? { error: { message: "x" } } : (base.subidas.push(ruta), { error: null })),
+        upload: async (ruta: string) =>
+          ++subidasHechas === fallarEnSubida ? { error: { message: "x" } } : (base.subidas.push(ruta), { error: null }),
         remove: async (rutas: string[]) => (base.borradas.push(...rutas), { error: null }),
       }),
     },
@@ -88,11 +108,19 @@ describe("POST /api/configurador/lead", () => {
     base.archivos = [];
     base.subidas = [];
     base.borradas = [];
-    fallarSubida = false;
+    fallarEnSubida = 0;
+    subidasHechas = 0;
+    fallarArchivos = false;
+    carrera = false;
+    bloqueados.clear();
+    aviso.llamadas = 0;
   });
 
   it("guarda cliente, lead y fotos con el rango del servidor (ignora montos del navegador)", async () => {
-    const r = await enviar(datos({ rango_min: 1, rango_max: 2 }), [jpeg(), jpeg()]);
+    const r = await enviar(
+      datos({ rango_min: 1, rango_max: 2, configuracion: { ...config, rango_min: 1, rango_max: 2, rango: { min: 1, max: 2 } } }),
+      [jpeg(), jpeg()],
+    );
     expect(r.status).toBe(200);
     const cuerpo = await r.json();
     expect(cuerpo.rango).toMatchObject({ min: esperado.min, max: esperado.max });
@@ -101,6 +129,8 @@ describe("POST /api/configurador/lead", () => {
     expect(base.subidas).toHaveLength(2);
     expect(base.archivos).toHaveLength(2);
     expect(base.subidas[0]).toMatch(new RegExp(`^${base.leads[0].id}/[0-9a-f-]{36}\\.jpg$`));
+    expect(JSON.stringify(base.leads[0].configuracion)).not.toContain("rango");
+    expect(aviso.llamadas).toBe(1);
   });
 
   it("sin autorización no guarda nada", async () => {
@@ -121,18 +151,55 @@ describe("POST /api/configurador/lead", () => {
     expect(base.clientes).toHaveLength(0);
   });
 
-  it("si falla la subida de una foto, borra lo creado", async () => {
-    fallarSubida = true;
-    const r = await enviar(datos(), [jpeg()]);
+  it("si falla la segunda foto, borra la primera y no crea cliente ni lead", async () => {
+    fallarEnSubida = 2;
+    const r = await enviar(datos(), [jpeg(), jpeg()]);
     expect(r.status).toBe(500);
+    expect(base.borradas).toEqual(base.subidas);
+    expect(base.borradas).toHaveLength(1);
     expect(base.clientes).toHaveLength(0);
     expect(base.leads).toHaveLength(0);
+    expect(aviso.llamadas).toBe(0);
+  });
+
+  it("si falla el registro de las fotos, borra fotos, cliente y lead", async () => {
+    fallarArchivos = true;
+    const r = await enviar(datos(), [jpeg()]);
+    expect(r.status).toBe(500);
+    expect(base.borradas).toHaveLength(1);
+    expect(base.clientes).toHaveLength(0);
+    expect(base.leads).toHaveLength(0);
+  });
+
+  it("si otro envío igual gana la carrera, devuelve ese lead y su rango guardado", async () => {
+    carrera = true;
+    const cuerpo = await (await enviar(datos())).json();
+    expect(cuerpo.referencia).toBe("99999999");
+    expect(cuerpo.rango).toMatchObject({ min: 1, max: 2 });
+    expect(base.clientes).toHaveLength(0);
+  });
+
+  it("límite: demasiados intentos o envíos responden 429 sin guardar", async () => {
+    bloqueados.add("config-intento");
+    expect((await enviar(datos())).status).toBe(429);
+    bloqueados.clear();
+    bloqueados.add("config-lead:global");
+    expect((await enviar(datos())).status).toBe(429);
+    expect(base.clientes).toHaveLength(0);
+  });
+
+  it("un envío con errores no gasta el cupo estricto", async () => {
+    bloqueados.add("config-lead:");
+    const r = await enviar(datos({ contacto: { nombre: "", telefono: "1" } }));
+    expect(r.status).toBe(400);
   });
 
   it("un envío repetido devuelve el mismo lead sin crear otro", async () => {
     const a = await (await enviar(datos())).json();
     const b = await (await enviar(datos())).json();
     expect(b.referencia).toBe(a.referencia);
+    expect(b.rango).toMatchObject({ min: a.rango.min, max: a.rango.max });
     expect(base.leads).toHaveLength(1);
+    expect(aviso.llamadas).toBe(1);
   });
 });
