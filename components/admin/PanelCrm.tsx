@@ -41,6 +41,9 @@ export function PanelCrm(p: Props) {
   const [mensaje, setMensaje] = useState<{ ok: boolean; texto: string } | null>(null);
   const [fecha, setFecha] = useState(p.proximoContacto ?? "");
   const [nota, setNota] = useState("");
+  // Lo elegido se ve mientras guarda; si falla, vuelve a lo que dice la base.
+  const [estadoSel, setEstadoSel] = useState<string | null>(null);
+  const [asesorSel, setAsesorSel] = useState<string | null | undefined>(undefined);
 
   function hacer(accion: () => Promise<Resultado>, exito: string, despues?: () => void) {
     setMensaje(null);
@@ -52,6 +55,8 @@ export function PanelCrm(p: Props) {
         router.refresh();
       } else {
         setMensaje({ ok: false, texto: r.error });
+        setEstadoSel(null);
+        setAsesorSel(undefined);
       }
     });
   }
@@ -84,10 +89,11 @@ export function PanelCrm(p: Props) {
             <select
               id="estado"
               className={`mt-2 ${campo}`}
-              value={p.estado}
+              value={estadoSel ?? p.estado}
               disabled={guardando}
               onChange={(e) => {
                 const nuevo = e.target.value;
+                setEstadoSel(nuevo);
                 hacer(() => cambiarEstado(p.leadId, nuevo), `Estado: ${ETIQUETA_ESTADO[nuevo]}.`);
               }}
             >
@@ -139,10 +145,11 @@ export function PanelCrm(p: Props) {
               <select
                 id="asesor"
                 className={`mt-2 ${campo}`}
-                value={p.asesorId ?? ""}
+                value={(asesorSel === undefined ? p.asesorId : asesorSel) ?? ""}
                 disabled={guardando}
                 onChange={(e) => {
                   const id = e.target.value || null;
+                  setAsesorSel(id);
                   hacer(() => asignarAsesor(p.leadId, id), id ? "Lead asignado." : "El lead quedó sin asesor.");
                 }}
               >

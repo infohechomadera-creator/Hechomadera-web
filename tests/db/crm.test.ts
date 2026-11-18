@@ -123,6 +123,53 @@ describe("historial automático", () => {
   });
 });
 
+describe("correcciones del validador (W4)", () => {
+  it("la fecha de la nota la pone la base, no quien la escribe", async () => {
+    await como(db, asesorA, async (tx) => {
+      await tx.query(
+        `insert into public.actividades (lead_id, autor_id, tipo, detalle, creado_at) values ($1, $2, 'nota', 'Antedatada', '2020-01-01')`,
+        [IDS.leadA, IDS.asesorA],
+      );
+      const r = await tx.query<{ viejo: boolean }>(
+        "select creado_at < now() - interval '1 minute' as viejo from public.actividades where detalle = 'Antedatada'",
+      );
+      expect(r.rows).toEqual([{ viejo: false }]);
+    });
+  });
+
+  it("gerencia tampoco escribe a mano cambios de estado, asignaciones ni pagos", async () => {
+    for (const tipo of ["cambio_estado", "asignacion", "pago", "operflow"]) {
+      await expect(
+        como(db, gerencia, (tx) =>
+          tx.query(`insert into public.actividades (lead_id, autor_id, tipo, detalle) values ($1, $2, $3, 'falso')`, [
+            IDS.leadA,
+            IDS.gerencia,
+            tipo,
+          ]),
+        ),
+      ).rejects.toThrow(/row-level security/);
+    }
+    const ok = await como(db, gerencia, (tx) =>
+      tx.query(`insert into public.actividades (lead_id, autor_id, tipo, detalle) values ($1, $2, 'nota', 'ok')`, [
+        IDS.leadA,
+        IDS.gerencia,
+      ]),
+    );
+    expect(ok.affectedRows).toBe(1);
+  });
+
+  it("el sistema (sin sesión) sí conserva la fecha que manda", async () => {
+    await como(db, { tipo: "sistema" }, async (tx) => {
+      await tx.query(
+        `insert into public.actividades (lead_id, autor_id, tipo, detalle, creado_at) values ($1, null, 'pago', 'Pago confirmado', '2026-01-01')`,
+        [IDS.leadA],
+      );
+      const r = await tx.query<{ d: string }>("select creado_at::date::text as d from public.actividades where detalle = 'Pago confirmado'");
+      expect(r.rows).toEqual([{ d: "2026-01-01" }]);
+    });
+  });
+});
+
 describe("asignación", () => {
   it("gerencia no puede asignar a alguien inactivo ni inexistente", async () => {
     for (const id of [IDS.asesorInactivo, SIN_PERFIL]) {

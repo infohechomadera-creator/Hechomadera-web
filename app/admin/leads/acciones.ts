@@ -8,11 +8,15 @@ import { revalidatePath } from "next/cache";
 import { rolActual } from "@/lib/sesion";
 import { clienteUsuario } from "@/lib/supabase/servidor";
 import { hoyEnColombia } from "@/lib/precios/fechas";
-import { UUID, esEstadoAMano, validarNota, validarProximoContacto } from "@/lib/leads";
+import { ESTADOS_A_MANO, UUID, esEstadoAMano, validarNota, validarProximoContacto } from "@/lib/leads";
 
 export type Resultado = { ok: true } | { ok: false; error: string };
 
 const NO_ENCONTRADO: Resultado = { ok: false, error: "No encontramos ese lead o no es tuyo." };
+const NO_ENCONTRADO_O_SISTEMA: Resultado = {
+  ok: false,
+  error: "No encontramos ese lead, no es tuyo o su estado ya lo maneja el sistema.",
+};
 const FALLA: Resultado = { ok: false, error: "No se pudo guardar. Intenta de nuevo." };
 
 async function conSesion() {
@@ -35,14 +39,21 @@ function errorBase(error: { code?: string }): Resultado {
   return FALLA;
 }
 
-async function actualizar(leadId: string, cambios: Record<string, unknown>, soloGerencia = false): Promise<Resultado> {
+async function actualizar(
+  leadId: string,
+  cambios: Record<string, unknown>,
+  { soloGerencia = false, desdeEstadoAMano = false } = {},
+): Promise<Resultado> {
   if (typeof leadId !== "string" || !UUID.test(leadId)) return NO_ENCONTRADO;
   const s = await conSesion();
   if (!s) return { ok: false, error: "Tu sesión venció. Vuelve a entrar." };
   if (soloGerencia && s.rol !== "gerencia") return { ok: false, error: "Solo gerencia puede asignar leads." };
-  const { data, error } = await s.supabase.from("leads").update(cambios).eq("id", leadId).select("id");
+  let consulta = s.supabase.from("leads").update(cambios).eq("id", leadId);
+  // Un lead que ya pagó o va en Operflow no vuelve a un estado a mano (ni siquiera gerencia).
+  if (desdeEstadoAMano) consulta = consulta.in("estado", [...ESTADOS_A_MANO]);
+  const { data, error } = await consulta.select("id");
   if (error) return errorBase(error);
-  if (!data?.length) return NO_ENCONTRADO;
+  if (!data?.length) return desdeEstadoAMano ? NO_ENCONTRADO_O_SISTEMA : NO_ENCONTRADO;
   refrescar(leadId);
   return { ok: true };
 }
@@ -50,7 +61,7 @@ async function actualizar(leadId: string, cambios: Record<string, unknown>, solo
 /** Nuevo, contactado o perdido. Los demás estados los pone el sistema (pagos y Operflow, W5). */
 export async function cambiarEstado(leadId: string, estado: string): Promise<Resultado> {
   if (!esEstadoAMano(estado)) return { ok: false, error: "Ese estado lo pone el sistema." };
-  return actualizar(leadId, { estado });
+  return actualizar(leadId, { estado }, { desdeEstadoAMano: true });
 }
 
 export async function ponerProximoContacto(leadId: string, fecha: string | null): Promise<Resultado> {
@@ -64,7 +75,7 @@ export async function asignarAsesor(leadId: string, asesorId: string | null): Pr
   if (asesorId !== null && (typeof asesorId !== "string" || !UUID.test(asesorId))) {
     return { ok: false, error: "Esa persona no está activa en el equipo." };
   }
-  return actualizar(leadId, { asesor_id: asesorId }, true);
+  return actualizar(leadId, { asesor_id: asesorId }, { soloGerencia: true });
 }
 
 export async function agregarNota(leadId: string, texto: string): Promise<Resultado> {

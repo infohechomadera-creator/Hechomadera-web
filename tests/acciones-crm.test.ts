@@ -5,6 +5,7 @@ const estado = vi.hoisted(() => ({
   rol: "asesor" as string | null,
   escrituras: [] as { tabla: string; tipo: string; datos: unknown }[],
   filas: [{ id: "x" }] as unknown[],
+  filtroEstado: null as string[] | null,
   error: null as { code: string } | null,
 }));
 
@@ -17,7 +18,15 @@ vi.mock("@/lib/supabase/servidor", () => ({
     from: (tabla: string) => ({
       update: (datos: unknown) => {
         estado.escrituras.push({ tabla, tipo: "update", datos });
-        return { eq: () => ({ select: async () => ({ data: estado.filas, error: estado.error }) }) };
+        const q = {
+          eq: () => q,
+          in: (_c: string, v: string[]) => {
+            estado.filtroEstado = v;
+            return q;
+          },
+          select: async () => ({ data: estado.filas, error: estado.error }),
+        };
+        return q;
       },
       insert: async (datos: unknown) => {
         estado.escrituras.push({ tabla, tipo: "insert", datos });
@@ -33,7 +42,7 @@ const LEAD = "4b6f9c1e-1d2a-4c3b-9e8f-0a1b2c3d4e5f";
 const OTRO = "00000000-0000-4000-a000-00000000000b";
 
 beforeEach(() => {
-  Object.assign(estado, { rol: "asesor", escrituras: [], filas: [{ id: LEAD }], error: null });
+  Object.assign(estado, { rol: "asesor", escrituras: [], filas: [{ id: LEAD }], error: null, filtroEstado: null });
 });
 
 describe("acciones del CRM", () => {
@@ -49,6 +58,14 @@ describe("acciones del CRM", () => {
     expect((await cambiarEstado(LEAD, "diseno_pagado")).ok).toBe(false);
     expect((await cambiarEstado(LEAD, "no_aprobo")).ok).toBe(false);
     expect(estado.escrituras).toEqual([{ tabla: "leads", tipo: "update", datos: { estado: "contactado" } }]);
+  });
+
+  it("el cambio de estado solo aplica si el lead sigue en un estado a mano (también para gerencia)", async () => {
+    estado.rol = "gerencia";
+    expect(await cambiarEstado(LEAD, "nuevo")).toEqual({ ok: true });
+    expect(estado.filtroEstado).toEqual(["nuevo", "contactado", "perdido"]);
+    estado.filas = [];
+    expect((await cambiarEstado(LEAD, "nuevo")).ok).toBe(false);
   });
 
   it("el asesor no puede asignar leads", async () => {
@@ -67,7 +84,8 @@ describe("acciones del CRM", () => {
 
   it("un lead ajeno (la base no devuelve filas) se reporta como no encontrado", async () => {
     estado.filas = [];
-    expect(await cambiarEstado(LEAD, "perdido")).toEqual({ ok: false, error: "No encontramos ese lead o no es tuyo." });
+    expect((await cambiarEstado(LEAD, "perdido")).ok).toBe(false);
+    expect(await ponerProximoContacto(LEAD, null)).toEqual({ ok: false, error: "No encontramos ese lead o no es tuyo." });
   });
 
   it("si la base rechaza el cambio, el mensaje es simple", async () => {
