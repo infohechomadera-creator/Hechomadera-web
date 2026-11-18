@@ -1,0 +1,45 @@
+# Decisiones de Hechomadera-web
+> Cada decisión con fecha y motivo. Se agregan al final. No se borran: si una cambia, se agrega otra que la reemplaza.
+> Origen de las decisiones del 2026-11-17: `docs/TRASPASO-MOMENTO-1.md` §3.
+
+## 2026-11-17 · Reparto web / Operflow
+- **Leads y CRM viven en la web.** Motivo: Alberto construye el CRM aquí; la web es el centro comercial.
+- **Operflow recibe solo proyectos que pasaron el filtro.** Motivo: cada dato tiene un solo dueño; Operflow es para operar.
+- **Cobros con Mercado Pago en la web; Operflow solo registra el pago.** Motivo: Mercado Pago ya está conectado aquí.
+- **La web usa su propio Supabase** para leads, CRM, usuarios, fotos y precios (hay que crearlo). Motivo: Redis no sirve para un CRM con usuarios, permisos y relaciones; proyectos separados por regla.
+- **La tabla de precios por ciudad vive en la web y es la única fuente**; Operflow la consulta en modo lectura. Motivo: un solo lugar donde Alberto edita precios.
+- **Supabase de la web en plan gratis**, proyecto aparte del de Operflow. Antes de clientes reales se evalúa Pro (requiere aprobación). Motivo: decisión de Alberto.
+- **Se empieza por la web** en sesión propia; Operflow va en otra. W0–W4 no dependen de Operflow; W5 necesita O3.
+
+## 2026-11-17 · Pagos y reglas comerciales
+- **El filtro es pagar el diseño.** Precio fijo por producto (COP): cocina 300.000, closet 150.000, mueble de baño 150.000, centro de entretenimiento 200.000, puerta 100.000, escritorio 100.000. Se descuenta del anticipo. El pago confirmado por Mercado Pago envía el proyecto a Operflow automáticamente. Motivo: solo se diseña para quien ya puso dinero.
+- **Anticipo al aprobar el diseño:** 35% del valor final menos el diseño pagado. Motivo: se cobra sobre el valor final, no sobre un rango.
+- **Sin tolerancia de precio:** el valor final se recalcula con medidas confirmadas y la diferencia va al saldo. Motivo: decisión de Alberto.
+- **Si el cliente no aprueba:** recibe solo el render; no se devuelve el diseño; el diseño es suyo; Hechomadera no lo usa y se borran sus datos (excepto lo que la ley obliga a guardar del pago). Debe ir en términos y privacidad. Motivo: protege planos y despiece; decisión de Alberto.
+- **Promesa:** propuesta en máximo 48 horas después de pagar el diseño.
+- **Facturas por fuera del sistema;** la web solo registra los pagos.
+- **Mercado Pago ya está operativo en producción.** Confirmado por Alberto.
+
+## 2026-11-17 · Operación y contenido
+- **Ciudades:** Barranquilla y Santa Marta el primer semestre; luego 5 ciudades más en Colombia. Precios por ciudad desde el inicio.
+- **Equipo:** 1 asesor y 1 diseñador; gerencia asigna los leads a mano.
+- **Catálogo e imágenes genéricos o provisionales;** precios de ejemplo editables desde el panel.
+- **Avisos al cliente solo por correo (Resend);** WhatsApp lo hace el asesor a mano.
+- **El dominio `hechomadera.com` ya apunta a Vercel.** Confirmado por Alberto.
+- **Agente de IA (W6):** la cuenta de API de Anthropic se crea al llegar a W6, con tope de gasto mensual aprobado por Alberto. Motivo: cuesta dinero.
+
+## 2026-11-17 · Permisos
+- **Autonomía:** Claude trabaja sin preguntar dentro de esta carpeta (editar, commits, push, pruebas), pero pide autorización para borrar cualquier archivo o dato y para tocar algo fuera de la carpeta.
+- **Siempre se pide permiso para:** dinero, contraseñas o inicios de sesión, aceptar términos.
+
+## 2026-11-18 · Devolución tras medición
+- Si tras medir el cliente no acepta el valor ajustado: se devuelve el anticipo menos el costo de la visita de medición; el diseño no se devuelve. Va en los términos. Motivo: decisión de Alberto.
+
+## 2026-11-18 · Nivel de autonomía 2 (inicio del kit, hito W0)
+- **Alcance:** equivale al nivel 2 del estándar (editar, commits, push, etiquetas, dependencias, pruebas y build) **con borrados siempre autorizados** (`rm`, `git rm`, `mv`, borrar ramas o etiquetas van a "preguntar"). Niveles 3 y 4 no liberados. Motivo: instrucción de Alberto al iniciar el Momento 1 (se aparta del nivel 0 del estándar).
+- **Perímetro:** carpeta real `/Users/albertocotesd/Desktop/HECHOMADERA` (el traspaso mencionaba `Desktop/AUTOMATIZACION_IA/HECHOMADERA`, que no es la ubicación actual). Motivo: plan W0 aprobado.
+- **`curl`, `python3`, `node`, `pip3 install` y `npx` de herramientas externas pasan a "preguntar".** Motivo: con ellos se podría borrar o enviar archivos sin permiso (riesgo señalado en el traspaso §6).
+- **Lista `deny`:** lectura de `.env` y `.env.*`, force push, `reset --hard`, `git clean`, `rm -rf`, `rebase`. Hook anti-secretos activo en commit y push.
+
+## Por aprobar
+- Pasar las órdenes de Redis a Supabase durante el hito del CRM (W4), para tener una sola base de datos. Mientras tanto, Redis sigue funcionando.

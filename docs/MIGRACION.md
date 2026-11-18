@@ -20,7 +20,7 @@
 
 El dominio **hechomadera.com** sigue siendo suyo; solo cambiará el **DNS** apuntando a Vercel cuando hagan cutover.
 
-## Qué hace el agente (Cursor) vs qué es manual
+## Qué hace el agente (Claude Code) vs qué es manual
 
 | Agente (repo) | Manual (usted / especialista) |
 |----------------|--------------------------------|

@@ -22,7 +22,11 @@
 .DS_Store
 *.pem
 .env
-.env*.local
+.env*
+!.env.example
+
+# respaldos de datos (estándar de proyecto)
+respaldos/
 
 # debug
 npm-debug.log*
