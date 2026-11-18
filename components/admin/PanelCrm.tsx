@@ -55,9 +55,10 @@ export function PanelCrm(p: Props) {
         router.refresh();
       } else {
         setMensaje({ ok: false, texto: r.error });
-        setEstadoSel(null);
-        setAsesorSel(undefined);
       }
+      // Dentro de la misma transición: al terminar, manda lo que dice la base (ya refrescada).
+      setEstadoSel(null);
+      setAsesorSel(undefined);
     });
   }
 
