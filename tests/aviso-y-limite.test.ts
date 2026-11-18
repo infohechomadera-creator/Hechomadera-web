@@ -9,6 +9,7 @@ describe("ipDe", () => {
     expect(ipDe(pedir("2001:db8:aa:1:1111:2222:3333:4444"))).toBe("2001:db8:aa:1::/64");
     expect(ipDe(pedir("2001:db8:aa:1::9"))).toBe("2001:db8:aa:1::/64");
     expect(ipDe(pedir("2001:0db8:00aa:0001:ffff::1"))).toBe("2001:db8:aa:1::/64");
+    expect(ipDe(pedir("::ffff:198.51.100.4"))).toBe("198.51.100.4");
     expect(ipDe(new Request("http://local"))).toBe("desconocida");
   });
 });

@@ -34,8 +34,19 @@ export async function reducirFoto(archivo: File): Promise<Blob | null> {
     ctx.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
     for (const calidad of CALIDADES) {
       const blob = await new Promise<Blob | null>((ok) => lienzo.toBlob(ok, "image/jpeg", calidad));
-      if (blob && blob.size <= MAX_BYTES_FOTO_NAVEGADOR) return blob;
+      if (blob && blob.size <= MAX_BYTES_FOTO_NAVEGADOR) {
+        liberar(imagen, lienzo);
+        return blob;
+      }
     }
+    lienzo.width = 0;
   }
+  liberar(imagen);
   return null;
+}
+
+/** Libera memoria (importante en celulares viejos con varias fotos). */
+function liberar(imagen: ImageBitmap | HTMLImageElement, lienzo?: HTMLCanvasElement) {
+  if ("close" in imagen) imagen.close();
+  if (lienzo) lienzo.width = 0;
 }

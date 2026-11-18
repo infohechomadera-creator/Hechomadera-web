@@ -21,11 +21,18 @@ export type ResultadoGuardar =
 type Db = ReturnType<typeof clienteSistema>;
 
 /** Lead ya creado con ese envio_id (doble toque o reintento), con el rango que quedó guardado. */
-async function buscarRepetido(db: Db, envioId: string): Promise<ResultadoGuardar | null | "error"> {
+type Repetido = { ok: true; leadId: string; repetido: true; rango: RangoGuardado };
+
+async function buscarRepetido(db: Db, envioId: string): Promise<Repetido | null | "error"> {
   const { data, error } = await db.from("leads").select("id, rango_min, rango_max, ciudad").eq("envio_id", envioId).maybeSingle();
   if (error) return "error";
   if (!data) return null;
   return { ok: true, leadId: data.id, repetido: true, rango: { min: data.rango_min, max: data.rango_max, ciudad: data.ciudad } };
+}
+
+/** Para la ruta: ¿ya existe un lead con este envío? (antes de gastar cupo). */
+export async function buscarLeadRepetido(envioId: string) {
+  return buscarRepetido(clienteSistema(), envioId);
 }
 
 export async function guardarLead(solicitud: SolicitudLead, rango: Rango, fotos: FotoValida[]): Promise<ResultadoGuardar> {

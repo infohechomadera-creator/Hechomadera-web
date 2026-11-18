@@ -183,9 +183,17 @@ describe("POST /api/configurador/lead", () => {
     bloqueados.add("config-intento");
     expect((await enviar(datos())).status).toBe(429);
     bloqueados.clear();
-    bloqueados.add("config-lead:global");
+    bloqueados.add("config-lead:203.0.113.9");
     expect((await enviar(datos())).status).toBe(429);
     expect(base.clientes).toHaveLength(0);
+  });
+
+  it("si se pasa el cupo global de fotos, el lead se guarda igual pero sin fotos", async () => {
+    bloqueados.add("config-fotos:global");
+    const r = await enviar(datos(), [jpeg()]);
+    expect(r.status).toBe(200);
+    expect(base.leads).toHaveLength(1);
+    expect(base.subidas).toHaveLength(0);
   });
 
   it("un envío con errores no gasta el cupo estricto", async () => {
@@ -196,9 +204,13 @@ describe("POST /api/configurador/lead", () => {
 
   it("un envío repetido devuelve el mismo lead sin crear otro", async () => {
     const a = await (await enviar(datos())).json();
+    // Cambia el rango guardado: el reintento debe devolver lo guardado, no un cálculo nuevo.
+    base.leads[0].rango_min = 111;
+    base.leads[0].rango_max = 222;
+    bloqueados.add("config-lead:"); // y no debe gastar cupo
     const b = await (await enviar(datos())).json();
     expect(b.referencia).toBe(a.referencia);
-    expect(b.rango).toMatchObject({ min: a.rango.min, max: a.rango.max });
+    expect(b.rango).toMatchObject({ min: 111, max: 222 });
     expect(base.leads).toHaveLength(1);
     expect(aviso.llamadas).toBe(1);
   });

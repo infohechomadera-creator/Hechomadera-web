@@ -179,7 +179,7 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
       for (const archivo of Array.from(lista).slice(0, MAX_FOTOS - fotos.length)) {
         const blob = await reducirFoto(archivo);
         if (!blob) {
-          setError("Una de las fotos no se pudo leer. Prueba con otra.");
+          setError("Una de las fotos no se pudo usar (formato raro o demasiado grande). Prueba con otra.");
           continue;
         }
         if (total + blob.size > MAX_BYTES_TOTAL) {

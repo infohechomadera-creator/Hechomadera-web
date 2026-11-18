@@ -36,6 +36,8 @@ export function ipDe(request: Request): string {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim().toLowerCase();
   if (!ip) return "desconocida";
   if (!ip.includes(":")) return ip.slice(0, 64);
+  const v4 = ip.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/); // IPv4 escrita como IPv6
+  if (v4) return v4[1];
   const [cabeza, cola = ""] = ip.split("::");
   const izq = cabeza ? cabeza.split(":") : [];
   const der = cola ? cola.split(":") : [];
