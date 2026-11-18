@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { esEstadoAMano, pasoElFiltro, validarNota, validarProximoContacto } from "@/lib/leads";
+import { esEstadoAMano, leerFiltros, pasoElFiltro, validarNota, validarProximoContacto } from "@/lib/leads";
 
 const HOY = "2026-11-18";
 
@@ -34,5 +34,17 @@ describe("reglas del CRM", () => {
     expect(pasoElFiltro(null)).toBe(false);
     expect(pasoElFiltro("diseno")).toBe(true);
     expect(pasoElFiltro("anticipo")).toBe(true);
+  });
+
+  it("los filtros de la lista solo aceptan valores conocidos", () => {
+    const id = "00000000-0000-4000-a000-00000000000b";
+    expect(leerFiltros({ estado: "contactado", filtro: "si", asesor: id }, true)).toEqual({ estado: "contactado", filtro: "si", asesor: id });
+    expect(leerFiltros({ estado: "constructor", filtro: "x", asesor: "'; drop" }, true)).toEqual({
+      estado: undefined,
+      filtro: undefined,
+      asesor: undefined,
+    });
+    expect(leerFiltros({ estado: ["nuevo", "perdido"] }, true).estado).toBeUndefined();
+    expect(leerFiltros({ asesor: "sin" }, false).asesor).toBeUndefined();
   });
 });

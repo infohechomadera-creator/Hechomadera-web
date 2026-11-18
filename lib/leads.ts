@@ -82,3 +82,19 @@ export const ETIQUETA_PAGO: Record<string, string> = {
 
 export const fechaDia = (iso: string) =>
   new Intl.DateTimeFormat("es-CO", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`));
+
+/** Filtros de la lista de leads (de la dirección). Solo valores conocidos; lo demás se ignora. */
+export type Filtros = { estado?: string; filtro?: "si" | "no"; asesor?: string };
+
+export function leerFiltros(sp: Record<string, string | string[] | undefined>, esGerencia: boolean): Filtros {
+  const uno = (k: string) => (typeof sp[k] === "string" ? (sp[k] as string) : undefined);
+  const estado = uno("estado");
+  const filtro = uno("filtro");
+  const asesor = uno("asesor");
+  return {
+    estado: estado && Object.hasOwn(ETIQUETA_ESTADO, estado) ? estado : undefined,
+    filtro: filtro === "si" || filtro === "no" ? filtro : undefined,
+    // Filtrar por asesor es cosa de gerencia; al asesor la base ya le muestra solo los suyos.
+    asesor: esGerencia && asesor && (asesor === "sin" || UUID.test(asesor)) ? asesor : undefined,
+  };
+}
