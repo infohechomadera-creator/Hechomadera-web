@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { navItems } from "@/lib/site-config";
 import { getWhatsAppHref } from "@/lib/whatsapp";
@@ -9,30 +10,37 @@ import { Button } from "@/components/ui/Button";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const wa = getWhatsAppHref("Hola Hechomadera, quiero hablar con un asesor.");
+  const activo = (href: string) => (href === "/" ? pathname === "/" : pathname?.startsWith(href));
 
   return (
-    <header className="sticky top-0 z-50 border-b border-neutral-200 bg-paper/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
+    <header className="sticky top-0 z-50 bg-paper/85 backdrop-blur-md">
+      <div className="contenedor flex items-center justify-between gap-4 py-3">
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.png"
             alt="Hechomadera — Cocinas Integrales y Carpintería a Medida en Colombia"
             width={226}
             height={22}
-            className="h-6 w-auto object-contain"
+            className="h-5 w-auto object-contain md:h-6"
             priority
           />
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Principal">
+        <nav
+          className="hidden items-center gap-1 rounded-full border border-cloud bg-snow p-1 lg:flex"
+          aria-label="Principal"
+        >
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               data-track-nav={item.href}
               title={item.label}
-              className="rounded px-3 py-2 text-sm text-ink-muted transition-colors hover:bg-ink hover:text-paper"
+              className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm transition-colors ${
+                activo(item.href) ? "bg-paper text-ink" : "text-ink-muted hover:text-ink"
+              }`}
             >
               {item.label}
             </Link>
@@ -40,10 +48,10 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-2 sm:flex">
-          <Button href="/tienda" variant="secondary" className="!px-3 !py-2 text-xs">
+          <Button href="/tienda" variant="neutral" className="!py-2.5">
             Comprar
           </Button>
-          <Button href="/contacto" variant="secondary" className="!px-3 !py-2 text-xs">
+          <Button href="/contacto" variant="neutral" className="!py-2.5">
             Cotizar
           </Button>
           <a
@@ -51,7 +59,7 @@ export function SiteHeader() {
             target="_blank"
             rel="noopener noreferrer"
             data-track-location="header"
-            className="inline-flex items-center justify-center border border-ink bg-ink px-3 py-2 text-xs font-medium text-paper hover:bg-neutral-800"
+            className="boton-primario boton-pill !py-2.5"
           >
             WhatsApp
           </a>
@@ -59,7 +67,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="inline-flex items-center justify-center border border-ink px-3 py-2 text-sm lg:hidden"
+          className="boton-neutro !py-2 lg:hidden"
           aria-expanded={open}
           aria-label={open ? "Cerrar menú" : "Abrir menú"}
           onClick={() => setOpen((v) => !v)}
@@ -69,21 +77,21 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="border-t border-neutral-200 bg-paper lg:hidden">
-          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4" aria-label="Móvil">
+        <div className="contenedor pb-4 lg:hidden">
+          <nav className="tarjeta flex flex-col gap-1 p-3" aria-label="Móvil">
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded px-2 py-3 text-sm text-ink"
+                className={`rounded-button px-4 py-3 text-base ${activo(item.href) ? "bg-paper text-ink" : "text-graphite"}`}
                 onClick={() => setOpen(false)}
               >
                 {item.label}
               </Link>
             ))}
-            <div className="mt-4 flex flex-col gap-2 border-t border-neutral-200 pt-4">
+            <div className="mt-2 flex flex-col gap-2 border-t border-cloud pt-3">
               <Button href="/tienda">Comprar</Button>
-              <Button href="/contacto" variant="secondary">
+              <Button href="/contacto" variant="neutral">
                 Cotizar
               </Button>
               <a
@@ -91,7 +99,7 @@ export function SiteHeader() {
                 target="_blank"
                 rel="noopener noreferrer"
                 data-track-location="header_mobile"
-                className="inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper"
+                className="boton-borde"
               >
                 WhatsApp
               </a>

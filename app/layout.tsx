@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Cormorant_Garamond } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -12,16 +12,11 @@ import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { PageTracker } from "@/components/analytics/PageTracker";
 import { Analytics } from "@vercel/analytics/react";
 
-const inter = Inter({
+/** Una sola familia tipográfica (DM Sans, sustituto de Cosmica según la guía de diseño). */
+const sans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-geist-sans",
-  display: "swap",
-});
-
-const display = Cormorant_Garamond({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["400", "600"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -93,7 +88,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${inter.variable} ${display.variable} min-h-screen font-sans antialiased`}>
+      <body className={`${sans.variable} min-h-screen bg-paper font-sans text-graphite antialiased`}>
         <JsonLdSite />
         <JsonLdFaq />
         <PromoBanner />

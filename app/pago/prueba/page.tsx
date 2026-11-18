@@ -22,18 +22,20 @@ export default function PagoPruebaPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-16 md:px-6">
-      <h1 className="font-display text-2xl font-semibold text-ink">Prueba de pago (Mercado Pago)</h1>
-      <p className="mt-4 text-sm text-ink-muted">
-        Usa credenciales de <strong>prueba</strong> en Mercado Pago para no cobrar dinero real. Monto de ejemplo: $5.000 COP.
-      </p>
-      <div className="mt-10">
-        <StartCheckoutButton title="Pedido de prueba — Hechomadera" unitPrice={5000} quantity={1} />
+    <div className="contenedor py-14 md:py-24">
+      <div className="tarjeta mx-auto max-w-xl p-7 md:p-10">
+        <h1 className="titulo-tarjeta">Prueba de pago (Mercado Pago)</h1>
+        <p className="mt-4 text-sm text-ink-muted">
+          Usa credenciales de <strong className="font-semibold text-ink">prueba</strong> en Mercado Pago para no cobrar dinero real. Monto de ejemplo: $5.000 COP.
+        </p>
+        <div className="mt-8">
+          <StartCheckoutButton title="Pedido de prueba — Hechomadera" unitPrice={5000} quantity={1} />
+        </div>
+        <p className="mt-8 text-caption text-ink-soft">
+          Si ves error 503, falta configurar <code className="rounded-badge bg-paper px-1.5 py-0.5 text-ink">MERCADOPAGO_ACCESS_TOKEN</code> en
+          Vercel y redeploy.
+        </p>
       </div>
-      <p className="mt-8 text-xs text-ink-muted">
-        Si ves error 503, falta configurar <code className="rounded bg-neutral-100 px-1">MERCADOPAGO_ACCESS_TOKEN</code> en
-        Vercel y redeploy.
-      </p>
     </div>
   );
 }

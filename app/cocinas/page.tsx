@@ -35,10 +35,10 @@ function calcularDesde(): DesdePorCiudad {
 export default function CocinasPage() {
   const valorDiseno = PRECIOS_EJEMPLO.Barranquilla.valor_diseno.cocina;
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
+    <div className="contenedor pb-14 pt-8 md:pb-20 md:pt-14">
       <div className="max-w-2xl">
-        <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Cocinas a medida</h1>
-        <p className="mt-3 text-sm text-ink-muted">
+        <h1 className="titulo-display">Cocinas a medida</h1>
+        <p className="mt-5 text-body-lg text-ink-muted">
           Elige una forma y un diseño base. Te mostramos un precio de referencia para tu ciudad; con tus medidas
           calculamos un rango y, al pagar el diseño, recibes tu propuesta en máximo 48 horas.
         </p>
@@ -48,7 +48,7 @@ export default function CocinasPage() {
         <CatalogoCocinas desde={calcularDesde()} ciudades={[...CIUDADES_ACTIVAS]} />
       </section>
 
-      <section className="mt-16 grid gap-6 border-t border-neutral-200 pt-10 md:grid-cols-3">
+      <section className="mt-14 grid gap-4 md:grid-cols-3">
         {[
           ["1. Configura", "Forma, diseño, colores, herrajes y medidas aproximadas. Ves tu rango de precio al instante."],
           [
@@ -57,8 +57,8 @@ export default function CocinasPage() {
           ],
           ["3. Aprueba y producimos", "Con el anticipo del 35% (menos el diseño) empezamos a fabricar e instalamos."],
         ].map(([t, d]) => (
-          <div key={t}>
-            <h2 className="font-display text-lg font-semibold text-ink">{t}</h2>
+          <div key={t} className="tarjeta p-7">
+            <h2 className="titulo-tarjeta">{t}</h2>
             <p className="mt-2 text-sm text-ink-muted">{d}</p>
           </div>
         ))}

@@ -1,0 +1,22 @@
+# Hito W1 (y adelanto de W2) · Base de datos, precios y rediseño
+> Diario del hito. Se agrega información; no se borra.
+
+## 2026-11-18
+**Hecho**
+- Rama `w1-w2-base` (no se toca `main`, que publica en producción).
+- Migraciones `supabase/migrations/`: perfiles (gerencia/asesor), clientes (con autorización de datos Ley 1581), leads, actividades y precios por ciudad con versiones inmutables. Permisos por fila (RLS) y bloqueo de campos de dinero y Operflow para asesores.
+- Pruebas de permisos por rol en Postgres local (PGlite, imita Supabase): público, asesor A/B, asesor inactivo, gerencia y sistema. `npm test`.
+- Motor de precios `lib/precios/` (rango, anticipo, saldo, devolución) con pruebas; semilla de precios de ejemplo y su SQL.
+- Página `/cocinas` provisional (20 escenas, precio desde por ciudad, sin indexar).
+- Clientes de Supabase listos en `lib/supabase/` (sin usarse aún). Guía para Alberto: `supabase/APLICAR.md`.
+- Rediseño visual inspirado en awesomic.com (`docs/DISENO.md`), sin cambiar textos. Respaldo: etiqueta `respaldo-2026-11-18-antes-rediseno`.
+
+**Aprendido**
+- `npm run build` mientras corre el servidor de desarrollo rompe el servidor (comparten `.next`). Reiniciarlo después.
+- Una subdependencia de Supabase recién publicada no se podía descargar: se fijaron versiones con más de dos semanas (`@supabase/supabase-js@2.119.0`, `@supabase/ssr@0.12.7`).
+- El hook anti-secretos detecta la palabra del rol privilegiado de Supabase: no escribirla en código ni en docs.
+
+**Pendientes**
+- Alberto: aplicar migraciones y poner llaves (`supabase/APLICAR.md`).
+- Claude: login de gerencia y asesor, reemplazar `ADMIN_API_TOKEN`, cargar precios desde Supabase.
+- Fórmula de precios provisional: confirmar con Alberto (suma de paredes, recargos, ±12%).

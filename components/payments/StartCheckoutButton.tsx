@@ -65,12 +65,12 @@ export function StartCheckoutButton({
         type="button"
         onClick={onClick}
         disabled={loading}
-        className="w-full border border-ink bg-ink px-4 py-3 text-sm font-medium text-paper hover:bg-neutral-800 disabled:opacity-60"
+        className="boton-primario w-full py-3.5 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? "Redirigiendo…" : label}
       </button>
       {error && (
-        <p className="text-xs text-red-700" role="alert">
+        <p className="rounded-badge border border-cloud bg-paper-dim px-3 py-2 text-xs text-red-700" role="alert">
           {error}
         </p>
       )}

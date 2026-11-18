@@ -14,10 +14,10 @@ export function PromoBanner() {
   if (!enabled || !text) return null;
 
   return (
-    <div className="border-b border-ink bg-ink text-center text-paper">
+    <div className="bg-obsidian text-center text-snow">
       <Link
         href={href}
-        className="block px-4 py-2.5 text-xs font-medium tracking-wide hover:bg-neutral-800 md:text-sm"
+        className="block px-4 py-2.5 text-caption font-medium transition-colors hover:bg-graphite focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-snow md:text-sm"
       >
         {text}
       </Link>

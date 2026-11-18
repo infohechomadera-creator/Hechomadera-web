@@ -49,7 +49,7 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto max-w-xl space-y-6">
+    <form onSubmit={onSubmit} className="space-y-5">
       <div className="grid gap-2">
         <label htmlFor="name" className="text-sm font-medium text-ink">
           Nombre completo
@@ -61,7 +61,7 @@ export function ContactForm() {
           required
           maxLength={120}
           autoComplete="name"
-          className="border border-neutral-300 bg-white px-4 py-3 text-sm text-ink outline-none focus:border-ink"
+          className="campo"
         />
       </div>
 
@@ -75,7 +75,7 @@ export function ContactForm() {
           type="email"
           required
           autoComplete="email"
-          className="border border-neutral-300 bg-white px-4 py-3 text-sm text-ink outline-none focus:border-ink"
+          className="campo"
         />
       </div>
 
@@ -88,7 +88,7 @@ export function ContactForm() {
           name="phone"
           type="tel"
           autoComplete="tel"
-          className="border border-neutral-300 bg-white px-4 py-3 text-sm text-ink outline-none focus:border-ink"
+          className="campo"
         />
       </div>
 
@@ -101,7 +101,7 @@ export function ContactForm() {
           name="city"
           required
           defaultValue=""
-          className="border border-neutral-300 bg-white px-4 py-3 text-sm text-ink outline-none focus:border-ink"
+          className="campo"
         >
           <option value="" disabled>
             Selecciona…
@@ -125,7 +125,7 @@ export function ContactForm() {
           minLength={10}
           maxLength={5000}
           rows={5}
-          className="resize-y border border-neutral-300 bg-white px-4 py-3 text-sm text-ink outline-none focus:border-ink"
+          className="campo resize-y"
         />
       </div>
 
@@ -136,13 +136,13 @@ export function ContactForm() {
       </div>
 
       {status === "error" && errorMessage && (
-        <p className="text-sm text-red-700" role="alert">
+        <p className="rounded-input border border-cloud bg-paper-dim px-4 py-3 text-sm text-red-700" role="alert">
           {errorMessage}
         </p>
       )}
 
       {status === "success" && (
-        <p className="text-sm text-green-800" role="status">
+        <p className="rounded-input border border-cloud bg-paper-dim px-4 py-3 text-sm text-green-800" role="status">
           Mensaje enviado. Te responderemos en el menor tiempo posible.
         </p>
       )}
@@ -150,12 +150,12 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "loading"}
-        className="w-full border border-ink bg-ink px-3 py-3 text-sm font-medium text-paper hover:bg-neutral-800 disabled:opacity-60"
+        className="boton-primario w-full disabled:cursor-not-allowed disabled:opacity-60"
       >
         {status === "loading" ? "Enviando…" : "Enviar mensaje"}
       </button>
 
-      <p className="text-xs text-ink-muted">
+      <p className="text-caption text-ink-soft">
         Al enviar aceptas el tratamiento de datos según nuestra política de privacidad. Respuesta orientativa: formulario &lt; 3h
         (objetivo operativo).
       </p>

@@ -110,14 +110,14 @@ function OptionCard({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full border p-4 text-left transition-colors ${
+      className={`w-full rounded-card border px-5 py-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
         selected
-          ? "border-ink bg-ink text-paper"
-          : "border-neutral-200 bg-white text-ink hover:border-neutral-400"
+          ? "border-ink bg-ink text-snow"
+          : "border-cloud bg-snow text-ink hover:border-mist hover:bg-paper-dim"
       }`}
     >
-      <span className="block text-sm font-semibold">{label}</span>
-      <span className={`mt-0.5 block text-xs ${selected ? "text-paper/70" : "text-ink-muted"}`}>{desc}</span>
+      <span className="block text-[15px] font-semibold">{label}</span>
+      <span className={`mt-0.5 block text-sm ${selected ? "text-ash" : "text-ink-muted"}`}>{desc}</span>
     </button>
   );
 }
@@ -125,13 +125,13 @@ function OptionCard({
 function StepHeader({ step, total, title }: { step: number; total: number; title: string }) {
   return (
     <div className="mb-6">
-      <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+      <p className="eyebrow">
         Paso {step} de {total}
       </p>
-      <h3 className="mt-1 font-display text-xl font-semibold text-ink">{title}</h3>
-      <div className="mt-3 h-0.5 bg-neutral-100">
+      <h3 className="titulo-tarjeta mt-1 text-balance">{title}</h3>
+      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-paper">
         <div
-          className="h-0.5 bg-ink transition-all duration-500"
+          className="h-1.5 rounded-full bg-ink transition-all duration-500"
           style={{ width: `${(step / total) * 100}%` }}
         />
       </div>
@@ -168,10 +168,10 @@ export function ProjectEstimator() {
   }
 
   return (
-    <div className="border border-neutral-200 bg-white">
+    <div>
       {/* header bar */}
-      <div className="border-b border-neutral-200 bg-neutral-50 px-6 py-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+      <div className="tarjeta-suave px-5 py-4">
+        <p className="eyebrow">
           Estimador de proyecto
         </p>
         <p className="mt-0.5 text-sm text-ink-muted">
@@ -179,7 +179,7 @@ export function ProjectEstimator() {
         </p>
       </div>
 
-      <div className="px-6 py-8">
+      <div className="pt-7">
         {/* ── Step 1: Space ── */}
         {step === 1 && (
           <>
@@ -203,7 +203,7 @@ export function ProjectEstimator() {
                 type="button"
                 disabled={!space}
                 onClick={() => setStep(2)}
-                className="border border-ink bg-ink px-6 py-2 text-sm font-medium text-paper transition-opacity hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+                className="boton-primario disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-obsidian"
               >
                 Continuar
               </button>
@@ -230,7 +230,7 @@ export function ProjectEstimator() {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="border border-neutral-300 px-6 py-2 text-sm font-medium text-ink hover:border-ink"
+                className="boton-borde"
               >
                 Atrás
               </button>
@@ -238,7 +238,7 @@ export function ProjectEstimator() {
                 type="button"
                 disabled={!size}
                 onClick={() => setStep(3)}
-                className="border border-ink bg-ink px-6 py-2 text-sm font-medium text-paper transition-opacity hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+                className="boton-primario disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-obsidian"
               >
                 Continuar
               </button>
@@ -265,7 +265,7 @@ export function ProjectEstimator() {
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                className="border border-neutral-300 px-6 py-2 text-sm font-medium text-ink hover:border-ink"
+                className="boton-borde"
               >
                 Atrás
               </button>
@@ -278,7 +278,7 @@ export function ProjectEstimator() {
                     track("estimator_complete", { space, size, tier });
                   }
                 }}
-                className="border border-ink bg-ink px-6 py-2 text-sm font-medium text-paper transition-opacity hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+                className="boton-primario disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-obsidian"
               >
                 Ver estimado
               </button>
@@ -290,10 +290,10 @@ export function ProjectEstimator() {
         {step === 4 && result && (
           <>
             <div className="mb-6">
-              <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+              <p className="etiqueta-ember">
                 Tu estimado
               </p>
-              <div className="mt-3 h-0.5 bg-ink" />
+              <div className="mt-4 h-1.5 rounded-full bg-ink" />
             </div>
 
             {/* summary chips */}
@@ -301,7 +301,7 @@ export function ProjectEstimator() {
               {[spaceLabel, sizeLabel, tierLabel].map((tag) => (
                 <span
                   key={tag}
-                  className="border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-ink"
+                  className="etiqueta bg-snow"
                 >
                   {tag}
                 </span>
@@ -309,47 +309,47 @@ export function ProjectEstimator() {
             </div>
 
             {/* result block */}
-            <div className="border border-neutral-200 bg-neutral-50 p-6">
-              <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+            <div className="bloque-oscuro p-6 sm:p-7">
+              <p className="eyebrow text-ash">
                 Rango estimado del proyecto
               </p>
-              <p className="mt-2 font-display text-3xl font-semibold text-ink">
+              <p className="mt-2 font-display text-[28px] font-semibold leading-tight tracking-[-0.015em] text-snow sm:text-heading-sm sm:leading-tight">
                 {fmt(result.min)} – {fmt(result.max)}
               </p>
-              <p className="mt-2 text-xs text-ink-muted">
+              <p className="mt-3 text-caption text-ash">
                 Valores orientativos en pesos colombianos. El precio final sale de la cotización formal
                 según medidas, diseño y materiales exactos.
               </p>
             </div>
 
             {/* deposit calc inline */}
-            <div className="mt-4 border border-neutral-200 bg-white p-4">
-              <p className="text-xs text-ink-muted">
+            <div className="tarjeta-suave mt-3 px-6 py-5">
+              <p className="text-sm text-ink-muted">
                 Abono inicial estimado{" "}
                 <strong className="text-ink">(35%)</strong>:{" "}
                 <span className="font-semibold text-ink">
                   {fmt(Math.round(result.min * 0.35))} – {fmt(Math.round(result.max * 0.35))}
                 </span>
               </p>
-              <p className="mt-1 text-xs text-ink-muted">
+              <p className="mt-1 text-caption text-ink-soft">
                 El saldo se acuerda en cotización. Puedes pagar el abono 100% online.
               </p>
             </div>
 
             {/* CTAs */}
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <a
                 href={wa}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-track-location="estimator_result"
-                className="inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
+                className="boton-primario"
               >
                 Cotizar por WhatsApp
               </a>
               <a
                 href="/contacto"
-                className="inline-flex items-center justify-center border border-neutral-300 px-5 py-3 text-sm font-medium text-ink hover:border-ink"
+                className="boton-borde"
               >
                 Formulario de contacto
               </a>
@@ -358,7 +358,7 @@ export function ProjectEstimator() {
             <button
               type="button"
               onClick={reset}
-              className="mt-4 text-xs text-ink-muted underline hover:text-ink"
+              className="mt-5 text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
             >
               Volver a calcular
             </button>

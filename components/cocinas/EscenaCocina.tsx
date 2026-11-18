@@ -52,7 +52,7 @@ export function EscenaCocina({
     <svg viewBox="0 0 400 200" role="img" aria-label={titulo} className="h-full w-full">
       <title>{titulo}</title>
       {/* piso y muros */}
-      <rect x="0" y="0" width="400" height="200" fill="#f4f2ee" />
+      <rect x="0" y="0" width="400" height="200" fill="#f4f4f5" />
       <path d="M40 30 H360 V190" fill="none" stroke="#1a1a1a" strokeWidth="6" strokeLinecap="square" />
       <path d="M40 30 V190" fill="none" stroke="#1a1a1a" strokeWidth="6" strokeLinecap="square" />
       {tramos.map((t, i) => (

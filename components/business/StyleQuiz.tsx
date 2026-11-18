@@ -226,36 +226,36 @@ export function StyleQuiz() {
   /* ── result screen ── */
   if (done && result && resultKey) {
     return (
-      <div className="border border-neutral-200 bg-white">
-        <div className="border-b border-neutral-200 bg-ink px-6 py-5 text-paper">
-          <p className="text-xs font-semibold uppercase tracking-widest text-paper/60">Tu estilo</p>
-          <h3 className="mt-1 font-display text-2xl font-semibold">{result.name}</h3>
-          <p className="mt-1 text-sm text-paper/70">{result.tagline}</p>
+      <div>
+        <div className="bloque-oscuro p-6 sm:p-7">
+          <p className="etiqueta-ember">Tu estilo</p>
+          <h3 className="mt-4 font-display text-[28px] font-semibold leading-tight tracking-[-0.015em] text-snow sm:text-heading-sm sm:leading-tight">{result.name}</h3>
+          <p className="mt-2 text-body text-ash">{result.tagline}</p>
         </div>
 
-        <div className="px-6 py-8">
-          <p className="text-sm text-ink-muted leading-relaxed">{result.description}</p>
+        <div className="pt-7">
+          <p className="text-body leading-relaxed text-ink-muted">{result.description}</p>
 
-          <div className="mt-6 border border-neutral-200 bg-neutral-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+          <div className="tarjeta-suave mt-6 px-6 py-5">
+            <p className="eyebrow">
               Materiales y acabados recomendados
             </p>
             <p className="mt-2 text-sm text-ink">{result.materials}</p>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <a
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
               data-track-location="quiz_result"
-              className="inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
+              className="boton-primario"
             >
               Cotizar con este estilo
             </a>
             <a
               href="/contacto"
-              className="inline-flex items-center justify-center border border-neutral-300 px-5 py-3 text-sm font-medium text-ink hover:border-ink"
+              className="boton-borde"
             >
               Hablar con un asesor
             </a>
@@ -264,7 +264,7 @@ export function StyleQuiz() {
           <button
             type="button"
             onClick={reset}
-            className="mt-5 text-xs text-ink-muted underline hover:text-ink"
+            className="mt-5 text-sm text-ink-muted underline underline-offset-4 hover:text-ink"
           >
             Volver a hacer el quiz
           </button>
@@ -275,26 +275,26 @@ export function StyleQuiz() {
 
   /* ── question screen ── */
   return (
-    <div className="border border-neutral-200 bg-white">
+    <div>
       {/* header */}
-      <div className="border-b border-neutral-200 bg-neutral-50 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
+      <div className="tarjeta-suave px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="eyebrow">
             Pregunta {current + 1} de {total}
           </p>
-          <p className="text-xs text-ink-muted">{Math.round(((current) / total) * 100)}% completado</p>
+          <p className="text-caption text-ink-soft">{Math.round(((current) / total) * 100)}% completado</p>
         </div>
         {/* progress bar */}
-        <div className="mt-2 h-0.5 bg-neutral-200">
+        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-cloud">
           <div
-            className="h-0.5 bg-ink transition-all duration-500"
+            className="h-1.5 rounded-full bg-ink transition-all duration-500"
             style={{ width: `${(current / total) * 100}%` }}
           />
         </div>
       </div>
 
-      <div className="px-6 py-8">
-        <h3 className="font-display text-xl font-semibold text-ink">{question.q}</h3>
+      <div className="pt-7">
+        <h3 className="titulo-tarjeta text-balance">{question.q}</h3>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           {question.options.map((opt) => (
@@ -302,16 +302,16 @@ export function StyleQuiz() {
               key={opt.style}
               type="button"
               onClick={() => pick(opt.style)}
-              className={`w-full border p-4 text-left transition-colors ${
+              className={`w-full rounded-card border px-5 py-4 text-left transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${
                 selected === opt.style
-                  ? "border-ink bg-ink text-paper"
-                  : "border-neutral-200 bg-white text-ink hover:border-neutral-400"
+                  ? "border-ink bg-ink text-snow"
+                  : "border-cloud bg-snow text-ink hover:border-mist hover:bg-paper-dim"
               }`}
             >
-              <span className="block text-sm font-semibold">{opt.label}</span>
+              <span className="block text-[15px] font-semibold">{opt.label}</span>
               <span
-                className={`mt-0.5 block text-xs ${
-                  selected === opt.style ? "text-paper/70" : "text-ink-muted"
+                className={`mt-0.5 block text-sm ${
+                  selected === opt.style ? "text-ash" : "text-ink-muted"
                 }`}
               >
                 {opt.sub}
@@ -320,7 +320,7 @@ export function StyleQuiz() {
           ))}
         </div>
 
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-6 flex items-center justify-between gap-3">
           {current > 0 ? (
             <button
               type="button"
@@ -329,7 +329,7 @@ export function StyleQuiz() {
                 setAnswers(answers.slice(0, -1));
                 setSelected(answers[current - 1] ?? null);
               }}
-              className="border border-neutral-300 px-5 py-2 text-sm font-medium text-ink hover:border-ink"
+              className="boton-borde"
             >
               Atrás
             </button>
@@ -340,7 +340,7 @@ export function StyleQuiz() {
             type="button"
             disabled={!selected}
             onClick={next}
-            className="border border-ink bg-ink px-6 py-2 text-sm font-medium text-paper hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
+            className="boton-primario disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-obsidian"
           >
             {current + 1 === total ? "Ver mi estilo" : "Siguiente"}
           </button>

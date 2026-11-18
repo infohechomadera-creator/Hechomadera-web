@@ -46,5 +46,16 @@
 - Mientras no exista el proyecto de Supabase (lo crea Alberto), W1 se adelanta con migraciones SQL y pruebas de permisos en una base Postgres local dentro del proyecto (PGlite, gratis). La conexión real a Supabase queda para cuando exista. Motivo: avanzar sin depender de una cuenta.
 - W2 se adelanta en paralelo (motor de precios y página de cocinas), porque no depende de la base de datos para probarse. Los precios de ejemplo viven en una semilla que se cargará a la tabla de precios en Supabase, que sigue siendo la única fuente.
 
+## 2026-11-18 · Trabajo en rama, no en main
+- El trabajo de W1/W2 y el rediseño van en la rama `w1-w2-base`. Motivo: Vercel publica en producción todo lo que llega a `main`, y producción (nivel 4) no está liberada. La rama solo genera una vista previa. Se pasa a `main` cuando Alberto apruebe.
+
+## 2026-11-18 · Rediseño visual inspirado en awesomic.com
+- Nuevo sistema de diseño (zinc monocromático, tarjetas de 36px, botones de 14px, un solo acento naranja en etiquetas, una sola tipografía: DM Sans como sustituto de Cosmica). Reglas en `docs/DISENO.md`; guía original en `docs/DISENO-REFERENCIA.md`. Motivo: pedido de Alberto.
+- **Los textos de la web no se cambian:** cada frase pasó por un filtro de tono y contenido. Se permite reorganizar textos e imágenes, no reescribirlos. Se verifica comparando el texto renderizado antes y después. Motivo: instrucción de Alberto.
+- Respaldo antes del rediseño: etiqueta `respaldo-2026-11-18-antes-rediseno` (subida a GitHub). Para volver atrás basta con regresar a esa etiqueta.
+
+## 2026-11-18 · Proyecto de Supabase creado
+- Alberto creó el proyecto de Supabase de la web, llamado `hechomadera`. Falta: poner las llaves en `.env.local` y en Vercel (lo hace Alberto) y aplicar las migraciones de `supabase/migrations/`.
+
 ## Por aprobar
 - Pasar las órdenes de Redis a Supabase durante el hito del CRM (W4), para tener una sola base de datos. Mientras tanto, Redis sigue funcionando.

@@ -16,15 +16,15 @@ export default function ContactoPage() {
   const wa = getWhatsAppHref("Hola Hechomadera, quiero hablar con un asesor.");
 
   return (
-    <div data-track-section="contacto-main" className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
-      <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Contacto</h1>
-      <p className="mt-4 max-w-2xl text-ink-muted">
+    <div data-track-section="contacto-main" className="contenedor seccion">
+      <h1 className="titulo-display">Contacto</h1>
+      <p className="mt-5 max-w-2xl text-body-lg text-ink-muted">
         Cobertura inicial: {siteConfig.cities.join(", ")}. Prioridad: WhatsApp &lt; 15 min · formulario &lt; 3h (objetivo operativo).
       </p>
 
-      <div className="mt-10 grid gap-12 lg:grid-cols-2">
-        <div>
-          <h2 className="font-display text-xl font-semibold text-ink">Escríbenos</h2>
+      <div className="mt-10 grid gap-3 md:mt-14 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div className="tarjeta p-7 md:p-10">
+          <h2 className="titulo-tarjeta">Escríbenos</h2>
           <p className="mt-2 text-sm text-ink-muted">
             Déjanos tus datos y te respondemos lo antes posible.
           </p>
@@ -33,23 +33,23 @@ export default function ContactoPage() {
           </div>
         </div>
 
-        <div className="space-y-8">
-          <div className="border border-neutral-200 bg-white p-8">
-            <h2 className="font-display text-xl font-semibold text-ink">WhatsApp</h2>
-            <p className="mt-2 text-sm text-ink-muted">Canal rápido para dudas y seguimiento.</p>
+        <div className="flex flex-col gap-3">
+          <div className="bloque-oscuro p-7 md:p-9">
+            <h2 className="font-display text-subheading font-semibold text-snow">WhatsApp</h2>
+            <p className="mt-2 text-sm text-ash">Canal rápido para dudas y seguimiento.</p>
             <a
               href={wa}
               target="_blank"
               rel="noopener noreferrer"
               data-track-location="contacto_page"
-              className="mt-6 inline-flex w-full items-center justify-center border border-ink bg-ink px-4 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
+              className="boton-claro mt-6 w-full focus-visible:outline-snow"
             >
               Abrir WhatsApp
             </a>
           </div>
 
-          <div className="border border-neutral-200 bg-paper-dim p-8">
-            <h2 className="font-display text-xl font-semibold text-ink">Agenda</h2>
+          <div className="tarjeta-suave p-7 md:p-9">
+            <h2 className="titulo-tarjeta">Agenda</h2>
             <p className="mt-2 text-sm text-ink-muted">
               Calendario Google (por asesor) se integrará aquí o enlace externo — configuración manual cuando definan
               flujo.
