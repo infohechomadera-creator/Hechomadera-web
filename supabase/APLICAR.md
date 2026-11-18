@@ -3,10 +3,13 @@
 Lo hace Alberto (requiere iniciar sesión en Supabase). Toma unos 5 minutos.
 
 ## 1. Aplicar las migraciones (una sola vez, en orden)
+> **Hecho el 2026-11-18** por Claude desde Chrome (proyecto Hechomadera, ref `seazgghpynhflxvrjpee`): las 3 migraciones y la semilla, verificadas.
+
 En Supabase → **SQL Editor** → **New query**, pega y ejecuta (**Run**) cada archivo, en este orden:
 1. `supabase/migrations/20261118000100_w1_base.sql` (usuarios, clientes, leads, actividades y permisos)
 2. `supabase/migrations/20261118000200_w2_precios.sql` (tabla de precios por ciudad)
-3. `supabase/semillas/precios_ejemplo.sql` (precios de ejemplo de Barranquilla y Santa Marta)
+3. `supabase/migrations/20261118000300_w2_vista_precios_sin_publico.sql` (cierra la vista al público)
+4. `supabase/semillas/precios_ejemplo.sql` (precios de ejemplo de Barranquilla y Santa Marta)
 
 Si alguno da error, no sigas: copia el mensaje y pásaselo a Claude.
 

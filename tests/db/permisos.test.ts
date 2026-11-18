@@ -27,7 +27,7 @@ beforeAll(async () => {
 }, 60_000);
 
 describe("público (sin sesión)", () => {
-  for (const tabla of ["perfiles", "clientes", "leads", "actividades", "precios"]) {
+  for (const tabla of ["perfiles", "clientes", "leads", "actividades", "precios", "precios_vigentes"]) {
     it(`no puede leer ${tabla}`, async () => {
       await expect(como(db, publico, (tx) => tx.query(`select * from public.${tabla}`))).rejects.toThrow(
         /permission denied/,

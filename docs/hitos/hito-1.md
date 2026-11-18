@@ -23,3 +23,7 @@
 
 **Aprendido (rediseño)**
 - Antes de un cambio visual grande, mostrar primero una muestra (una página o una sección) para validar el gusto de Alberto, en vez de rediseñar todo el sitio.
+
+## 2026-11-18 (tarde)
+- Claude aplicó en Supabase (desde Chrome, sesión de Alberto) las migraciones W1, W2, la nueva `..._w2_vista_precios_sin_publico.sql` y la semilla. Cada archivo se verificó con su huella SHA-1 antes de ejecutarse, dentro de una transacción.
+- Verificación: 5 tablas con RLS, 0 acceso del público, 2 ciudades con precio. No se tocó el proyecto operflow de la misma organización.
