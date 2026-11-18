@@ -5,13 +5,15 @@
 - W0 cerrado (etiqueta `hito-0`). **W1 en curso** con adelanto de W2, en la rama `w1-w2-base` (no está en producción). Diario: `docs/hitos/hito-1.md`.
 - Listo y probado: migraciones con RLS, pruebas por rol (`npm test`), motor de precios, página `/cocinas` provisional.
 - Rediseño estilo awesomic.com probado y **descartado** por Alberto: la web sigue con su diseño original.
-- Supabase (proyecto Hechomadera, ref `seazgghpynhflxvrjpee`): **migraciones y precios de ejemplo aplicados y verificados** (RLS activo, público sin acceso). Faltan llaves y usuario de gerencia.
-- Autonomía: Claude avanza sin pedir aprobación de cada plan; sigue pidiendo permiso para borrar, dinero, salir de la carpeta, contraseñas y términos (ver `docs/DECISIONES.md`).
+- Supabase (proyecto Hechomadera, ref `seazgghpynhflxvrjpee`): migraciones y precios aplicados; llaves en `.env.local` y Vercel (conexión verificada con `/api/salud`); usuario `infohechomadera@gmail.com` con rol gerencia; registro libre desactivado; URLs de redirección configuradas.
+- **Login nuevo** de gerencia/asesor con Supabase en `/admin/login`. La contraseña única anterior sigue como respaldo temporal.
+- Autonomía nivel 3: todo dentro del proyecto sin preguntar; nunca llaves, contraseñas, dinero ni términos (ver `CLAUDE.md`).
 
 ## Siguiente paso exacto
-1. Alberto: pasos 2 y 3 de `supabase/APLICAR.md` (llaves en `.env.local` y Vercel; crear su usuario en Authentication). Claude luego le asigna el rol de gerencia.
-2. Claude: login de gerencia y asesor con Supabase, reemplazo del token del admin, precios leídos de la base.
-3. Con la aprobación de Alberto, pasar la rama a `main` (publica en producción).
+1. Alberto prueba entrar en `/admin/login` (local o vista previa) con su correo y contraseña.
+2. Con eso, Claude retira la contraseña única anterior (`ADMIN_PASSWORD`) y el token `ADMIN_API_TOKEN`, y lee los precios desde Supabase en `/cocinas`.
+3. Alberto: cambiar en Vercel `SUPABASE_SECRET_KEY` a tipo **Secret** (hoy está como Config, legible).
+4. Con la aprobación de Alberto, pasar la rama a `main` (publica en producción).
 
 ## Pendientes abiertos
 - Confirmar la fórmula de precios provisional (suma de paredes, recargos, ±12%).

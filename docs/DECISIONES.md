@@ -61,5 +61,9 @@
 ## 2026-11-18 · Proyecto de Supabase creado
 - Alberto creó el proyecto de Supabase de la web, llamado `hechomadera`. Falta: poner las llaves en `.env.local` y en Vercel (lo hace Alberto) y aplicar las migraciones de `supabase/migrations/`.
 
+## 2026-11-18 · Autonomía total dentro del proyecto (reemplaza "pedir permiso para borrar")
+- Alberto levanta la autorización previa: Claude ejecuta sin pedir permiso todo lo que está **dentro** del proyecto (archivos de la carpeta, incluido borrar; git local; push de la rama; SQL en el Supabase de la web; navegador dentro del perímetro). Motivo: instrucción de Alberto.
+- **Siguen fuera de esa autorización (límites fijos):** dinero o planes pagos; escribir o copiar llaves secretas y contraseñas; iniciar sesión por Alberto; aceptar términos; tocar algo fuera de la carpeta o del perímetro (otros proyectos como Operflow); borrar en GitHub (ramas o etiquetas remotas); pasar a producción (`main`) sin su visto bueno. La lista `deny` (force push, `reset --hard`, `git clean`, `rm -rf`, `rebase`, leer `.env`) se mantiene.
+
 ## Por aprobar
 - Pasar las órdenes de Redis a Supabase durante el hito del CRM (W4), para tener una sola base de datos. Mientras tanto, Redis sigue funcionando.
