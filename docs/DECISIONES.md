@@ -94,6 +94,7 @@
 | Servicio | Qué se hizo | Cómo revertir |
 | --- | --- | --- |
 | Supabase Hechomadera (`seazgghpynhflxvrjpee`) | Migraciones `…0500` (correcciones del validador) y `…0600` (tabla `archivos`, `leads.envio_id`, cubeta privada `fotos-espacio`, disparador de `envio_id`), cada una en una transacción, desde Chrome. Verificado: RLS activo, cubeta no pública, 0 políticas en `storage.objects`, precios vigentes intactos. La base no tenía leads ni clientes (sin datos que respaldar) | Migración nueva que revierta; la cubeta se borra vacía desde Storage |
+| Supabase Hechomadera | Prueba real: lead de prueba 44F7792D (local, 2 fotos) y C65EF279 (vista previa); Alberto envió 4DAF4A75 desde su celular (1 foto) y lo vio en el panel. Luego se borraron los 2 leads de prueba de Claude (carpeta de fotos en Storage + clientes en cascada), con respaldo en `respaldos/2026-11-18-leads-de-prueba-claude.json` (sin teléfono ni correo). Queda solo el lead de Alberto | Eran datos inventados; no se restauran |
 
 ## Por aprobar
 - Pasar las órdenes de Redis a Supabase durante el hito del CRM (W4), para tener una sola base de datos. Mientras tanto, Redis sigue funcionando.
