@@ -99,4 +99,20 @@
 | Supabase Hechomadera | Prueba real: lead de prueba 44F7792D (local, 2 fotos) y C65EF279 (vista previa); Alberto envió 4DAF4A75 desde su celular (1 foto) y lo vio en el panel. Luego se borraron los 2 leads de prueba de Claude (carpeta de fotos en Storage + clientes en cascada), con respaldo en `respaldos/2026-11-18-leads-de-prueba-claude.json` (sin teléfono ni correo). Queda solo el lead de Alberto | Eran datos inventados; no se restauran |
 
 ## Por aprobar
-- Pasar las órdenes de Redis a Supabase durante el hito del CRM (W4), para tener una sola base de datos. Mientras tanto, Redis sigue funcionando.
+- ~~Pasar las órdenes de Redis a Supabase durante el hito del CRM (W4), para tener una sola base de datos. Mientras tanto, Redis sigue funcionando.~~ **Resuelto el 2026-11-18:** se pasa a W5 (ver abajo).
+
+## 2026-11-18 · W4 CRM mínimo: decisiones y acciones
+- **Órdenes de Redis a Supabase pasan a W5 (no W4)** (reemplaza el punto "Por aprobar" anterior, que queda arriba tachado). Motivo: W5 rehace los cobros por lead, así se evita hacer el trabajo dos veces. Redis sigue funcionando mientras tanto. Decidió Alberto.
+- **"Marcar el filtro" = el asesor solo ve si el cliente pagó el diseño.** Lo marca Mercado Pago en W5; el marcado manual de gerencia también queda en W5 porque debe enviar el proyecto a Operflow. Decidió Alberto.
+- **El historial de estados y asignaciones lo escribe la base (disparador), no la pantalla; con sesión solo se escriben notas** (también gerencia), y la fecha la pone la base. Motivo: que no se pueda falsear.
+- **Asesor de prueba creado por SQL sin clave**; la clave la puso Alberto en el SQL Editor con una línea preparada (Claude nunca la vio ni la escribió). Motivo: la web aún no tiene página para que un usuario cree su propia clave. Alberto pidió usar otro correo y se cambió en usuario, identidad y perfil.
+- Alberto pidió dejar el lead 4DAF4A75 como quedó tras la prueba (Contactado, sin asesor, próximo contacto 20/11, notas de prueba de asesor y gerencia).
+- **Propuesta no aprobada:** página de invitación para que un usuario nuevo cree su propia clave (necesaria para el asesor real).
+- **Por confirmar:** regla en la base para que un lead pagado no vuelva a estado a mano (planeada en W5).
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| Supabase Hechomadera | Respaldo previo `respaldos/2026-11-18-antes-w4-crm.json` (sin teléfono ni correo) y etiqueta `respaldo-2026-11-18-w4-crm`. Migraciones `…0700` y `…0800` aplicadas desde Chrome en transacción y verificadas | Migración nueva que quite los disparadores `leads_registrar_cambios`, `leads_validar_asesor`, `actividades_fijar_fecha`, la función `nombres_equipo` y restaure la política `actividades_crear` de la `…0500` |
+| Supabase Hechomadera | Usuario "Asesor Prueba" (rol asesor) creado por SQL en `auth.users` + `auth.identities` + `perfiles`; luego cambio de correo a pedido de Alberto; clave puesta por Alberto | Borrarlo en Authentication → Users (el perfil cae en cascada) |
+| Supabase Hechomadera (datos reales) | Lead 4DAF4A75: asignado al asesor de prueba y desasignado, estado Nuevo → Contactado, próximo contacto 2026-11-20, 2 notas de prueba. Alberto pidió dejarlo así | Estado y fecha: desde el panel de gerencia; las notas no se borran (historial fijo) salvo por SQL con respaldo |
+
