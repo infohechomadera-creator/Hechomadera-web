@@ -729,3 +729,57 @@ describe("cuarto refuerzo: devoluciones de pagos que contaban", () => {
     });
   });
 });
+
+describe("detalles finales", () => {
+  const valorFinal = (tx: Tx, v: number, medido: boolean) =>
+    uno<{ r: Record<string, unknown> }>(tx, `select public.poner_valor_final('${IDS.leadA}', ${v}, ${medido}, '${IDS.gerencia}') as r`).then((x) => x.r);
+  const reg = (tx: Tx, orden: string, mp: number, estado: string, monto: number, devuelto: number) =>
+    uno<{ r: Record<string, unknown> }>(
+      tx, `select public.registrar_pago('${orden}', ${mp}, '${estado}', ${monto}, 'COP', null, null, now(), false, ${devuelto}) as r`,
+    ).then((x) => x.r);
+  const hastaSaldo = async (tx: Tx, base: number) => {
+    await crearOrden(tx, `ord_u${base}`, "diseno", IDS.leadA, 300000);
+    await registrar(tx, `ord_u${base}`, base, "approved", 300000);
+    await valorFinal(tx, 20_000_000, false);
+    await crearOrden(tx, `ord_u${base + 1}`, "anticipo", IDS.leadA, 6_700_000);
+    await registrar(tx, `ord_u${base + 1}`, base + 1, "approved", 6_700_000);
+  };
+
+  it("un pago que llega ya devuelto (nunca contó) queda resuelto solo y no bloquea", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_u001", "diseno", IDS.leadA, 300000);
+      await reg(tx, "ord_u001", 2001, "pending", 300000, 0);
+      await reg(tx, "ord_u001", 2001, "refunded", 300000, 300000);
+      expect((await uno<{ r: boolean }>(tx, "select resuelto_at is not null as r from public.pagos where mp_pago_id = 2001")).r).toBe(true);
+      await crearOrden(tx, "ord_u002", "diseno", IDS.leadA, 300000);
+      expect(await registrar(tx, "ord_u002", 2002, "approved", 300000)).toMatchObject({ nuevo_aprobado: true });
+    });
+  });
+
+  it("descuento tras pagar el saldo: gerencia baja el valor medido a lo pagado y no queda deuda", async () => {
+    await como(db, sistema, async (tx) => {
+      await hastaSaldo(tx, 2010);
+      await valorFinal(tx, 21_000_000, true);
+      await crearOrden(tx, "ord_u2013", "saldo", IDS.leadA, 14_000_000);
+      await registrar(tx, "ord_u2013", 2013, "approved", 14_000_000);
+      await reg(tx, "ord_u2013", 2013, "approved", 14_000_000, 1_000_000); // descuento devuelto
+      expect(Number((await uno<{ v: number }>(tx, `select public.monto_esperado('${IDS.leadA}', 'saldo') as v`)).v)).toBe(1_000_000);
+      expect(await valorFinal(tx, 20_000_000, true)).toMatchObject({ ok: true });
+      expect(Number((await uno<{ v: number }>(tx, `select public.monto_esperado('${IDS.leadA}', 'saldo') as v`)).v)).toBe(0);
+      // Pero no por debajo de lo pagado.
+      expect(await valorFinal(tx, 19_000_000, true)).toMatchObject({ ok: false, motivo: "saldo_cero" });
+    });
+  });
+
+  it("si al completar el anticipo el valor medido ya está cubierto, queda aviso en el historial", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_u021", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_u021", 2021, "approved", 300000);
+      await valorFinal(tx, 20_000_000, false);
+      await tx.query(`select public.registrar_aviso_operflow('${"6".repeat(64)}', '${IDS.leadA}', 'valor_ajustado', 'p', null, null, 7000000, null, now())`);
+      await crearOrden(tx, "ord_u022", "anticipo", IDS.leadA, 6_700_000);
+      await registrar(tx, "ord_u022", 2022, "approved", 6_700_000);
+      expect(await contar(tx, "select 1 from public.actividades where detalle like 'Con el anticipo pagado no queda saldo%'")).toBe(1);
+    });
+  });
+});

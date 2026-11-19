@@ -88,7 +88,7 @@ export function PanelPagos(p: Props) {
     });
   }
 
-  const medido = p.pagoEstado === "anticipo";
+  const medido = p.pagoEstado === "anticipo" || p.pagoEstado === "saldo";
   // Gerencia puede poner (o corregir) el valor mientras no se haya pagado lo que depende de él.
   const pideValor =
     p.esGerencia && !p.datosBorrados && ((p.pagoEstado === "diseno" && ["diseno_pagado", "propuesta_enviada"].includes(p.estado)) || medido);
