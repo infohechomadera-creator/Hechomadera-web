@@ -116,3 +116,20 @@
 | Supabase Hechomadera | Usuario "Asesor Prueba" (rol asesor) creado por SQL en `auth.users` + `auth.identities` + `perfiles`; luego cambio de correo a pedido de Alberto; clave puesta por Alberto | Borrarlo en Authentication → Users (el perfil cae en cascada) |
 | Supabase Hechomadera (datos reales) | Lead 4DAF4A75: asignado al asesor de prueba y desasignado, estado Nuevo → Contactado, próximo contacto 2026-11-20, 2 notas de prueba. Alberto pidió dejarlo así | Estado y fecha: desde el panel de gerencia; las notas no se borran (historial fijo) salvo por SQL con respaldo |
 
+
+## 2026-11-19 · W5 pagos por lead y conexión con Operflow: decisiones y acciones
+- **Opciones por defecto tomadas al planear** (Alberto no respondió las preguntas; las aprobó junto con el plan): pago del diseño por dos caminos (botón al terminar el configurador + enlace del asesor); el valor final lo escribe gerencia mientras O3 de Operflow no exista; pago a mano de gerencia para diseño, anticipo y saldo; copia única de órdenes de Redis a Supabase; devoluciones a mano por Alberto en Mercado Pago; entrega del render a mano.
+- **Revisión de seguridad de pagos al máximo detalle** (pedido de Alberto: "no podemos arriesgar ni un peso"): la base recalcula todo y nunca cuenta un pago que no cuadre; todo lo raro avisa por correo a gerencia. Cinco pasadas del validador; la quinta sin caminos de pérdida de plata.
+- **Abonos netos** (pagado − devuelto): cada cobro pide solo lo que falta. Resolver un pago tiene dos resultados: "Se devolvió todo" o "Se queda (abono)". Reemplaza la idea inicial de contar pagos brutos.
+- **Leads de prueba (`es_prueba`) y bloqueo de cobros fuera de producción:** en producción se ignoran pagos de prueba; fuera de producción solo gerencia inicia cobros (la vista previa comparte la base real). Motivo: evitar cobros o datos reales desde pruebas.
+- **Formato de firma del mensaje B** (`X-Operflow-Firma: t=…,v1=…`, HMAC) **propuesto por la web, por confirmar con Operflow** (el original del contrato vive en Operflow; nota en la carpeta compartida de notas). O3 no existe: lo de Operflow queda pendiente en la bandeja `mensajes_operflow` hasta que se conecte.
+- **Lead real 4DAF4A75 sin cambios** en W5 (sigue Contactado, nada pagado).
+- **Hallazgo:** `MERCADOPAGO_ACCESS_TOKEN` es la misma en todos los entornos de Vercel (la real, también en Preview). Se recomienda una de prueba solo para Preview.
+- **Por confirmar:** botón "Copiar órdenes viejas" no se pudo ejecutar (la web no se conecta a Upstash: fetch failed). No se probó un pago real de prueba en Mercado Pago (falta credencial de prueba).
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| Supabase Hechomadera (`seazgghpynhflxvrjpee`) | Migraciones `20261118000900_w5_pagos`, `20261119000100_w5_refuerzo_pagos`, `20261119000200_w5_refuerzo_pagos_2`, `20261119000300_w5_abonos_netos`, `20261119000400_w5_devoluciones`, `20261119000500_w5_detalles_finales`, desde Chrome, cada una en begin/commit con huella SHA-1 verificada y verificación posterior de permisos. Respaldo previo `respaldos/2026-11-19-antes-w5-pagos.json`; etiqueta `respaldo-2026-11-19-w5-pagos` (subida) | No hay migración "down": volver a la etiqueta en el código y escribir una migración que quite las tablas y funciones nuevas (`ordenes`, `pagos`, `mensajes_operflow`, `registrar_pago`, `monto_esperado`, etc.). Los datos son solo de prueba hasta hoy |
+| Vercel | Solo lectura: lista de variables (sin valores) y despliegues | Nada que revertir |
+| Upstash Redis | Sin conexión; la consola pide sesión y no se entró | Nada que revertir |
+| Chrome (Code tab) | Barra reorganizada en grupos "Hechomadera web" y "Operflow", a pedido de Alberto | Reordenar a mano en la barra |

@@ -20,7 +20,8 @@
 - Redis: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
 - Admin: `ADMIN_API_TOKEN` y `ADMIN_PASSWORD` **obsoletos** desde W1 (login con Supabase). Quitarlos de Vercel tras pasar a producción.
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL` (`https://seazgghpynhflxvrjpee.supabase.co`), `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`.
-- Futuras (contrato): `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`; Supabase en W1.
+- W5: `CRON_SECRET` (tarea diaria de reintentos; por crear en Vercel), `MERCADOPAGO_WEBHOOK_ENFORCE=true` recomendado en producción. Las credenciales de Mercado Pago hoy son las mismas en todos los entornos.
+- Futuras (contrato, cuando exista O3): `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
 
 ## Dónde está cada cosa en el código
 - Reglas de negocio: `lib/site-config.ts` (ciudades, marketplace, "precio desde", abono 35%).
@@ -29,6 +30,7 @@
 - Admin: `app/admin` (login, órdenes, exporta CSV, `/admin/precios`).
 - Precios: `lib/precios/` (cálculo, validación, fuente Supabase con respaldo en la semilla).
 - Integración Operflow: `lib/integracion/operflow.ts`, `app/api/integraciones/precios` (mensaje D).
+- Pagos (W5): `lib/pagos/calcular.ts` (fórmulas; iguales a `monto_esperado` en la base), `lib/pagos/ordenes.ts` (órdenes y pagos en Supabase), `avisarPagoParaRevisar` (correo a gerencia); página del cliente `/pago/lead/[token]`; webhook `/api/payments/mercadopago/webhook` (la base decide con `registrar_pago`); bandeja `mensajes_operflow`; mensaje B `/api/integraciones/operflow`; reintentos `/api/integraciones/reintentar` (tarea diaria en `vercel.json`). Migraciones `20261118000900` a `20261119000500`.
 - Documentos operativos previos: `docs/` (dominio, cutover, Resend, admin, lanzamiento, migración, Mercado Pago).
 
 ## Integración con Operflow
