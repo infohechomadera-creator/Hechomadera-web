@@ -6,8 +6,12 @@
  */
 import { revalidatePath } from "next/cache";
 import { rolActual } from "@/lib/sesion";
-import { clienteUsuario } from "@/lib/supabase/servidor";
+import { clienteSistema, clienteUsuario } from "@/lib/supabase/servidor";
 import { hoyEnColombia } from "@/lib/precios/fechas";
+import { borrarFotosDelCliente } from "@/lib/borrado";
+import { enviarPendientes } from "@/lib/integracion/salida";
+import { leerCobroLead } from "@/lib/pagos/lead";
+import { crearOrdenId } from "@/lib/pagos/ordenes";
 import { ESTADOS_A_MANO, UUID, esEstadoAMano, validarNota, validarProximoContacto } from "@/lib/leads";
 
 export type Resultado = { ok: true } | { ok: false; error: string };
@@ -18,6 +22,7 @@ const NO_ENCONTRADO_O_SISTEMA: Resultado = {
   error: "No encontramos ese lead, no es tuyo o su estado ya lo maneja el sistema.",
 };
 const FALLA: Resultado = { ok: false, error: "No se pudo guardar. Intenta de nuevo." };
+const SESION_VENCIDA: Resultado = { ok: false, error: "Tu sesión venció. Vuelve a entrar." };
 
 async function conSesion() {
   const rol = await rolActual();
@@ -76,6 +81,127 @@ export async function asignarAsesor(leadId: string, asesorId: string | null): Pr
     return { ok: false, error: "Esa persona no está activa en el equipo." };
   }
   return actualizar(leadId, { asesor_id: asesorId }, { soloGerencia: true });
+}
+
+// ── Pagos, Operflow y borrado (W5) ─────────────────────────────────────────
+// Lo que toca dinero o borra datos pasa por funciones de la base que solo ejecuta el servidor
+// (llave secreta). Antes se revisa el rol y que la persona vea el lead (RLS); la base vuelve
+// a revisar que quien actúa sea gerencia o el asesor del lead.
+
+const MOTIVO_BASE: Record<string, string> = {
+  no_autorizado: "Ese cambio solo lo hace gerencia o el asesor del lead.",
+  estado: "Ese cambio no aplica al estado actual del lead.",
+  datos: "Revisa los datos e intenta de nuevo.",
+  no_existe: "No encontramos ese lead.",
+};
+
+async function leadVisible(s: NonNullable<Awaited<ReturnType<typeof conSesion>>>, leadId: string): Promise<boolean> {
+  const { data } = await s.supabase.from("leads").select("id").eq("id", leadId).maybeSingle();
+  return Boolean(data);
+}
+
+async function llamarBase(fn: string, args: Record<string, unknown>): Promise<Resultado & { datos?: Record<string, unknown> }> {
+  const { data, error } = await clienteSistema().rpc(fn, args);
+  if (error) return FALLA;
+  const r = data as { ok: boolean; motivo?: string } & Record<string, unknown>;
+  return r.ok ? { ok: true, datos: r } : { ok: false, error: MOTIVO_BASE[r.motivo ?? ""] ?? "No se pudo guardar. Intenta de nuevo." };
+}
+
+/** Solo gerencia: registra a mano el siguiente pago (p. ej. transferencia). El valor lo calcula el servidor. */
+export async function marcarPagoManual(leadId: string, nota: string): Promise<Resultado> {
+  if (typeof leadId !== "string" || !UUID.test(leadId)) return NO_ENCONTRADO;
+  const limpia = typeof nota === "string" ? nota.trim() : "";
+  if (limpia.length < 3 || limpia.length > 300) return { ok: false, error: "Escribe cómo pagó (3 a 300 caracteres), por ejemplo: transferencia Bancolombia 19/11." };
+  const s = await conSesion();
+  if (!s) return SESION_VENCIDA;
+  if (s.rol !== "gerencia") return { ok: false, error: "Solo gerencia registra pagos a mano." };
+  if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
+  const info = await leerCobroLead(leadId, { porId: true });
+  if (!info?.cobro.ok) return { ok: false, error: "Este lead no tiene un pago pendiente." };
+  const r = await llamarBase("registrar_pago_manual", {
+    p_lead: leadId,
+    p_tipo: info.cobro.tipo,
+    p_monto: info.cobro.monto,
+    p_autor: s.uid,
+    p_nota: limpia,
+    p_orden_id: crearOrdenId(),
+  });
+  if (!r.ok) return r;
+  if (r.datos?.repetido) return { ok: false, error: "Ese pago ya estaba registrado; quedó para revisar." };
+  await enviarPendientes({ leadId });
+  refrescar(leadId);
+  return { ok: true };
+}
+
+/** Solo gerencia: valor final de la propuesta (o, ya pagado el anticipo, el valor con medidas confirmadas). */
+export async function ponerValorFinal(leadId: string, valor: number, medido: boolean): Promise<Resultado> {
+  if (typeof leadId !== "string" || !UUID.test(leadId)) return NO_ENCONTRADO;
+  if (!Number.isSafeInteger(valor) || valor < 100_000 || valor > 10_000_000_000) {
+    return { ok: false, error: "Escribe un valor en pesos, sin puntos ni comas (mínimo 100.000)." };
+  }
+  const s = await conSesion();
+  if (!s) return SESION_VENCIDA;
+  if (s.rol !== "gerencia") return { ok: false, error: "Solo gerencia pone el valor final." };
+  if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
+  const r = await llamarBase("poner_valor_final", { p_lead: leadId, p_valor: valor, p_medido: medido === true, p_autor: s.uid });
+  if (r.ok) refrescar(leadId);
+  return r.ok ? { ok: true } : r;
+}
+
+/**
+ * Asesor del lead o gerencia: el cliente no aprobó el diseño. Ya se le entregó el render.
+ * Se borran sus fotos (cubeta), sus datos personales y notas; se conservan los pagos; Operflow borra lo suyo (E).
+ */
+export async function noAprobo(leadId: string, renderEntregado: boolean): Promise<Resultado> {
+  if (typeof leadId !== "string" || !UUID.test(leadId)) return NO_ENCONTRADO;
+  if (renderEntregado !== true) return { ok: false, error: "Primero entrega el render al cliente y marca la casilla." };
+  const s = await conSesion();
+  if (!s) return SESION_VENCIDA;
+  if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
+  const { data: lead } = await s.supabase.from("leads").select("pago_estado, estado").eq("id", leadId).maybeSingle();
+  if (lead?.pago_estado !== "diseno" || !["diseno_pagado", "propuesta_enviada"].includes(lead.estado)) {
+    return { ok: false, error: "'No aprobó' aplica solo cuando el cliente pagó el diseño y no ha pagado el anticipo." };
+  }
+  if (!(await borrarFotosDelCliente(leadId))) return { ok: false, error: "No se pudieron borrar las fotos. Intenta de nuevo." };
+  const r = await llamarBase("borrar_datos_cliente", { p_lead: leadId, p_autor: s.uid, p_motivo: "no_aprobo" });
+  if (!r.ok) return r;
+  await enviarPendientes({ leadId });
+  refrescar(leadId);
+  return { ok: true };
+}
+
+/**
+ * Solo gerencia: borra los datos del cliente. Si nunca pagó, se borra todo (también fotos);
+ * si pagó, se borran los datos personales y se conservan los pagos (lo que pide la ley).
+ */
+export async function borrarCliente(leadId: string, confirmacion: string): Promise<Resultado & { borrado?: boolean }> {
+  if (typeof leadId !== "string" || !UUID.test(leadId)) return NO_ENCONTRADO;
+  if (confirmacion !== "BORRAR") return { ok: false, error: "Escribe BORRAR para confirmar." };
+  const s = await conSesion();
+  if (!s) return SESION_VENCIDA;
+  if (s.rol !== "gerencia") return { ok: false, error: "Solo gerencia borra clientes." };
+  if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
+  if (!(await borrarFotosDelCliente(leadId))) return { ok: false, error: "No se pudieron borrar las fotos. Intenta de nuevo." };
+  const r = await llamarBase("borrar_datos_cliente", { p_lead: leadId, p_autor: s.uid, p_motivo: "borrar" });
+  if (!r.ok) return r;
+  const borrado = r.datos?.resultado === "borrado";
+  if (!borrado) await enviarPendientes({ leadId });
+  revalidatePath("/admin/leads");
+  if (!borrado) revalidatePath(`/admin/leads/${leadId}`);
+  return { ok: true, borrado };
+}
+
+/** Solo gerencia: reintenta ya los mensajes pendientes para Operflow de este lead. */
+export async function reenviarOperflow(leadId: string): Promise<Resultado & { conectado?: boolean }> {
+  if (typeof leadId !== "string" || !UUID.test(leadId)) return NO_ENCONTRADO;
+  const s = await conSesion();
+  if (!s) return SESION_VENCIDA;
+  if (s.rol !== "gerencia") return { ok: false, error: "Solo gerencia reenvía a Operflow." };
+  if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
+  const r = await enviarPendientes({ leadId, forzar: true });
+  refrescar(leadId);
+  if (!r.conectado) return { ok: false, error: "Operflow aún no está conectado. Los mensajes quedan pendientes y salen solos cuando se conecte." };
+  return r.pendientes || r.fallidos ? { ok: false, error: "Operflow no recibió todo. Mira el detalle abajo." } : { ok: true };
 }
 
 export async function agregarNota(leadId: string, texto: string): Promise<Resultado> {

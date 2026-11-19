@@ -107,7 +107,7 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
   const [envioId] = useState(nuevoEnvioId);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [enviado, setEnviado] = useState<{ referencia: string | null; rango: Rango | null } | null>(null);
+  const [enviado, setEnviado] = useState<{ referencia: string | null; rango: Rango | null; pagoToken: string | null } | null>(null);
 
   const opc = opciones[ciudad];
   const disenoInfo = DISENOS_COCINA.find((d) => d.id === diseno) ?? DISENOS_COCINA[0];
@@ -214,7 +214,8 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
       const r = await fetch("/api/configurador/lead", { method: "POST", body: form });
       const { ok, cuerpo } = await leerRespuesta(r);
       if (!ok) return setError(String(cuerpo.error ?? "No pudimos enviar tu solicitud"));
-      setEnviado({ referencia: (cuerpo.referencia as string | null) ?? null, rango: (cuerpo.rango as Rango | undefined) ?? rango });
+      const token = typeof cuerpo.pago_token === "string" && /^[0-9a-f]{64}$/.test(cuerpo.pago_token) ? cuerpo.pago_token : null;
+      setEnviado({ referencia: (cuerpo.referencia as string | null) ?? null, rango: (cuerpo.rango as Rango | undefined) ?? rango, pagoToken: token });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       setError("Sin conexión. Revisa tu internet e intenta de nuevo.");
@@ -245,6 +246,19 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
             </>
           )}
         </p>
+        {enviado.pagoToken && (
+          <div className="border border-neutral-200 bg-white p-5">
+            <p className="text-sm text-ink">
+              ¿Quieres empezar ya? Paga el diseño y te enviamos la propuesta en máximo 48 horas. Si la apruebas, ese valor se descuenta del anticipo.
+            </p>
+            <Link
+              href={`/pago/lead/${enviado.pagoToken}`}
+              className="mt-4 inline-flex w-full items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800 sm:w-auto"
+            >
+              Pagar el diseño
+            </Link>
+          </div>
+        )}
         <Link href="/cocinas" className="inline-block text-sm text-ink underline underline-offset-4">
           Volver a cocinas
         </Link>

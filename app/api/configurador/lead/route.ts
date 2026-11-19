@@ -6,6 +6,7 @@ import { validarFotos } from "@/lib/configurador/fotos";
 import { buscarLeadRepetido, guardarLead } from "@/lib/configurador/guardar";
 import { dentroDelLimite, ipDe } from "@/lib/limite";
 import { sendNewLeadAlertToSeller } from "@/lib/email-notifications";
+import { tokenDePago } from "@/lib/pagos/lead";
 import { DISENOS_COCINA, FORMAS_COCINA } from "@/content/cocinas";
 
 export const runtime = "nodejs";
@@ -62,7 +63,14 @@ export async function POST(request: Request) {
   // Un reintento del mismo envío (se cayó la señal) responde con lo guardado, sin gastar cupo.
   const repetido = await buscarLeadRepetido(solicitud.valor.envio_id);
   if (repetido === "error") return responder(500, { error: "No pudimos guardar tu solicitud. Intenta de nuevo en un momento." });
-  if (repetido) return responder(200, { ok: true, referencia: repetido.leadId.slice(0, 8).toUpperCase(), rango: repetido.rango });
+  if (repetido) {
+    return responder(200, {
+      ok: true,
+      referencia: repetido.leadId.slice(0, 8).toUpperCase(),
+      rango: repetido.rango,
+      pago_token: await tokenDePago(repetido.leadId),
+    });
+  }
 
   // Solo los envíos válidos y nuevos gastan el cupo estricto por IP.
   if (!(await dentroDelLimite(`config-lead:${ip}`, LIMITE_LEADS_POR_HORA, 3600))) return responder(429, MUCHAS);
@@ -99,5 +107,7 @@ export async function POST(request: Request) {
     referencia: guardado.leadId.slice(0, 8).toUpperCase(),
     // En un envío repetido se devuelve el rango que quedó guardado, no el de este intento.
     rango: guardado.repetido ? guardado.rango : { min: rango.min, max: rango.max, ciudad: rango.ciudad },
+    // Para el botón "Pagar el diseño" (W5): el enlace de pago de este lead.
+    pago_token: await tokenDePago(guardado.leadId),
   });
 }

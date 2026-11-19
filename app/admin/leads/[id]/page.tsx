@@ -7,6 +7,11 @@ import { clienteSistema, clienteUsuario } from "@/lib/supabase/servidor";
 import { CUBETA_FOTOS } from "@/lib/configurador/guardar";
 import { hoyEnColombia } from "@/lib/precios/fechas";
 import { PanelCrm, type EntradaHistorial } from "@/components/admin/PanelCrm";
+import { PanelPagos } from "@/components/admin/PanelPagos";
+import { obtenerPrecios } from "@/lib/precios/fuente";
+import type { CiudadActiva, Producto } from "@/lib/precios/tipos";
+import { MOTIVO_SIN_COBRO, siguienteCobro, sumarPagado, type LeadParaCobro } from "@/lib/pagos/calcular";
+import { urlDelSitio } from "@/lib/pagos/preferencia";
 import {
   ETIQUETA_ESTADO,
   UUID,
@@ -35,8 +40,34 @@ type Lead = {
   rango_max: number | null;
   configuracion: ConfiguracionGuardada;
   creado_at: string;
-  clientes: { nombre: string; telefono: string; email: string | null; autorizacion_datos_at: string; autorizacion_version: string } | null;
+  clientes: {
+    nombre: string;
+    telefono: string | null;
+    email: string | null;
+    autorizacion_datos_at: string;
+    autorizacion_version: string;
+    datos_borrados_at: string | null;
+  } | null;
   archivos: { ruta: string }[];
+  producto: Producto;
+  pago_token: string;
+  valor_final: number | null;
+  valor_final_medido: number | null;
+  operflow_proyecto_id: string | null;
+  operflow_etapa: string | null;
+  operflow_estado: string | null;
+  operflow_url_propuesta: string | null;
+};
+
+type Pago = {
+  id: number;
+  tipo: string;
+  monto: number;
+  estado: string;
+  cuenta: boolean;
+  pagado_at: string | null;
+  creado_at: string;
+  mp_pago_id: number | null;
 };
 
 export default async function AdminLeadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -53,13 +84,13 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
   const { data: lead } = await supabase
     .from("leads")
     .select(
-      "id, ciudad, estado, pago_estado, asesor_id, proximo_contacto, rango_min, rango_max, configuracion, creado_at, clientes(nombre, telefono, email, autorizacion_datos_at, autorizacion_version), archivos(ruta)",
+      "id, ciudad, estado, pago_estado, asesor_id, proximo_contacto, rango_min, rango_max, configuracion, creado_at, producto, pago_token, valor_final, valor_final_medido, operflow_proyecto_id, operflow_etapa, operflow_estado, operflow_url_propuesta, clientes(nombre, telefono, email, autorizacion_datos_at, autorizacion_version, datos_borrados_at), archivos(ruta)",
     )
     .eq("id", id)
     .maybeSingle<Lead>();
   if (!lead) notFound();
 
-  const [{ data: actividades }, { data: nombres }, { data: activos }] = await Promise.all([
+  const [{ data: actividades }, { data: nombres }, { data: activos }, { data: pagos }, { data: mensajes }, { tablas }] = await Promise.all([
     supabase
       .from("actividades")
       .select("id, tipo, detalle, autor_id, creado_at")
@@ -72,7 +103,39 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
     esGerencia
       ? supabase.from("perfiles").select("id, nombre").eq("activo", true).order("nombre").returns<{ id: string; nombre: string }[]>()
       : Promise.resolve({ data: [] as { id: string; nombre: string }[] }),
+    // Pagos y bandeja de Operflow: RLS deja ver solo los del lead propio (o todo a gerencia).
+    supabase
+      .from("pagos")
+      .select("id, tipo, monto, estado, cuenta, pagado_at, creado_at, mp_pago_id")
+      .eq("lead_id", lead.id)
+      .order("creado_at", { ascending: false })
+      .returns<Pago[]>(),
+    supabase
+      .from("mensajes_operflow")
+      .select("id, mensaje, estado, ultimo_error, intentos")
+      .eq("lead_id", lead.id)
+      .order("id")
+      .returns<{ id: number; mensaje: string; estado: string; ultimo_error: string | null; intentos: number }[]>(),
+    obtenerPrecios(),
   ]);
+
+  const datosBorrados = Boolean(lead.clientes?.datos_borrados_at);
+  const tabla = tablas[lead.ciudad as CiudadActiva];
+  const cobro = tabla
+    ? siguienteCobro(
+        {
+          producto: lead.producto,
+          pago_estado: lead.pago_estado as LeadParaCobro["pago_estado"],
+          estado: lead.estado,
+          valor_final: lead.valor_final == null ? null : Number(lead.valor_final),
+          valor_final_medido: lead.valor_final_medido == null ? null : Number(lead.valor_final_medido),
+          operflow_estado: lead.operflow_estado,
+          datos_borrados: datosBorrados,
+        },
+        tabla,
+        sumarPagado(pagos ?? []),
+      )
+    : ({ ok: false, motivo: "cerrado" } as const);
   const nombre = new Map(((nombres ?? []) as { id: string; nombre: string }[]).map((n) => [n.id, n.nombre]));
   const historial: EntradaHistorial[] = (actividades ?? []).map((a) => ({
     id: a.id,
@@ -153,6 +216,34 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
           </dd>
         </div>
       </dl>
+
+      <PanelPagos
+        leadId={lead.id}
+        esGerencia={esGerencia}
+        estado={lead.estado}
+        pagoEstado={lead.pago_estado}
+        datosBorrados={datosBorrados}
+        enlacePago={datosBorrados ? null : `${urlDelSitio()}/pago/lead/${lead.pago_token}`}
+        cobro={cobro.ok ? { tipo: cobro.tipo, monto: cobro.monto } : { motivo: MOTIVO_SIN_COBRO[cobro.motivo] }}
+        valorFinal={lead.valor_final == null ? null : Number(lead.valor_final)}
+        valorMedido={lead.valor_final_medido == null ? null : Number(lead.valor_final_medido)}
+        pagos={(pagos ?? []).map((x) => ({
+          id: x.id,
+          tipo: x.tipo,
+          monto: Number(x.monto),
+          estado: x.estado,
+          cuenta: x.cuenta,
+          cuando: fechaCorta(x.pagado_at ?? x.creado_at),
+          origen: x.mp_pago_id ? "Mercado Pago" : "a mano",
+        }))}
+        operflow={{
+          proyectoId: lead.operflow_proyecto_id,
+          etapa: lead.operflow_etapa,
+          estado: lead.operflow_estado,
+          urlPropuesta: lead.operflow_url_propuesta,
+        }}
+        mensajes={(mensajes ?? []).map((m) => ({ id: m.id, mensaje: m.mensaje, estado: m.estado, error: m.ultimo_error, intentos: m.intentos }))}
+      />
 
       <PanelCrm
         leadId={lead.id}

@@ -79,7 +79,7 @@ export function PanelCrm(p: Props) {
             {filtro ? "Pasó el filtro · " : ""}
             {ETIQUETA_PAGO[p.pagoEstado] ?? p.pagoEstado}
           </p>
-          <p className="mt-1 text-xs text-ink-muted">Se marca solo cuando Mercado Pago confirma el pago.</p>
+          <p className="mt-1 text-xs text-ink-muted">Se marca solo cuando Mercado Pago confirma el pago (o gerencia lo registra a mano).</p>
         </div>
 
         <div>

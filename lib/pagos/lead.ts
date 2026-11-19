@@ -39,12 +39,13 @@ type Fila = {
   pagos: { tipo: string; monto: number; cuenta: boolean }[];
 };
 
-export async function leerCobroLead(token: string): Promise<CobroLead | null> {
-  if (!TOKEN.test(token)) return null;
+/** Por el código del enlace (cliente) o por el id del lead (panel, ya revisado el permiso). */
+export async function leerCobroLead(token: string, { porId = false } = {}): Promise<CobroLead | null> {
+  if (porId ? !/^[0-9a-f-]{36}$/.test(token) : !TOKEN.test(token)) return null;
   const { data } = await clienteSistema()
     .from("leads")
     .select("id, producto, ciudad, pago_estado, estado, valor_final, valor_final_medido, operflow_estado, clientes(datos_borrados_at), pagos(tipo, monto, cuenta)")
-    .eq("pago_token", token)
+    .eq(porId ? "id" : "pago_token", token)
     .maybeSingle<Fila>();
   if (!data || !CIUDADES_ACTIVAS.includes(data.ciudad as CiudadActiva)) return null;
   const { tablas } = await obtenerPrecios();
@@ -62,6 +63,16 @@ export async function leerCobroLead(token: string): Promise<CobroLead | null> {
     sumarPagado(data.pagos ?? []),
   );
   return { leadId: data.id, producto: data.producto, ciudad: data.ciudad, cobro };
+}
+
+/** Código del enlace de pago de un lead recién creado (para el botón del configurador). */
+export async function tokenDePago(leadId: string): Promise<string | null> {
+  try {
+    const { data } = await clienteSistema().from("leads").select("pago_token").eq("id", leadId).maybeSingle<{ pago_token: string }>();
+    return data?.pago_token && TOKEN.test(data.pago_token) ? data.pago_token : null;
+  } catch {
+    return null;
+  }
 }
 
 export type ResultadoCobro = { ok: true; url: string } | { ok: false; status: number; error: string };
