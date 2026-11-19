@@ -3,7 +3,7 @@
 
 ## Dónde vamos
 - W0 cerrado (etiqueta `hito-0`). W1 a W4 hechos. **W5 hecho (pagos por lead y Operflow)**: diseño → anticipo → saldo con Mercado Pago, montos en el servidor, abonos netos; enlace de pago `/pago/lead/[token]`; bloque "Pagos" en la ficha del lead; órdenes en Supabase; bandeja `mensajes_operflow`. Todo en la rama `w1-w2-base` (no está en producción). Diarios: `docs/hitos/hito-1.md` a `hito-5.md`.
-- Probado: 293 pruebas, lint y build sin errores; validador (5 pasadas, la 5ª sin caminos de pérdida de plata) y auditor sin desviaciones graves. NO probado: un pago real de prueba en Mercado Pago.
+- Probado: 295 pruebas, lint y build sin errores; validador (5 pasadas, la 5ª sin caminos de pérdida de plata) y auditor sin desviaciones graves. Sin pago de prueba en Mercado Pago (decisión de Alberto: ya funcionaba).
 - Supabase (ref `seazgghpynhflxvrjpee`): migraciones hasta `20261119000500` aplicadas; cubeta privada `fotos-espacio`; gerencia y un "Asesor Prueba"; registro libre desactivado. Respaldo `respaldos/2026-11-19-antes-w5-pagos.json`, etiqueta `respaldo-2026-11-19-w5-pagos`.
 - La base decide si un pago cuenta (`registrar_pago`); todo pago raro avisa por correo a gerencia. Fuera de producción solo gerencia inicia cobros.
 - Operflow: O3 no existe; los mensajes quedan en la bandeja y se reintentan (botón y tarea diaria). Firma del mensaje B propuesta por la web, por confirmar.
@@ -12,7 +12,7 @@
 - Autonomía nivel 3: todo dentro del proyecto sin preguntar; nunca llaves, contraseñas, dinero ni términos (ver `CLAUDE.md`).
 
 ## Riesgos abiertos
-- La credencial de Mercado Pago es la real en TODOS los entornos de Vercel (también Preview). Mitigado por código; falta una de prueba solo para Preview.
+- La credencial de Mercado Pago es la real en TODOS los entornos de Vercel (también Preview). Mitigado por código: fuera de producción solo gerencia inicia cobros.
 - Upstash Redis fue borrado por Upstash: ya no se usa; los límites de intentos están en Supabase (2026-11-19). Las órdenes viejas de la tienda se perdieron (los pagos siguen en Mercado Pago).
 - Sin `CRON_SECRET` la tarea diaria de reintentos a Operflow no corre.
 - `MERCADOPAGO_WEBHOOK_ENFORCE` no está en `true` en producción (recomendado).
@@ -20,9 +20,9 @@
 - Datos de clientes con `SUPABASE_SECRET_KEY` aún no tipo Secret; textos legales sin revisar por abogado.
 
 ## Siguiente paso exacto
-1. Alberto: credencial de PRUEBA de Mercado Pago solo para Preview; luego pago de prueba con comprador de prueba.
+1. **Sesión nueva** con `/retomar` para **W6** (agente de IA; requiere cuenta de Anthropic con tope de gasto aprobado por Alberto).
 2. Alberto, cuando exista O3: crear `CRON_SECRET` en Vercel y `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
-3. **Sesión nueva** con `/retomar` para **W6** (agente de IA; requiere cuenta de Anthropic con tope de gasto aprobado por Alberto), o primero los puntos 1 y 2.
+3. Pago de prueba de Mercado Pago: Alberto decidió saltarlo (ya funcionaba); el primer pago real por lead será la prueba (ver DECISIONES 2026-11-19).
 4. Alberto: cerrar la pestaña del SQL Editor de Supabase (descartar cambios).
 5. Con visto bueno de Alberto: pasar a `main` y quitar `ADMIN_PASSWORD` y `ADMIN_API_TOKEN` de Vercel.
 

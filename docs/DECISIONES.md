@@ -143,3 +143,8 @@
 | --- | --- | --- |
 | Supabase Hechomadera (`seazgghpynhflxvrjpee`) | Migración `20261119000600_limites_en_supabase` desde Chrome, en begin/commit con huella SHA-1 verificada; verificado: RLS activo, solo el servidor ejecuta `contar_intento` | Migración nueva que borre `limites` y `contar_intento` (no guarda datos importantes) |
 | Vercel `hechomadera-web` | Borradas `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (todos los entornos), a pedido de Alberto. No se hizo "Redeploy". Producción (`main`) sigue con el código viejo, que ya usaba memoria porque la base no existía | No aplica: la base de Upstash ya no existe |
+
+## 2026-11-19 · Sin pago de prueba de Mercado Pago en W5
+- **Alberto decidió saltar el pago de prueba de punta a punta** en la vista previa: la conexión con Mercado Pago ya estaba confirmada y funcionando desde antes. Motivo: decisión de Alberto.
+- Riesgo que queda: el cobro por lead y el webhook reescrito no han corrido aún contra Mercado Pago real; el primer pago real será la prueba. Si algo no cuadra, el pago no cuenta y llega correo a gerencia (`avisarPagoParaRevisar`).
+- No hace falta la credencial de prueba en Vercel. El código ya decide el modo de prueba por entorno (credenciales nuevas `APP_USR-`), por si se quiere probar después.
