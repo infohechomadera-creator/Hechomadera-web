@@ -4,7 +4,7 @@
 ## Dónde vamos
 - W0 cerrado (etiqueta `hito-0`). W1 a W4 hechos. **W5 hecho (pagos por lead y Operflow)**: diseño → anticipo → saldo con Mercado Pago, montos en el servidor, abonos netos; enlace de pago `/pago/lead/[token]`; bloque "Pagos" en la ficha del lead; órdenes en Supabase; bandeja `mensajes_operflow`. Todo en la rama `w1-w2-base` (no está en producción). Diarios: `docs/hitos/hito-1.md` a `hito-5.md`.
 - Probado: 295 pruebas, lint y build sin errores; validador (5 pasadas, la 5ª sin caminos de pérdida de plata) y auditor sin desviaciones graves. Sin pago de prueba en Mercado Pago (decisión de Alberto: ya funcionaba).
-- Supabase (ref `seazgghpynhflxvrjpee`): migraciones hasta `20261119000500` aplicadas; cubeta privada `fotos-espacio`; gerencia y un "Asesor Prueba"; registro libre desactivado. Respaldo `respaldos/2026-11-19-antes-w5-pagos.json`, etiqueta `respaldo-2026-11-19-w5-pagos`.
+- Supabase (ref `seazgghpynhflxvrjpee`): migraciones hasta `20261119000600` aplicadas (límites de intentos en Supabase); cubeta privada `fotos-espacio`; gerencia y un "Asesor Prueba"; registro libre desactivado. Respaldo `respaldos/2026-11-19-antes-w5-pagos.json`, etiqueta `respaldo-2026-11-19-w5-pagos`.
 - La base decide si un pago cuenta (`registrar_pago`); todo pago raro avisa por correo a gerencia. Fuera de producción solo gerencia inicia cobros.
 - Operflow: O3 no existe; los mensajes quedan en la bandeja y se reintentan (botón y tarea diaria). Firma del mensaje B propuesta por la web, por confirmar.
 - Lead real 4DAF4A75: Contactado, nada pagado, sin cambios.
