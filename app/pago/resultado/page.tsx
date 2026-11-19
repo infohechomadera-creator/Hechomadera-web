@@ -5,7 +5,7 @@ import {
   fetchMercadoPagoPayment,
   normalizePaymentState,
 } from "@/lib/mercadopago";
-import { getOrder } from "@/lib/orders-store";
+import { getOrder } from "@/lib/pagos/ordenes";
 
 export const metadata: Metadata = {
   title: "Resultado del pago",

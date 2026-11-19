@@ -1,158 +1,60 @@
 import { NextResponse } from "next/server";
-import { createOrderId, sanitizeSourceReference } from "@/lib/orders";
-import { saveNewOrder } from "@/lib/orders-store";
+import products from "@/content/products.json";
+import type { StoreProduct } from "@/lib/products";
+import { exigirGerencia } from "@/lib/sesion";
+import { dentroDelLimite, ipDe } from "@/lib/limite";
+import { borrarOrdenSinPago, crearOrdenId, guardarOrdenNueva, ponerPreferencia, type ItemOrden } from "@/lib/pagos/ordenes";
+import { crearPreferencia } from "@/lib/pagos/preferencia";
 
 export const runtime = "nodejs";
 
-type Item = {
-  title: string;
-  quantity: number;
-  unit_price: number;
-};
+/** Valor fijo de la página de prueba de pago (solo gerencia). */
+const VALOR_PRUEBA = 5000;
 
 /**
- * POST /api/payments/mercadopago/preference
- * Crea una preferencia de Checkout Pro (redirección a Mercado Pago).
- * Requiere MERCADOPAGO_ACCESS_TOKEN en Vercel (credencial de producción o prueba).
- *
- * Docs: https://www.mercadopago.com.co/developers/es/reference/preferences/_checkout_preferences/post
+ * POST /api/payments/mercadopago/preference   { producto: "<id de la tienda>" }  o  { prueba: true }
+ * Crea el cobro de la tienda en Checkout Pro. El precio sale del catálogo del servidor
+ * (content/products.json), nunca del navegador (W5).
  */
 export async function POST(request: Request) {
-  const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
-  if (!token) {
-    return NextResponse.json(
-      {
-        error: "Falta MERCADOPAGO_ACCESS_TOKEN en variables de entorno (Vercel).",
-        hint: "Obtén un token en Mercado Pago → Tus integraciones → Credenciales.",
-      },
-      { status: 503 },
-    );
+  if (!(await dentroDelLimite(`preferencia:${ipDe(request)}`, 30, 3600))) {
+    return NextResponse.json({ error: "Demasiados intentos. Espera un rato e intenta de nuevo." }, { status: 429 });
   }
-
-  let body: {
-    items?: Item[];
-    title?: string;
-    unit_price?: number;
-    quantity?: number;
-    /** Referencia opcional (conciliación); se sanea y trunca */
-    external_reference?: string;
-  };
+  let body: { producto?: unknown; prueba?: unknown };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const orderId = createOrderId();
-  const sourceReference = sanitizeSourceReference(body.external_reference);
-
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
-
-  let items: Item[];
-  if (body.items?.length) {
-    items = body.items.map((i) => ({
-      title: String(i.title).slice(0, 256),
-      quantity: Math.max(1, Math.min(999, Number(i.quantity) || 1)),
-      unit_price: Math.max(0, Number(i.unit_price) || 0),
-    }));
-  } else if (body.title && body.unit_price != null) {
-    items = [
-      {
-        title: String(body.title).slice(0, 256),
-        quantity: Math.max(1, Math.min(999, Number(body.quantity) || 1)),
-        unit_price: Math.max(0, Number(body.unit_price)),
-      },
-    ];
+  let items: ItemOrden[];
+  let referencia: string | null;
+  if (body.prueba === true) {
+    const negado = await exigirGerencia();
+    if (negado) return negado;
+    if (process.env.NODE_ENV === "production" && process.env.ENABLE_PAYMENT_TEST_PAGE !== "true") {
+      return NextResponse.json({ error: "La página de prueba está apagada." }, { status: 404 });
+    }
+    items = [{ title: "Pedido de prueba — Hechomadera", quantity: 1, unit_price: VALOR_PRUEBA, currency_id: "COP" }];
+    referencia = "prueba";
   } else {
-    return NextResponse.json(
-      { error: "Envía items[] o bien title + unit_price (+ quantity opcional)." },
-      { status: 400 },
-    );
+    const producto = (products as StoreProduct[]).find((p) => typeof body.producto === "string" && p.id === body.producto);
+    if (!producto || !Number.isSafeInteger(producto.priceCOP) || producto.priceCOP <= 0) {
+      return NextResponse.json({ error: "Ese producto no está disponible." }, { status: 400 });
+    }
+    items = [{ title: `Pedido — ${producto.name}`, quantity: 1, unit_price: producto.priceCOP, currency_id: "COP" }];
+    referencia = `tienda-${producto.id}`.replace(/[^a-zA-Z0-9._-]/g, "").slice(0, 120);
   }
 
-  if (items.some((i) => i.unit_price <= 0)) {
-    return NextResponse.json({ error: "unit_price debe ser mayor a 0." }, { status: 400 });
+  const orderId = crearOrdenId();
+  if (!(await guardarOrdenNueva({ id: orderId, tipo: "tienda", lead_id: null, referencia, items }))) {
+    return NextResponse.json({ error: "No pudimos preparar el pago. Intenta de nuevo." }, { status: 500 });
   }
-
-  const successUrl = `${baseUrl}/pago/resultado?estado=aprobado&order_id=${encodeURIComponent(orderId)}`;
-  const failureUrl = `${baseUrl}/pago/resultado?estado=rechazado&order_id=${encodeURIComponent(orderId)}`;
-  const pendingUrl = `${baseUrl}/pago/resultado?estado=pendiente&order_id=${encodeURIComponent(orderId)}`;
-
-  const preference = {
-    items: items.map((i) => ({
-      title: i.title,
-      quantity: i.quantity,
-      unit_price: i.unit_price,
-      currency_id: "COP",
-    })),
-    back_urls: {
-      success: successUrl,
-      failure: failureUrl,
-      pending: pendingUrl,
-    },
-    auto_return: "approved",
-    statement_descriptor: "HECHOMADERA",
-    /**
-     * external_reference se reserva para order_id propio.
-     * Permite consultar estado por orden aunque el cliente no retorne con payment_id.
-     */
-    external_reference: orderId,
-  };
-
-  const res = await fetch("https://api.mercadopago.com/checkout/preferences", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(preference),
-  });
-
-  const data = (await res.json()) as {
-    id?: string;
-    init_point?: string;
-    sandbox_init_point?: string;
-    message?: string;
-    cause?: unknown;
-  };
-
-  if (!res.ok) {
-    console.error("Mercado Pago preference error:", res.status, data);
-    return NextResponse.json(
-      {
-        error: "Mercado Pago rechazó la preferencia.",
-        details: data.message ?? data,
-      },
-      { status: 502 },
-    );
+  const pref = await crearPreferencia({ ordenId: orderId, items });
+  if (!pref.ok) {
+    await borrarOrdenSinPago(orderId);
+    return NextResponse.json({ error: pref.error }, { status: pref.status });
   }
-
-  const payUrl = data.sandbox_init_point ?? data.init_point;
-  if (!payUrl) {
-    return NextResponse.json({ error: "Respuesta sin URL de pago.", details: data }, { status: 502 });
-  }
-
-  await saveNewOrder({
-    order_id: orderId,
-    source_reference: sourceReference,
-    preference_id: data.id ?? null,
-    redirect_url: payUrl,
-    items: items.map((i) => ({
-      title: i.title,
-      quantity: i.quantity,
-      unit_price: i.unit_price,
-      currency_id: "COP",
-    })),
-  });
-
-  return NextResponse.json({
-    ok: true,
-    order_id: orderId,
-    source_reference: sourceReference,
-    preference_id: data.id,
-    init_point: data.init_point,
-    sandbox_init_point: data.sandbox_init_point,
-    /** Usar esta URL para redirigir al usuario */
-    redirect_url: payUrl,
-  });
+  await ponerPreferencia(orderId, pref.preferenciaId, pref.url);
+  return NextResponse.json({ ok: true, order_id: orderId, redirect_url: pref.url });
 }

@@ -24,6 +24,7 @@ const IMITACION_SUPABASE = `
   );
   create role anon nologin;
   create role authenticated nologin;
+  create role service_role nologin;
   grant usage on schema public, auth to anon, authenticated;
   grant execute on function auth.uid() to anon, authenticated;
   -- Supabase concede por defecto todo sobre public a anon y authenticated; RLS decide.

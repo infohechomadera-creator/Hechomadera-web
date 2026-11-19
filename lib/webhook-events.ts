@@ -1,4 +1,9 @@
-import { Redis } from "@upstash/redis";
+/**
+ * Registro corto de los avisos (webhook) de Mercado Pago, en Supabase (`eventos_pago`).
+ * Sin datos del comprador. Reemplaza la lista de Redis (W5). Los repetidos los evita la base
+ * (`registrar_pago`), no este registro.
+ */
+import { clienteSistema } from "@/lib/supabase/servidor";
 
 export type WebhookEventRecord = {
   provider: "mercadopago";
@@ -23,81 +28,65 @@ export type WebhookEventSummary = {
   with_errors: number;
 };
 
-/**
- * Buffer en memoria para trazabilidad operativa corta (sin BD).
- * Nota: en serverless puede resetear entre invocaciones.
- */
-const globalState = globalThis as typeof globalThis & {
-  __hmWebhookEvents?: WebhookEventRecord[];
-  __hmWebhookSeen?: Set<string>;
-  __hmUpstashRedis?: Redis | null;
+const corto = (v: string | null | undefined, n: number) => (v == null ? null : String(v).slice(0, n));
+
+export async function saveWebhookEvent(r: WebhookEventRecord): Promise<void> {
+  try {
+    const { error } = await clienteSistema()
+      .from("eventos_pago")
+      .insert({
+        tipo_evento: corto(r.event_type, 60) ?? "unknown",
+        accion: corto(r.action, 60),
+        recurso_id: corto(r.resource_id, 60),
+        mp_pago_id: r.payment_id,
+        orden_id: corto(r.order_id, 90),
+        estado_mp: corto(r.status, 40),
+        procesado: r.processed,
+        error: corto(r.error, 300),
+        recibido_at: r.received_at,
+      });
+    if (error) console.error("[eventos_pago] no se pudo registrar", error.code);
+  } catch {
+    // El registro nunca debe tumbar el webhook.
+  }
+}
+
+const NORMALIZADO: Record<string, WebhookEventRecord["normalized_status"]> = {
+  approved: "approved",
+  pending: "pending",
+  in_process: "pending",
+  in_mediation: "pending",
+  rejected: "rejected",
+  cancelled: "rejected",
+  refunded: "rejected",
+  charged_back: "rejected",
 };
-
-if (!globalState.__hmWebhookEvents) globalState.__hmWebhookEvents = [];
-if (!globalState.__hmWebhookSeen) globalState.__hmWebhookSeen = new Set<string>();
-
-const MAX_EVENTS = 100;
-const REDIS_KEY = "hm:webhook_events";
-
-function getRedisClient(): Redis | null {
-  if (globalState.__hmUpstashRedis !== undefined) return globalState.__hmUpstashRedis;
-
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) {
-    globalState.__hmUpstashRedis = null;
-    return null;
-  }
-
-  globalState.__hmUpstashRedis = new Redis({ url, token });
-  return globalState.__hmUpstashRedis;
-}
-
-export async function saveWebhookEvent(record: WebhookEventRecord): Promise<void> {
-  const redis = getRedisClient();
-  if (redis) {
-    try {
-      await redis.lpush(REDIS_KEY, record);
-      await redis.ltrim(REDIS_KEY, 0, MAX_EVENTS - 1);
-      return;
-    } catch (error) {
-      console.error("[WebhookEvents] Redis write failed, fallback to memory", error);
-    }
-  }
-
-  globalState.__hmWebhookEvents!.unshift(record);
-  if (globalState.__hmWebhookEvents!.length > MAX_EVENTS) {
-    globalState.__hmWebhookEvents!.length = MAX_EVENTS;
-  }
-}
 
 export async function listWebhookEvents(limit = 20): Promise<WebhookEventRecord[]> {
   const n = Math.max(1, Math.min(100, Number(limit) || 20));
-
-  const redis = getRedisClient();
-  if (redis) {
-    try {
-      const rows = await redis.lrange<WebhookEventRecord>(REDIS_KEY, 0, n - 1);
-      if (Array.isArray(rows)) return rows;
-    } catch (error) {
-      console.error("[WebhookEvents] Redis read failed, fallback to memory", error);
-    }
+  try {
+    const { data } = await clienteSistema()
+      .from("eventos_pago")
+      .select("tipo_evento, accion, recurso_id, mp_pago_id, orden_id, estado_mp, procesado, error, recibido_at")
+      .order("recibido_at", { ascending: false })
+      .limit(n);
+    return (data ?? []).map((e) => ({
+      provider: "mercadopago",
+      event_type: e.tipo_evento,
+      action: e.accion,
+      processed: e.procesado,
+      resource_id: e.recurso_id,
+      payment_id: e.mp_pago_id,
+      order_id: e.orden_id,
+      status: e.estado_mp,
+      normalized_status: e.estado_mp ? (NORMALIZADO[e.estado_mp] ?? "unknown") : null,
+      status_detail: null,
+      error: e.error,
+      received_at: e.recibido_at,
+    }));
+  } catch {
+    return [];
   }
-
-  return globalState.__hmWebhookEvents!.slice(0, n);
-}
-
-export function markPaymentProcessed(paymentId: number | null): {
-  dedupeKey: string | null;
-  alreadyProcessed: boolean;
-} {
-  if (!paymentId) return { dedupeKey: null, alreadyProcessed: false };
-  const key = `mp:payment:${paymentId}`;
-  if (globalState.__hmWebhookSeen!.has(key)) {
-    return { dedupeKey: key, alreadyProcessed: true };
-  }
-  globalState.__hmWebhookSeen!.add(key);
-  return { dedupeKey: key, alreadyProcessed: false };
 }
 
 export function summarizeWebhookEvents(events: WebhookEventRecord[]): WebhookEventSummary {
@@ -108,7 +97,6 @@ export function summarizeWebhookEvents(events: WebhookEventRecord[]): WebhookEve
     by_normalized_status: {},
     with_errors: 0,
   };
-
   for (const event of events) {
     summary.by_event_type[event.event_type] = (summary.by_event_type[event.event_type] ?? 0) + 1;
     summary.by_processed[String(event.processed) as "true" | "false"] += 1;
@@ -116,6 +104,5 @@ export function summarizeWebhookEvents(events: WebhookEventRecord[]): WebhookEve
     summary.by_normalized_status[status] = (summary.by_normalized_status[status] ?? 0) + 1;
     if (event.error) summary.with_errors += 1;
   }
-
   return summary;
 }

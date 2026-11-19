@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { exigirGerencia } from "@/lib/sesion";
-import { getOrder } from "@/lib/orders-store";
+import { getOrderComo } from "@/lib/pagos/ordenes";
+import { clienteUsuario } from "@/lib/supabase/servidor";
 
 export const runtime = "nodejs";
 
@@ -16,7 +17,7 @@ export async function GET(
   if (negado) return negado;
 
   const { orderId } = await params;
-  const order = await getOrder(orderId);
+  const order = await getOrderComo(await clienteUsuario(), orderId);
   if (!order) {
     return NextResponse.json({ ok: false, error: "Orden no encontrada", order_id: orderId }, { status: 404 });
   }

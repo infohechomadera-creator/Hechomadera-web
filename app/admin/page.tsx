@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listOrders, type StoredOrder } from "@/lib/orders-store";
+import { listOrders, type StoredOrder } from "@/lib/pagos/ordenes";
+import { clienteUsuario } from "@/lib/supabase/servidor";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
 export const metadata: Metadata = {
@@ -76,7 +77,7 @@ function KPICard({ label, value, sub, highlight }: KPICardProps) {
 export default async function AdminOrdersPage({ searchParams }: Props) {
   const { status, limit, from, to } = await searchParams;
   const parsedLimit = Math.max(1, Math.min(200, Number(limit) || 50));
-  const all = await listOrders(parsedLimit);
+  const all = await listOrders(await clienteUsuario(), parsedLimit);
 
   // Aplicar filtro de fechas
   const dateFiltered = filterByDate(all, from, to);

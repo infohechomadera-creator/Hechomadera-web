@@ -118,7 +118,7 @@ describe("historial automático", () => {
     for (const estado of ["diseno_pagado", "aprobado", "no_aprobo"]) {
       await expect(
         como(db, asesorA, (tx) => tx.query(`update public.leads set estado = $1 where id = $2`, [estado, IDS.leadA])),
-      ).rejects.toThrow(/Solo gerencia o el sistema/);
+      ).rejects.toThrow(/Solo gerencia o el sistema|lo cambia solo el sistema/);
     }
   });
 });

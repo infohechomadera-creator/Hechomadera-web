@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchLatestPaymentByExternalReference, normalizePaymentState } from "@/lib/mercadopago";
-import { getOrder } from "@/lib/orders-store";
+import { getOrder } from "@/lib/pagos/ordenes";
 
 export const runtime = "nodejs";
 
@@ -18,7 +18,7 @@ export async function GET(
   if (stored) {
     return NextResponse.json({
       ok: true,
-      source: "orders-store",
+      source: "supabase",
       order: stored,
     });
   }

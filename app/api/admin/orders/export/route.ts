@@ -1,4 +1,5 @@
-import { listOrders } from "@/lib/orders-store";
+import { listOrders } from "@/lib/pagos/ordenes";
+import { clienteUsuario } from "@/lib/supabase/servidor";
 import { exigirGerencia } from "@/lib/sesion";
 
 export const runtime = "nodejs";
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   const limit = Number(url.searchParams.get("limit") ?? "500");
   const from = url.searchParams.get("from") ?? "";
   const to = url.searchParams.get("to") ?? "";
-  const allOrders = await listOrders(limit);
+  const allOrders = await listOrders(await clienteUsuario(), limit);
   const orders = allOrders.filter((o) => {
     const date = o.created_at.slice(0, 10);
     if (from && date < from) return false;

@@ -3,22 +3,29 @@
 import { useState } from "react";
 import { track } from "@/lib/analytics";
 
+/**
+ * El navegador nunca manda el precio (W5): solo dice qué se paga y el servidor calcula el valor.
+ *  - `productId`: producto de la tienda (precio de content/products.json).
+ *  - `pagoToken`: enlace de pago de un lead (diseño, anticipo o saldo).
+ *  - `prueba`: página de prueba de pago (solo gerencia).
+ * `title` y `unitPrice` son solo para la medición (analytics).
+ */
 type Props = {
   label?: string;
-  /** Precio en COP (entero) */
   unitPrice: number;
   title: string;
-  quantity?: number;
-  /** Referencia para Mercado Pago (webhooks / conciliación), ej. tienda-{id} */
-  externalReference?: string;
+  productId?: string;
+  pagoToken?: string;
+  prueba?: boolean;
 };
 
 export function StartCheckoutButton({
   label = "Pagar con Mercado Pago",
   unitPrice,
   title,
-  quantity = 1,
-  externalReference,
+  productId,
+  pagoToken,
+  prueba,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,15 +35,10 @@ export function StartCheckoutButton({
     setError(null);
     track("checkout_start", { product: title, price: unitPrice });
     try {
-      const res = await fetch("/api/payments/mercadopago/preference", {
+      const res = await fetch(pagoToken ? "/api/pagos/lead" : "/api/payments/mercadopago/preference", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          unit_price: unitPrice,
-          quantity,
-          ...(externalReference ? { external_reference: externalReference } : {}),
-        }),
+        body: JSON.stringify(pagoToken ? { token: pagoToken } : prueba ? { prueba: true } : { producto: productId }),
       });
       const data = (await res.json()) as { redirect_url?: string; error?: string; hint?: string; details?: unknown };
 

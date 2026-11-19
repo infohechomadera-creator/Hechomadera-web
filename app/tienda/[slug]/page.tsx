@@ -130,8 +130,7 @@ export default async function ProductoPage({ params }: Props) {
             <StartCheckoutButton
               title={titleCheckout}
               unitPrice={product.priceCOP}
-              quantity={1}
-              externalReference={`tienda-${product.id}`}
+              productId={product.id}
             />
 
             <a

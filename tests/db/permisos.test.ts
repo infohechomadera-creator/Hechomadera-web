@@ -116,7 +116,7 @@ describe("asesor", () => {
     it(`no puede cambiar ${campo} de su lead`, async () => {
       await expect(
         como(db, asesorA, (tx) => tx.query(`update public.leads set ${campo} = ${valor} where id = $1`, [IDS.leadA])),
-      ).rejects.toThrow(/Solo gerencia o el sistema/);
+      ).rejects.toThrow(/Solo gerencia o el sistema|lo cambia solo el sistema/);
     });
   }
 
@@ -214,14 +214,14 @@ describe("gerencia", () => {
     });
   });
 
-  it("puede reasignar leads y corregir el estado de pago", async () => {
+  it("puede reasignar leads, pero no cambiar lo que pagó (W5: eso lo hace solo el sistema)", async () => {
     const r = await como(db, gerencia, (tx) =>
-      tx.query("update public.leads set asesor_id = $1, pago_estado = 'diseno' where id = $2", [
-        IDS.asesorB,
-        IDS.leadA,
-      ]),
+      tx.query("update public.leads set asesor_id = $1 where id = $2", [IDS.asesorB, IDS.leadA]),
     );
     expect(r.affectedRows).toBe(1);
+    await expect(
+      como(db, gerencia, (tx) => tx.query("update public.leads set pago_estado = 'diseno' where id = $1", [IDS.leadA])),
+    ).rejects.toThrow(/lo cambia solo el sistema/);
   });
 
   it("publica precios solo a su nombre y no puede reescribir versiones", async () => {
@@ -303,7 +303,7 @@ describe("correcciones del validador (estados, autorización y actividades)", ()
     it(`un asesor no puede poner su lead en '${estado}'`, async () => {
       await expect(
         como(db, asesorA, (tx) => tx.query(`update public.leads set estado = '${estado}' where id = $1`, [IDS.leadA])),
-      ).rejects.toThrow(/Solo gerencia o el sistema/);
+      ).rejects.toThrow(/Solo gerencia o el sistema|lo cambia solo el sistema/);
     });
   }
 
@@ -321,7 +321,7 @@ describe("correcciones del validador (estados, autorización y actividades)", ()
           await tx.exec("set local role authenticated");
           await tx.query("update public.leads set estado = 'nuevo' where id = $1", [IDS.leadA]);
         }),
-      ).rejects.toThrow(/Solo gerencia o el sistema/);
+      ).rejects.toThrow(/Solo gerencia o el sistema|lo cambia solo el sistema/);
     });
   }
 
@@ -338,8 +338,11 @@ describe("correcciones del validador (estados, autorización y actividades)", ()
     expect(r.affectedRows).toBe(1);
   });
 
-  it("gerencia sí puede poner cualquier estado", async () => {
-    const r = await como(db, gerencia, (tx) => tx.query("update public.leads set estado = 'aprobado' where id = $1", [IDS.leadA]));
+  it("gerencia tampoco pone a mano un estado del sistema (W5)", async () => {
+    await expect(
+      como(db, gerencia, (tx) => tx.query("update public.leads set estado = 'aprobado' where id = $1", [IDS.leadA])),
+    ).rejects.toThrow(/lo cambia solo el sistema/);
+    const r = await como(db, gerencia, (tx) => tx.query("update public.leads set estado = 'perdido' where id = $1", [IDS.leadA]));
     expect(r.affectedRows).toBe(1);
   });
 

@@ -4,7 +4,8 @@
  * Se disparan desde el webhook de Mercado Pago al aprobar un pago.
  */
 
-import type { StoredOrder } from "@/lib/orders-store";
+import type { StoredOrder } from "@/lib/pagos/ordenes";
+import { clienteSistema } from "@/lib/supabase/servidor";
 
 const RESEND_API = "https://api.resend.com/emails";
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_PHONE ?? "573012890552";
@@ -297,4 +298,58 @@ export async function sendNewLeadAlertToSeller({
   </div>
 </body></html>`;
   await sendEmail({ from, to: [to], subject: `Lead nuevo: ${nombre.slice(0, 60)} (${ciudad})`, html });
+}
+
+// ---------------------------------------------------------------------------
+// Pago de un lead (W5): al cliente (si dejó correo) y a gerencia. Sin teléfono.
+// ---------------------------------------------------------------------------
+const CONCEPTO: Record<string, string> = { diseno: "el diseño", anticipo: "el anticipo", saldo: "el saldo" };
+
+export async function avisarPagoLead({ leadId, tipo, monto }: { leadId: string; tipo: string; monto: number }): Promise<void> {
+  const { data } = await clienteSistema()
+    .from("leads")
+    .select("ciudad, producto, clientes(nombre, email, datos_borrados_at)")
+    .eq("id", leadId)
+    .maybeSingle<{ ciudad: string; producto: string; clientes: { nombre: string; email: string | null; datos_borrados_at: string | null } | null }>();
+  if (!data) return;
+  const from = process.env.RESEND_FROM ?? "Hechomadera <info@hechomadera.com>";
+  const concepto = CONCEPTO[tipo] ?? "tu pago";
+  const cli = data.clientes;
+  const caja = (contenido: string) => `
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:24px 16px;background:#fafafa;font-family:system-ui,sans-serif;">
+  <div style="max-width:480px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;padding:24px;">${contenido}</div>
+</body></html>`;
+
+  if (cli?.email && !cli.datos_borrados_at) {
+    const siguiente =
+      tipo === "diseno"
+        ? "Nuestro equipo empieza tu diseño. Te enviaremos la propuesta en máximo 48 horas."
+        : tipo === "anticipo"
+          ? "Con este anticipo empezamos la producción. Te contaremos cada avance."
+          : "Tu proyecto quedó pagado por completo. ¡Gracias por confiar en Hechomadera!";
+    await sendEmail({
+      from,
+      to: [cli.email],
+      subject: `Recibimos el pago de ${concepto} — Hechomadera`,
+      html: caja(`
+    <p style="margin:0 0 12px;font-size:18px;font-weight:700;color:#0a0a0a;">Hola ${escaparHtml(cli.nombre.split(" ")[0] ?? "")}, recibimos tu pago</p>
+    <p style="margin:0 0 12px;font-size:14px;color:#404040;">Pagaste ${concepto} de tu proyecto en ${escaparHtml(data.ciudad)}: <strong>${formatCOP(monto)}</strong>.</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#404040;">${siguiente}</p>
+    <a href="${getWaLink("Hola, acabo de hacer un pago en hechomadera.com.")}" style="display:inline-block;background:#0a0a0a;color:#fafafa;padding:10px 18px;font-size:13px;text-decoration:none;">Escríbenos por WhatsApp</a>`),
+      reply_to: "info@hechomadera.com",
+    });
+  }
+
+  const to = process.env.CONTACT_TO_EMAIL ?? "infohechomadera@gmail.com";
+  await sendEmail({
+    from,
+    to: [to],
+    subject: `Pago de ${concepto}: ${formatCOP(monto)} (${data.ciudad})`,
+    html: caja(`
+    <p style="margin:0 0 12px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#666;">Pago de un lead</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#0a0a0a;">Pagó ${concepto}: <strong>${formatCOP(monto)}</strong> · ${escaparHtml(data.ciudad)}</p>
+    <a href="${SITE_URL}/admin/leads/${encodeURIComponent(leadId)}" style="display:inline-block;background:#0a0a0a;color:#fafafa;padding:10px 18px;font-size:13px;text-decoration:none;">Ver el lead</a>`),
+  });
 }
