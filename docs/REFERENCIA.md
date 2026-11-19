@@ -8,7 +8,7 @@
 | Vercel | Hosting; dominio `hechomadera.com` (staging `stg.hechomadera.com`) | Activo |
 | Mercado Pago | Checkout Pro; webhook `/api/payments/mercadopago/webhook` | Producción |
 | Resend | Correo de contacto y avisos al cliente; dominio verificado | Activo |
-| Upstash Redis | Órdenes de la tienda y eventos del webhook | Activo |
+| Upstash Redis | (Antes: órdenes y límites de intentos) | **Retirado el 2026-11-19**: Upstash borró la base; los límites viven en Supabase |
 | Vercel Analytics | Métricas básicas | Activo |
 | Supabase (de la web), proyecto Hechomadera, ref `seazgghpynhflxvrjpee` | Leads, CRM, usuarios, fotos, precios | Activo (plan gratis) |
 | API de Anthropic | Agente de IA | **Por crear en W6** (tope de gasto aprobado) |
@@ -17,7 +17,7 @@
 - Sitio: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WHATSAPP_PHONE`, `NEXT_PUBLIC_PROMO_*`.
 - Mercado Pago: `MERCADOPAGO_ACCESS_TOKEN`, `MERCADOPAGO_WEBHOOK_SECRET`, `MERCADOPAGO_WEBHOOK_ENFORCE`, `ENABLE_PAYMENT_TEST_PAGE`, `DEBUG_WEBHOOK_TOKEN`.
 - Resend: `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `RESEND_FROM`.
-- Redis: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
+- Redis y Upstash: ya no se usan (variables borradas de Vercel el 2026-11-19).
 - Admin: `ADMIN_API_TOKEN` y `ADMIN_PASSWORD` **obsoletos** desde W1 (login con Supabase). Quitarlos de Vercel tras pasar a producción.
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL` (`https://seazgghpynhflxvrjpee.supabase.co`), `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`.
 - W5: `CRON_SECRET` (tarea diaria de reintentos; por crear en Vercel), `MERCADOPAGO_WEBHOOK_ENFORCE=true` recomendado en producción. Las credenciales de Mercado Pago hoy son las mismas en todos los entornos.

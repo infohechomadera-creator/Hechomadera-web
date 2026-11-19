@@ -13,7 +13,7 @@
 
 ## Riesgos abiertos
 - La credencial de Mercado Pago es la real en TODOS los entornos de Vercel (también Preview). Mitigado por código; falta una de prueba solo para Preview.
-- Upstash Redis no responde (fetch failed): sin límites de intentos y sin copia de órdenes viejas a Supabase.
+- Upstash Redis fue borrado por Upstash: ya no se usa; los límites de intentos están en Supabase (2026-11-19). Las órdenes viejas de la tienda se perdieron (los pagos siguen en Mercado Pago).
 - Sin `CRON_SECRET` la tarea diaria de reintentos a Operflow no corre.
 - `MERCADOPAGO_WEBHOOK_ENFORCE` no está en `true` en producción (recomendado).
 - Firma del mensaje B por confirmar con Operflow.
@@ -21,7 +21,7 @@
 
 ## Siguiente paso exacto
 1. Alberto: credencial de PRUEBA de Mercado Pago solo para Preview; luego pago de prueba con comprador de prueba.
-2. Alberto: revisar Upstash; crear `CRON_SECRET` en Vercel; con O3: `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
+2. Alberto, cuando exista O3: crear `CRON_SECRET` en Vercel y `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
 3. **Sesión nueva** con `/retomar` para **W6** (agente de IA; requiere cuenta de Anthropic con tope de gasto aprobado por Alberto), o primero los puntos 1 y 2.
 4. Alberto: cerrar la pestaña del SQL Editor de Supabase (descartar cambios).
 5. Con visto bueno de Alberto: pasar a `main` y quitar `ADMIN_PASSWORD` y `ADMIN_API_TOKEN` de Vercel.

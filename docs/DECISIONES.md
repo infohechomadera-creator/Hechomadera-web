@@ -133,3 +133,13 @@
 | Vercel | Solo lectura: lista de variables (sin valores) y despliegues | Nada que revertir |
 | Upstash Redis | Sin conexión; la consola pide sesión y no se entró | Nada que revertir |
 | Chrome (Code tab) | Barra reorganizada en grupos "Hechomadera web" y "Operflow", a pedido de Alberto | Reordenar a mano en la barra |
+
+## 2026-11-19 · Fuera Redis y Upstash; límites de intentos en Supabase
+- **Upstash borró la base de Redis por falta de uso** (lo confirmó Alberto). Las órdenes viejas de la tienda que vivían ahí se perdieron; los pagos siguen en el historial del panel de Mercado Pago.
+- **Decisión de Alberto: no usar Redis ni Upstash si ya está Supabase.** Los límites de intentos por IP pasan a un contador en Supabase (`limites` + `contar_intento()`, migración `20261119000600_limites_en_supabase`). La clave se guarda como huella SHA-256: no queda ninguna IP en la base. Se quitaron la librería `@upstash/redis`, el botón "Copiar órdenes viejas" y su código. Motivo: un servicio menos que se borra solo y dos llaves menos.
+- `CRON_SECRET` queda para cuando exista O3 de Operflow (hoy la tarea diaria no tiene nada que enviar). La credencial de prueba de Mercado Pago la pone Alberto (es una llave).
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| Supabase Hechomadera (`seazgghpynhflxvrjpee`) | Migración `20261119000600_limites_en_supabase` desde Chrome, en begin/commit con huella SHA-1 verificada; verificado: RLS activo, solo el servidor ejecuta `contar_intento` | Migración nueva que borre `limites` y `contar_intento` (no guarda datos importantes) |
+| Vercel `hechomadera-web` | Borradas `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` (todos los entornos), a pedido de Alberto. No se hizo "Redeploy". Producción (`main`) sigue con el código viejo, que ya usaba memoria porque la base no existía | No aplica: la base de Upstash ya no existe |
