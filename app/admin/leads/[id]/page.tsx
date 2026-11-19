@@ -70,6 +70,7 @@ type Pago = {
   creado_at: string;
   mp_pago_id: number | null;
   resuelto_at: string | null;
+  monto_devuelto: number;
 };
 
 export default async function AdminLeadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -108,7 +109,7 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
     // Pagos y bandeja de Operflow: RLS deja ver solo los del lead propio (o todo a gerencia).
     supabase
       .from("pagos")
-      .select("id, tipo, monto, estado, cuenta, pagado_at, creado_at, mp_pago_id, resuelto_at")
+      .select("id, tipo, monto, estado, cuenta, pagado_at, creado_at, mp_pago_id, resuelto_at, monto_devuelto")
       .eq("lead_id", lead.id)
       .order("creado_at", { ascending: false })
       .returns<Pago[]>(),
@@ -240,6 +241,7 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
           cuando: fechaCorta(x.pagado_at ?? x.creado_at),
           origen: x.mp_pago_id ? "Mercado Pago" : "a mano",
           resuelto: Boolean(x.resuelto_at),
+          devuelto: Number(x.monto_devuelto ?? 0),
         }))}
         operflow={{
           proyectoId: lead.operflow_proyecto_id,

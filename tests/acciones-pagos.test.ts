@@ -19,6 +19,7 @@ vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("@/lib/sesion", () => ({ rolActual: async () => e.rol }));
 vi.mock("@/lib/precios/fechas", () => ({ hoyEnColombia: () => "2026-11-19" }));
 vi.mock("@/lib/email-notifications", () => ({ avisarPagoLead: async () => undefined }));
+vi.mock("@/lib/pagos/preferencia", () => ({ vencerCobrosAbiertos: async () => undefined }));
 vi.mock("@/lib/borrado", () => ({ borrarFotosDelCliente: async () => (e.fotosLlamadas++, e.fotosOk) }));
 vi.mock("@/lib/integracion/salida", () => ({ enviarPendientes: async () => ({ enviados: 0, pendientes: 0, fallidos: 0, conectado: false }) }));
 vi.mock("@/lib/pagos/lead", () => ({ leerCobroLead: async () => ({ leadId: LEAD, producto: "cocina", ciudad: "Barranquilla", cobro: e.cobro }) }));
@@ -156,11 +157,18 @@ describe("pago a mano: lo que se vio es lo que se registra", () => {
 describe("marcar resuelto un pago", () => {
   it("solo gerencia, con nota, y a su nombre", async () => {
     e.rol = "asesor";
-    expect(await resolverPago(LEAD, 7, "devuelto en MP")).toMatchObject({ ok: false });
+    expect(await resolverPago(LEAD, 7, "devuelto en MP", "devuelto")).toMatchObject({ ok: false });
     expect(e.rpc).toHaveLength(0);
     e.rol = "gerencia";
-    expect(await resolverPago(LEAD, 7, "  ")).toMatchObject({ ok: false });
-    expect(await resolverPago(LEAD, 7, "Devuelto en MP el 20/11")).toEqual({ ok: true });
-    expect(e.rpc[0]).toMatchObject({ fn: "resolver_pago", args: { p_pago_id: 7, p_autor: UID, p_nota: "Devuelto en MP el 20/11" } });
+    expect(await resolverPago(LEAD, 7, "  ", "devuelto")).toMatchObject({ ok: false });
+    expect(await resolverPago(LEAD, 7, "Devuelto en MP el 20/11", "devuelto")).toEqual({ ok: true });
+    expect(e.rpc[0]).toMatchObject({ fn: "resolver_pago", args: { p_pago_id: 7, p_autor: UID, p_nota: "Devuelto en MP el 20/11", p_resultado: "devuelto" } });
+  });
+});
+
+describe("resolver: solo dos resultados válidos", () => {
+  it("un resultado inventado se rechaza sin tocar la base", async () => {
+    expect(await resolverPago(LEAD, 7, "nota válida", "otro" as "devuelto")).toMatchObject({ ok: false });
+    expect(e.rpc).toHaveLength(0);
   });
 });

@@ -36,7 +36,7 @@ type Fila = {
   valor_final_medido: number | null;
   operflow_estado: string | null;
   clientes: { datos_borrados_at: string | null } | null;
-  pagos: { tipo: string; monto: number; cuenta: boolean; estado: string; resuelto_at: string | null }[];
+  pagos: { tipo: string; monto: number; cuenta: boolean; estado: string; resuelto_at: string | null; monto_devuelto: number }[];
 };
 
 /** Por el código del enlace (cliente) o por el id del lead (panel, ya revisado el permiso). */
@@ -44,7 +44,7 @@ export async function leerCobroLead(token: string, { porId = false } = {}): Prom
   if (porId ? !/^[0-9a-f-]{36}$/.test(token) : !TOKEN.test(token)) return null;
   const { data } = await clienteSistema()
     .from("leads")
-    .select("id, producto, ciudad, pago_estado, estado, valor_final, valor_final_medido, operflow_estado, clientes(datos_borrados_at), pagos(tipo, monto, cuenta, estado, resuelto_at)")
+    .select("id, producto, ciudad, pago_estado, estado, valor_final, valor_final_medido, operflow_estado, clientes(datos_borrados_at), pagos(tipo, monto, cuenta, estado, resuelto_at, monto_devuelto)")
     .eq(porId ? "id" : "pago_token", token)
     .maybeSingle<Fila>();
   if (!data || !CIUDADES_ACTIVAS.includes(data.ciudad as CiudadActiva)) return null;

@@ -22,6 +22,8 @@ export type FilaPago = {
   cuando: string;
   origen: string;
   resuelto: boolean;
+  /** Lo que Mercado Pago le devolvió al cliente de este pago. */
+  devuelto: number;
 };
 export type FilaMensaje = { id: number; mensaje: string; estado: string; error: string | null; intentos: number };
 
@@ -149,6 +151,7 @@ export function PanelPagos(p: Props) {
             <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 p-3 text-sm">
               <span className="text-ink">
                 {TIPO[x.tipo] ?? x.tipo} · {pesos(x.monto)}
+                {x.devuelto > 0 && x.devuelto < x.monto ? ` (devuelto ${pesos(x.devuelto)}, cuenta ${pesos(x.monto - x.devuelto)})` : ""}
                 <span className="text-xs text-ink-muted"> · {x.origen} · {x.cuando}</span>
               </span>
               <span
@@ -164,19 +167,36 @@ export function PanelPagos(p: Props) {
                 {x.resuelto ? " · resuelto" : ""}
               </span>
               {p.esGerencia && (x.estado === "revisar" || x.estado === "devuelto") && !x.resuelto && (
-                <button
-                  type="button"
-                  className="border border-neutral-300 px-3 py-1 text-xs text-ink hover:border-ink disabled:opacity-50"
-                  disabled={guardando}
-                  onClick={() => {
-                    const nota = window.prompt(
-                      "¿Cómo se resolvió? (por ejemplo: devuelto en Mercado Pago el 20/11). Mientras no lo marques, el lead no acepta pagos nuevos.",
-                    );
-                    if (nota && nota.trim().length >= 3) hacer(() => resolverPago(p.leadId, x.id, nota), "Pago marcado como resuelto.");
-                  }}
-                >
-                  Marcar resuelto
-                </button>
+                <span className="flex gap-2">
+                  <button
+                    type="button"
+                    className="border border-neutral-300 px-3 py-1 text-xs text-ink hover:border-ink disabled:opacity-50"
+                    disabled={guardando}
+                    onClick={() => {
+                      const nota = window.prompt(
+                        "Úsalo SOLO después de devolverle TODO este pago al cliente en Mercado Pago. Escribe cómo y cuándo (ej: devuelto en MP el 20/11):",
+                      );
+                      if (nota && nota.trim().length >= 3) hacer(() => resolverPago(p.leadId, x.id, nota, "devuelto"), "Pago marcado como devuelto.");
+                    }}
+                  >
+                    Se devolvió todo
+                  </button>
+                  {x.estado === "revisar" && (
+                    <button
+                      type="button"
+                      className="border border-neutral-300 px-3 py-1 text-xs text-ink hover:border-ink disabled:opacity-50"
+                      disabled={guardando}
+                      onClick={() => {
+                        const nota = window.prompt(
+                          "La plata se queda y cuenta como abono de este pago; el siguiente cobro pedirá solo lo que falte. Escribe el motivo:",
+                        );
+                        if (nota && nota.trim().length >= 3) hacer(() => resolverPago(p.leadId, x.id, nota, "conservar"), "Pago conservado como abono.");
+                      }}
+                    >
+                      Se queda (abono)
+                    </button>
+                  )}
+                </span>
               )}
             </li>
           ))}

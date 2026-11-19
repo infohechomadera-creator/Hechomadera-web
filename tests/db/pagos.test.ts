@@ -35,7 +35,7 @@ async function crearOrden(tx: Tx, id: string, tipo: string, lead: string | null,
 const registrar = (tx: Tx, orden: string, mpId: number, estado: string, monto: number, moneda = "COP") =>
   uno<{ r: Record<string, unknown> }>(
     tx,
-    "select public.registrar_pago($1, $2, $3, $4, $5, 'visa', 'accredited', now(), false) as r",
+    "select public.registrar_pago($1, $2, $3, $4, $5, 'visa', 'accredited', now(), false, 0) as r",
     [orden, mpId, estado, monto, moneda],
   ).then((x) => x.r);
 
@@ -51,7 +51,7 @@ describe("quién puede qué", () => {
     for (const quien of [publico, asesorA, gerencia]) {
       await expect(
         como(db, quien, (tx) =>
-          tx.query("select public.registrar_pago('ord_x1234', 1, 'approved', 300000, 'COP', null, null, now(), false)"),
+          tx.query("select public.registrar_pago('ord_x1234', 1, 'approved', 300000, 'COP', null, null, now(), false, 0)"),
         ),
       ).rejects.toThrow(/permission denied/);
       await expect(
@@ -407,7 +407,7 @@ describe("refuerzo: ningún lead queda pagado con plata faltante", () => {
   it("un pago de prueba en un lead REAL no cuenta y avisa", async () => {
     await como(db, sistema, async (tx) => {
       await crearOrden(tx, "ord_r6xx", "diseno", IDS.leadA, 300000);
-      const r = await uno<{ r: Record<string, unknown> }>(tx, "select public.registrar_pago('ord_r6xx', 742, 'approved', 300000, 'COP', null, null, now(), true) as r");
+      const r = await uno<{ r: Record<string, unknown> }>(tx, "select public.registrar_pago('ord_r6xx', 742, 'approved', 300000, 'COP', null, null, now(), true, 0) as r");
       expect(r.r).toMatchObject({ nuevo_aprobado: false, alerta: "prueba" });
       expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("nada");
       expect(await contar(tx, "select 1 from public.mensajes_operflow")).toBe(0);
@@ -418,7 +418,7 @@ describe("refuerzo: ningún lead queda pagado con plata faltante", () => {
     await como(db, sistema, async (tx) => {
       await tx.query("update public.leads set es_prueba = true where id = $1", [IDS.leadA]);
       await crearOrden(tx, "ord_r5xx", "diseno", IDS.leadA, 300000);
-      await tx.query("select public.registrar_pago('ord_r5xx', 741, 'approved', 300000, 'COP', null, null, now(), true)");
+      await tx.query("select public.registrar_pago('ord_r5xx', 741, 'approved', 300000, 'COP', null, null, now(), true, 0)");
       expect((await uno<{ modo_prueba: boolean }>(tx, "select modo_prueba from public.pagos where mp_pago_id = 741")).modo_prueba).toBe(true);
       expect(await contar(tx, "select 1 from public.actividades where detalle like '%PRUEBA, sin dinero real%'")).toBe(1);
     });
@@ -543,10 +543,66 @@ describe("segundo refuerzo: leads cerrados, devueltos y valores", () => {
       expect(await registrar(tx, "ord_s908", 908, "approved", 7_000_000)).toMatchObject({ alerta: "en_revision" });
       const devuelto = await uno<{ id: number }>(tx, "select id from public.pagos where mp_pago_id = 907");
       // Solo gerencia resuelve, con nota.
-      expect((await uno<{ r: { ok: boolean } }>(tx, `select public.resolver_pago(${devuelto.id}, '${IDS.asesorA}', 'devuelto') as r`)).r.ok).toBe(false);
-      expect((await uno<{ r: { ok: boolean } }>(tx, `select public.resolver_pago(${devuelto.id}, '${IDS.gerencia}', 'Devuelto en MP el 20/11') as r`)).r.ok).toBe(true);
+      expect((await uno<{ r: { ok: boolean } }>(tx, `select public.resolver_pago(${devuelto.id}, '${IDS.asesorA}', 'devuelto', 'devuelto') as r`)).r.ok).toBe(false);
+      expect((await uno<{ r: { ok: boolean } }>(tx, `select public.resolver_pago(${devuelto.id}, '${IDS.gerencia}', 'Devuelto en MP el 20/11', 'devuelto') as r`)).r.ok).toBe(true);
+      // El anticipo que quedó "para revisar" sí entró: gerencia lo CONSERVA y cuenta (completa el anticipo).
+      const retenido = await uno<{ id: number }>(tx, "select id from public.pagos where mp_pago_id = 908");
+      const r = await uno<{ r: Record<string, unknown> }>(tx, `select public.resolver_pago(${retenido.id}, '${IDS.gerencia}', 'Se queda, cuadra', 'conservar') as r`);
+      expect(r.r).toMatchObject({ ok: true, completo: true });
+      expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("anticipo");
+      // Y no se vuelve a cobrar: un nuevo anticipo es repetido.
       await crearOrden(tx, "ord_s909", "anticipo", IDS.leadA, 7_000_000);
-      expect(await registrar(tx, "ord_s909", 909, "approved", 7_000_000)).toMatchObject({ nuevo_aprobado: true });
+      expect(await registrar(tx, "ord_s909", 909, "approved", 7_000_000)).toMatchObject({ alerta: "repetido" });
+    });
+  });
+
+  it("una devolución parcial cuenta solo lo que quedó y el saldo cobra la diferencia", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 920);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_s921", "anticipo", IDS.leadA, 6_700_000);
+      await registrar(tx, "ord_s921", 921, "approved", 6_700_000);
+      // Mercado Pago devuelve 1.000.000 del anticipo (sigue "approved" con monto devuelto).
+      const r = await uno<{ r: Record<string, unknown> }>(
+        tx, "select public.registrar_pago('ord_s921', 921, 'approved', 6700000, 'COP', null, null, now(), false, 1000000) as r");
+      expect(r.r).toMatchObject({ alerta: "devolucion_parcial" });
+      await valorFinal(tx, 21_000_000, true);
+      // Saldo = 21.000.000 − 300.000 − (6.700.000 − 1.000.000) = 15.000.000
+      expect(Number((await uno<{ v: number }>(tx, `select public.monto_esperado('${IDS.leadA}', 'saldo') as v`)).v)).toBe(15_000_000);
+      // El mismo aviso otra vez no repite nada.
+      const otra = await uno<{ r: Record<string, unknown> }>(
+        tx, "select public.registrar_pago('ord_s921', 921, 'approved', 6700000, 'COP', null, null, now(), false, 1000000) as r");
+      expect(otra.r).toMatchObject({ sin_cambios: true });
+    });
+  });
+
+  it("conservar un pago para revisar como abono parcial: el siguiente cobro pide solo lo que falta", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 930);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_s931", "anticipo", IDS.leadA, 6_700_000);
+      await valorFinal(tx, 30_000_000, false); // ahora faltan 10.200.000; el cobro viejo era de 6.700.000
+      expect(await registrar(tx, "ord_s931", 931, "approved", 6_700_000)).toMatchObject({ alerta: "valor_cambio" });
+      const viejo = await uno<{ id: number }>(tx, "select id from public.pagos where mp_pago_id = 931");
+      const r = await uno<{ r: Record<string, unknown> }>(tx, `select public.resolver_pago(${viejo.id}, '${IDS.gerencia}', 'Se queda como abono', 'conservar') as r`);
+      expect(r.r).toMatchObject({ ok: true, completo: false });
+      expect(Number((await uno<{ v: number }>(tx, `select public.monto_esperado('${IDS.leadA}', 'anticipo') as v`)).v)).toBe(3_500_000);
+      await crearOrden(tx, "ord_s932", "anticipo", IDS.leadA, 3_500_000);
+      expect(await registrar(tx, "ord_s932", 932, "approved", 3_500_000)).toMatchObject({ nuevo_aprobado: true });
+      expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("anticipo");
+    });
+  });
+
+  it("no se puede conservar un pago que pasa de lo que falta", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 940);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_s941", "anticipo", IDS.leadA, 6_700_000);
+      await valorFinal(tx, 15_000_000, false); // ahora faltan 4.950.000
+      await registrar(tx, "ord_s941", 941, "approved", 6_700_000);
+      const viejo = await uno<{ id: number }>(tx, "select id from public.pagos where mp_pago_id = 941");
+      const r = await uno<{ r: Record<string, unknown> }>(tx, `select public.resolver_pago(${viejo.id}, '${IDS.gerencia}', 'quedarse', 'conservar') as r`);
+      expect(r.r).toMatchObject({ ok: false, motivo: "excede" });
     });
   });
 

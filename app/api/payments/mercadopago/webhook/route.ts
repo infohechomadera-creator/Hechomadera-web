@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
   const r = await procesarPagoMP(resourceId);
   const p = r.pago;
-  await saveWebhookEvent({
+  const registrado = await saveWebhookEvent({
     ...base,
     processed: r.ok,
     payment_id: p?.id ?? null,
@@ -85,6 +85,8 @@ export async function POST(request: Request) {
   let alerta = r.ok ? r.registro.alerta : r.alerta;
   if (!r.ok && alerta && p?.id && (await problemaYaRegistrado(p.id, r.error))) alerta = undefined;
   if (r.ok && !r.registro.ok && alerta && p?.id && (await problemaYaRegistrado(p.id, r.registro.motivo ?? "rechazado_por_la_base"))) alerta = undefined;
+  // Supabase no pudo ni guardar el aviso de un pago aprobado: el correo (que no depende de Supabase) sale igual.
+  if (!registrado && p?.status === "approved") alerta = alerta ?? "error_base";
   // Si la base falla con el mismo pago una y otra vez, Mercado Pago se cansa de reintentar: se avisa al tercer intento.
   if (!r.ok && r.error.startsWith("base:") && p?.id && p.status === "approved" && (await vecesRegistrado(p.id, r.error)) === 3) {
     alerta = "error_base";

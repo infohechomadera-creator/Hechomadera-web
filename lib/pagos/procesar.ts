@@ -19,7 +19,8 @@ export type Alerta =
   | "prueba"
   | "en_revision"
   | "error_base"
-  | "saldo_negativo";
+  | "saldo_negativo"
+  | "devolucion_parcial";
 
 export type ResultadoRegistro = {
   ok: boolean;
@@ -66,14 +67,15 @@ export async function procesarPagoMP(paymentId: string): Promise<Procesado> {
   const { data, error } = await clienteSistema().rpc("registrar_pago", {
     p_orden_id: orden,
     p_mp_pago_id: p.id,
-    // Una devolución parcial deja el pago "approved" en Mercado Pago: aquí cuenta como devuelto (no cuenta).
-    p_estado_mp: (p.transaction_amount_refunded ?? 0) > 0 && p.status === "approved" ? "refunded" : p.status,
+    p_estado_mp: p.status,
     p_monto: p.transaction_amount ?? null,
     p_moneda: p.currency_id ?? null,
     p_metodo: p.payment_method_id ?? null,
     p_detalle: p.status_detail ?? null,
     p_pagado_at: p.date_approved ?? null,
     p_modo_prueba: p.live_mode === false,
+    // Devolución total o parcial: la base cuenta solo lo que quedó (neto) y avisa.
+    p_monto_devuelto: p.transaction_amount_refunded ?? 0,
   });
   if (error) return { ok: false, reintentar: true, error: `base: ${error.code ?? "error"}`, pago: p };
   const registro = data as ResultadoRegistro;

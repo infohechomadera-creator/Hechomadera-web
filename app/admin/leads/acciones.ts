@@ -12,6 +12,7 @@ import { borrarFotosDelCliente } from "@/lib/borrado";
 import { enviarPendientes } from "@/lib/integracion/salida";
 import { leerCobroLead } from "@/lib/pagos/lead";
 import { crearOrdenId } from "@/lib/pagos/ordenes";
+import { vencerCobrosAbiertos } from "@/lib/pagos/preferencia";
 import { avisarPagoLead } from "@/lib/email-notifications";
 import { ESTADOS_A_MANO, UUID, esEstadoAMano, validarNota, validarProximoContacto } from "@/lib/leads";
 
@@ -94,6 +95,8 @@ const MOTIVO_BASE: Record<string, string> = {
   estado: "Ese cambio no aplica al estado actual del lead.",
   datos: "Revisa los datos e intenta de nuevo.",
   no_existe: "No encontramos ese lead.",
+  no_conservable: "Ese pago no se puede conservar: no es el pago que el lead espera, es de prueba o el lead está cerrado. Devuélvelo.",
+  excede: "Ese pago es mayor que lo que falta. Devuelve la diferencia en Mercado Pago; cuando Mercado Pago lo avise, podrás conservar el resto.",
   saldo_cero: "Con ese valor medido no queda saldo: el cliente ya pagó eso o más. Si hay que devolver, hazlo en Mercado Pago.",
   anticipo_cero: "Con ese valor final el anticipo (35% menos el diseño) no da nada que cobrar. Revisa el valor.",
 };
@@ -171,6 +174,7 @@ export async function noAprobo(leadId: string, renderEntregado: boolean): Promis
   if (lead?.pago_estado !== "diseno" || !["diseno_pagado", "propuesta_enviada"].includes(lead.estado)) {
     return { ok: false, error: "'No aprobó' aplica solo cuando el cliente pagó el diseño y no ha pagado el anticipo." };
   }
+  await vencerCobrosAbiertos(leadId);
   if (!(await borrarFotosDelCliente(leadId))) return { ok: false, error: "No se pudieron borrar las fotos. Intenta de nuevo." };
   const r = await llamarBase("borrar_datos_cliente", { p_lead: leadId, p_autor: s.uid, p_motivo: "no_aprobo" });
   if (!r.ok) return r;
@@ -190,6 +194,7 @@ export async function borrarCliente(leadId: string, confirmacion: string): Promi
   if (!s) return SESION_VENCIDA;
   if (s.rol !== "gerencia") return { ok: false, error: "Solo gerencia borra clientes." };
   if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
+  await vencerCobrosAbiertos(leadId);
   if (!(await borrarFotosDelCliente(leadId))) return { ok: false, error: "No se pudieron borrar las fotos. Intenta de nuevo." };
   const r = await llamarBase("borrar_datos_cliente", { p_lead: leadId, p_autor: s.uid, p_motivo: "borrar" });
   if (!r.ok) return r;
@@ -200,9 +205,14 @@ export async function borrarCliente(leadId: string, confirmacion: string): Promi
   return { ok: true, borrado };
 }
 
-/** Solo gerencia: marca resuelto un pago para revisar o devuelto (ya se devolvió, se cobró la diferencia…). */
-export async function resolverPago(leadId: string, pagoId: number, nota: string): Promise<Resultado> {
+/**
+ * Solo gerencia: resuelve un pago para revisar o devuelto. `resultado`:
+ *  - "devuelto": se le devolvió TODO al cliente en Mercado Pago; no cuenta.
+ *  - "conservar": la plata se queda y cuenta como abono de su tipo (la base no deja pasar de lo que falta).
+ */
+export async function resolverPago(leadId: string, pagoId: number, nota: string, resultado: "devuelto" | "conservar"): Promise<Resultado> {
   if (typeof leadId !== "string" || !UUID.test(leadId) || !Number.isSafeInteger(pagoId)) return NO_ENCONTRADO;
+  if (resultado !== "devuelto" && resultado !== "conservar") return { ok: false, error: "Elige si se devolvió o se conserva." };
   const limpia = typeof nota === "string" ? nota.trim() : "";
   if (limpia.length < 3 || limpia.length > 300) return { ok: false, error: "Escribe cómo se resolvió (3 a 300 caracteres)." };
   const s = await conSesion();
@@ -211,7 +221,8 @@ export async function resolverPago(leadId: string, pagoId: number, nota: string)
   if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
   const { data: pago } = await s.supabase.from("pagos").select("id").eq("id", pagoId).eq("lead_id", leadId).maybeSingle();
   if (!pago) return NO_ENCONTRADO;
-  const r = await llamarBase("resolver_pago", { p_pago_id: pagoId, p_autor: s.uid, p_nota: limpia });
+  const r = await llamarBase("resolver_pago", { p_pago_id: pagoId, p_autor: s.uid, p_nota: limpia, p_resultado: resultado });
+  if (r.ok && resultado === "conservar" && r.datos?.completo) await enviarPendientes({ leadId });
   if (r.ok) refrescar(leadId);
   return r.ok ? { ok: true } : r;
 }

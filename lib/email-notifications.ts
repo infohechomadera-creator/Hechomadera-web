@@ -370,6 +370,7 @@ const MOTIVO_ALERTA: Record<string, string> = {
   en_revision: "Llegó un pago en un lead que tiene otro pago devuelto sin resolver. No se contó: revisar.",
   error_base: "La base no pudo registrar un pago después de varios intentos. Revisar YA en Mercado Pago y en Supabase.",
   saldo_negativo: "Operflow informó un valor ajustado que no deja saldo: hay que devolver la diferencia al cliente.",
+  devolucion_parcial: "Mercado Pago devolvió una parte de un pago. Cuenta solo lo que quedó; el siguiente cobro pide la diferencia.",
 };
 
 export async function avisarPagoParaRevisar({

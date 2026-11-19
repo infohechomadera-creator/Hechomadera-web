@@ -20,7 +20,8 @@ function consulta(tabla: string) {
     order: () => q,
     returns: () => q,
     limit: (n: number) => ((limite = n), q),
-    eq: (c: string, v: unknown) => (filtros.push((f) => f[c] === v), q),
+    eq: (c: string, v: unknown) =>
+      (filtros.push((f) => (c.includes(".") ? (f[c.split(".")[0]] as Fila | undefined)?.[c.split(".")[1]] : f[c]) === v), q),
     lte: (c: string, v: string) => (filtros.push((f) => String(f[c]) <= v), q),
     in: (c: string, v: unknown[]) => (filtros.push((f) => v.includes(f[c])), q),
     update: (c: Fila) => ((cambios = c), q),
@@ -35,7 +36,7 @@ function consulta(tabla: string) {
       if (tabla === "mensajes_operflow" && filas.some((x) => x.lead_id === f.lead_id && x.mensaje === f.mensaje && f.mensaje !== "C")) {
         return { data: null, error: { code: "23505" } };
       }
-      filas.push({ id: siguienteId++, estado: "pendiente", intentos: 0, proximo_intento_at: "2000-01-01", ...f });
+      filas.push({ id: siguienteId++, estado: "pendiente", intentos: 0, proximo_intento_at: "2000-01-01", leads: { es_prueba: true }, ...f });
       return { data: null, error: null };
     }
     const elegidas = filas.filter((f) => filtros.every((p) => p(f))).slice(0, limite);
@@ -62,7 +63,7 @@ beforeEach(() => {
   tablas.leads = [{ id: LEAD, producto: "cocina", ciudad: "Barranquilla", rango_min: 1, rango_max: 2, configuracion: {}, asesor_id: null, clientes: null, archivos: [] }];
   tablas.pagos = [];
   tablas.actividades = [];
-  tablas.mensajes_operflow = [{ id: 1, lead_id: LEAD, mensaje: "A", pago_id: null, estado: "pendiente", intentos: 0, proximo_intento_at: "2000-01-01" }];
+  tablas.mensajes_operflow = [{ id: 1, lead_id: LEAD, mensaje: "A", pago_id: null, estado: "pendiente", intentos: 0, proximo_intento_at: "2000-01-01", leads: { es_prueba: true } }];
   llamadas = [];
   alResponder = null;
   vi.stubEnv("OPERFLOW_URL", "https://operflow.test");
@@ -106,7 +107,7 @@ describe("bandeja de salida a Operflow", () => {
   });
 
   it("un pago (C) no sale antes de que el proyecto (A) exista en Operflow", async () => {
-    tablas.mensajes_operflow = [{ id: 2, lead_id: LEAD, mensaje: "C", pago_id: 9, estado: "pendiente", intentos: 0, proximo_intento_at: "2000-01-01" }];
+    tablas.mensajes_operflow = [{ id: 2, lead_id: LEAD, mensaje: "C", pago_id: 9, estado: "pendiente", intentos: 0, proximo_intento_at: "2000-01-01", leads: { es_prueba: true } }];
     const { enviarPendientes } = await import("@/lib/integracion/salida");
     await enviarPendientes({ leadId: LEAD });
     expect(llamadas).toHaveLength(0);
@@ -126,12 +127,30 @@ describe("el borrado (E) sí sale aunque el A no haya quedado 'enviado'", () => 
 
   it("A fallido que alguna vez tuvo respuesta → el E se envía; un C no", async () => {
     tablas.mensajes_operflow = [
-      { id: 1, lead_id: LEAD, mensaje: "A", pago_id: null, estado: "cancelado", intentos: 0, respuesta_http: 0, proximo_intento_at: "2000-01-01" },
-      { id: 2, lead_id: LEAD, mensaje: "C", pago_id: 9, estado: "pendiente", intentos: 0, respuesta_http: null, proximo_intento_at: "2000-01-01" },
-      { id: 3, lead_id: LEAD, mensaje: "E", pago_id: null, estado: "pendiente", intentos: 0, respuesta_http: null, proximo_intento_at: "2000-01-01" },
+      { id: 1, lead_id: LEAD, mensaje: "A", pago_id: null, estado: "cancelado", intentos: 0, respuesta_http: 0, proximo_intento_at: "2000-01-01", leads: { es_prueba: true } },
+      { id: 2, lead_id: LEAD, mensaje: "C", pago_id: 9, estado: "pendiente", intentos: 0, respuesta_http: null, proximo_intento_at: "2000-01-01", leads: { es_prueba: true } },
+      { id: 3, lead_id: LEAD, mensaje: "E", pago_id: null, estado: "pendiente", intentos: 0, respuesta_http: null, proximo_intento_at: "2000-01-01", leads: { es_prueba: true } },
     ];
     const { enviarPendientes } = await import("@/lib/integracion/salida");
     await enviarPendientes({ leadId: LEAD });
     expect(llamadas).toEqual([`https://operflow.test/api/v1/proyectos/${encodeURIComponent(`lead_${LEAD}`)}/eliminar`]);
+  });
+});
+
+describe("tercer refuerzo de la bandeja", () => {
+  it("si el E ya había salido y luego el A creó el proyecto, el E vuelve a quedar pendiente", async () => {
+    tablas.mensajes_operflow.push({ id: 5, lead_id: LEAD, mensaje: "E", pago_id: null, estado: "enviado", intentos: 1, proximo_intento_at: "2000-01-01", leads: { es_prueba: true } });
+    const { enviarPendientes } = await import("@/lib/integracion/salida");
+    alResponder = () => Object.assign(tablas.mensajes_operflow[0], { estado: "cancelado" });
+    await enviarPendientes({ leadId: LEAD, limite: 1 });
+    expect(tablas.mensajes_operflow.find((m) => m.mensaje === "E")).toMatchObject({ estado: "pendiente" });
+  });
+
+  it("en producción no se envían mensajes de leads de prueba", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    const { enviarPendientes } = await import("@/lib/integracion/salida");
+    await enviarPendientes({ leadId: LEAD });
+    expect(llamadas).toHaveLength(0);
+    expect(tablas.mensajes_operflow[0].estado).toBe("pendiente");
   });
 });

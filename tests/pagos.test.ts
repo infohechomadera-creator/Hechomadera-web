@@ -163,3 +163,16 @@ describe("no se ofrece cobro con un pago en revisión o sin precios reales", () 
     expect(siguienteCobro({ ...base, sin_precios: true }, tabla, nada)).toEqual({ ok: false, motivo: "sin_precios" });
   });
 });
+
+describe("abonos netos (igual que monto_esperado en la base)", () => {
+  it("lo pagado se cuenta neto de devoluciones", () => {
+    expect(sumarPagado([{ tipo: "anticipo", monto: 6_700_000, cuenta: true, monto_devuelto: 1_000_000 }])).toEqual({ diseno: 0, anticipo: 5_700_000, saldo: 0 });
+  });
+  it("cada cobro pide solo lo que falta de su tipo", () => {
+    const pagado = { diseno: 300000, anticipo: 6_700_000, saldo: 0 };
+    // Anticipo con un abono ya conservado: 35% de 30.000.000 − 300.000 − 6.700.000 = 3.500.000
+    expect(siguienteCobro({ ...base, pago_estado: "diseno", valor_final: 30_000_000 }, tabla, pagado)).toEqual({ ok: true, tipo: "anticipo", monto: 3_500_000 });
+    // Saldo después de una devolución parcial del anticipo: 21.000.000 − 300.000 − 5.700.000
+    expect(siguienteCobro({ ...base, pago_estado: "anticipo", valor_final_medido: 21_000_000 }, tabla, { diseno: 300000, anticipo: 5_700_000, saldo: 0 })).toEqual({ ok: true, tipo: "saldo", monto: 15_000_000 });
+  });
+});

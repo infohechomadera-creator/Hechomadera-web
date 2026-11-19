@@ -58,12 +58,13 @@ export function montoDiseno(tabla: Pick<TablaPrecios, "valor_diseno">, producto:
   return Number.isInteger(v) && v > 0 ? v : 0;
 }
 
-export function montoAnticipo(valorFinal: number, anticipoPct: number, disenoPagado: number): number {
-  return Math.round((valorFinal * anticipoPct) / 100) - disenoPagado;
+/** Anticipo que falta: pct del valor final − lo ya pagado de diseño y de anticipo (neto). */
+export function montoAnticipo(valorFinal: number, anticipoPct: number, yaPagado: number): number {
+  return Math.round((valorFinal * anticipoPct) / 100) - yaPagado;
 }
 
 export function montoSaldo(valorMedido: number, pagado: Pagado): number {
-  return valorMedido - pagado.diseno - pagado.anticipo;
+  return valorMedido - pagado.diseno - pagado.anticipo - pagado.saldo;
 }
 
 export function siguienteCobro(
@@ -81,10 +82,11 @@ export function siguienteCobro(
 
   switch (lead.pago_estado) {
     case "nada":
-      return conMonto("diseno", montoDiseno(tabla, lead.producto));
+      // Cada cobro pide lo que falta de su tipo (abonos netos), igual que monto_esperado() en la base.
+      return conMonto("diseno", montoDiseno(tabla, lead.producto) - pagado.diseno);
     case "diseno":
       if (!lead.valor_final) return { ok: false, motivo: "espera_propuesta" };
-      return conMonto("anticipo", montoAnticipo(lead.valor_final, tabla.anticipo_pct, pagado.diseno));
+      return conMonto("anticipo", montoAnticipo(lead.valor_final, tabla.anticipo_pct, pagado.diseno + pagado.anticipo));
     case "anticipo":
       if (!lead.valor_final_medido) return { ok: false, motivo: "espera_medidas" };
       return conMonto("saldo", montoSaldo(lead.valor_final_medido, pagado));
@@ -94,8 +96,9 @@ export function siguienteCobro(
 }
 
 /** Suma lo pagado por tipo a partir de las filas de `pagos` que cuentan. */
-export function sumarPagado(filas: { tipo: string; monto: number; cuenta: boolean }[]): Pagado {
+/** Lo pagado NETO por tipo (monto − lo devuelto) de los pagos que cuentan. */
+export function sumarPagado(filas: { tipo: string; monto: number; cuenta: boolean; monto_devuelto?: number | null }[]): Pagado {
   const p: Pagado = { diseno: 0, anticipo: 0, saldo: 0 };
-  for (const f of filas) if (f.cuenta && f.tipo in p) p[f.tipo as TipoCobro] += Number(f.monto);
+  for (const f of filas) if (f.cuenta && f.tipo in p) p[f.tipo as TipoCobro] += Number(f.monto) - Number(f.monto_devuelto ?? 0);
   return p;
 }

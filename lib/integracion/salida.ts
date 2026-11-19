@@ -19,7 +19,14 @@ const VIDA_FOTOS_SEG = 900;
 
 export const idExterno = (leadId: string) => `lead_${leadId}`;
 
-type Mensaje = { id: number; lead_id: string; mensaje: "A" | "C" | "E"; pago_id: number | null; intentos: number };
+type Mensaje = {
+  id: number;
+  lead_id: string;
+  mensaje: "A" | "C" | "E";
+  pago_id: number | null;
+  intentos: number;
+  leads?: { es_prueba: boolean } | null;
+};
 
 export type LeadParaA = {
   id: string;
@@ -157,10 +164,19 @@ export async function enviarPendientes({ leadId, forzar = false, limite = 20 }: 
   if (forzar && leadId) {
     await db.from("mensajes_operflow").update({ estado: "pendiente", intentos: 0 }).eq("lead_id", leadId).eq("estado", "fallido");
   }
-  let q = db.from("mensajes_operflow").select("id, lead_id, mensaje, pago_id, intentos").eq("estado", "pendiente").order("id").limit(limite);
+  let q = db
+    .from("mensajes_operflow")
+    .select("id, lead_id, mensaje, pago_id, intentos, leads!inner(es_prueba)")
+    .eq("estado", "pendiente")
+    .order("id")
+    .limit(limite);
+  // Cada entorno envía solo lo suyo: producción los leads reales; la vista previa y local, los de prueba.
+  const produccion = process.env.VERCEL_ENV === "production";
+  q = q.eq("leads.es_prueba", !produccion);
   if (leadId) q = q.eq("lead_id", leadId);
   if (!forzar) q = q.lte("proximo_intento_at", ahora);
-  const { data: mensajes } = await q.returns<Mensaje[]>();
+  const { data: todos } = await q.returns<Mensaje[]>();
+  const mensajes =(todos ?? []).filter((m) => Boolean(m.leads?.es_prueba) !== produccion); // doble seguro
   const resultado = { enviados: 0, pendientes: 0, fallidos: 0, conectado: true };
   if (!mensajes?.length) return resultado;
 
@@ -226,8 +242,16 @@ export async function enviarPendientes({ leadId, forzar = false, limite = 20 }: 
     if (!actualizado?.length) {
       // Se canceló durante el envío. Si el proyecto alcanzó a crearse en Operflow, hay que pedir que lo borre.
       if (m.mensaje === "A" && d.estado === "enviado") {
-        // Si ya existe un E para este lead, la base lo rechaza por repetido (23505) y no pasa nada.
-        await db.from("mensajes_operflow").insert({ lead_id: m.lead_id, mensaje: "E" });
+        // Si ya había un E (pudo salir antes de que Operflow terminara de crear el proyecto y recibir 404),
+        // se vuelve a poner pendiente para que salga otra vez, ahora que el proyecto sí existe.
+        const { error: yaHabia } = await db.from("mensajes_operflow").insert({ lead_id: m.lead_id, mensaje: "E" });
+        if (yaHabia) {
+          await db
+            .from("mensajes_operflow")
+            .update({ estado: "pendiente", proximo_intento_at: new Date().toISOString(), ultimo_error: "Reenviar: el proyecto se creó después del primer borrado" })
+            .eq("lead_id", m.lead_id)
+            .eq("mensaje", "E");
+        }
       }
       continue;
     }

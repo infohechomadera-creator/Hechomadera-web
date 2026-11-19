@@ -77,3 +77,40 @@ export async function crearPreferencia(args: {
   if (!url || !url.startsWith("https://")) return { ok: false, status: 502, error: "Mercado Pago no devolvió el enlace de pago." };
   return { ok: true, preferenciaId: data.id ?? null, url };
 }
+
+/**
+ * Vence en Mercado Pago los cobros abiertos (últimas 25 h) de todos los leads del cliente de este lead.
+ * Se usa al marcar "No aprobó" o "Borrar cliente": así el cliente ya no puede pagar un enlace viejo.
+ * Si Mercado Pago falla, no frena el borrado: la base igual deja cualquier pago que llegue "para revisar".
+ */
+export async function vencerCobrosAbiertos(leadId: string): Promise<void> {
+  const token = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  if (!token) return;
+  const { clienteSistema } = await import("@/lib/supabase/servidor");
+  const db = clienteSistema();
+  const { data: lead } = await db.from("leads").select("cliente_id").eq("id", leadId).maybeSingle<{ cliente_id: string }>();
+  if (!lead) return;
+  const { data: leads } = await db.from("leads").select("id").eq("cliente_id", lead.cliente_id).returns<{ id: string }[]>();
+  const desde = new Date(Date.now() - 25 * 3600_000).toISOString();
+  const { data: ordenes } = await db
+    .from("ordenes")
+    .select("id, preferencia_id")
+    .in("lead_id", (leads ?? []).map((l) => l.id))
+    .in("estado", ["creada", "pendiente", "rechazada"])
+    .not("preferencia_id", "is", null)
+    .gte("creado_at", desde)
+    .returns<{ id: string; preferencia_id: string }[]>();
+  for (const o of ordenes ?? []) {
+    try {
+      const res = await fetch(`https://api.mercadopago.com/checkout/preferences/${encodeURIComponent(o.preferencia_id)}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ expires: true, expiration_date_to: fechaMP(new Date(Date.now() - 60_000)) }),
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!res.ok) console.error("[preferencia] no se pudo vencer el cobro", o.id, res.status);
+    } catch {
+      console.error("[preferencia] no se pudo vencer el cobro", o.id);
+    }
+  }
+}

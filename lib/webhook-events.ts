@@ -30,7 +30,8 @@ export type WebhookEventSummary = {
 
 const corto = (v: string | null | undefined, n: number) => (v == null ? null : String(v).slice(0, n));
 
-export async function saveWebhookEvent(r: WebhookEventRecord): Promise<void> {
+/** Guarda el aviso. Devuelve false si no se pudo (por ejemplo, Supabase caído). */
+export async function saveWebhookEvent(r: WebhookEventRecord): Promise<boolean> {
   try {
     const { error } = await clienteSistema()
       .from("eventos_pago")
@@ -46,8 +47,10 @@ export async function saveWebhookEvent(r: WebhookEventRecord): Promise<void> {
         recibido_at: r.received_at,
       });
     if (error) console.error("[eventos_pago] no se pudo registrar", error.code);
+    return !error;
   } catch {
     // El registro nunca debe tumbar el webhook.
+    return false;
   }
 }
 
