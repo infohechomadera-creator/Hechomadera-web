@@ -11,7 +11,7 @@
 | Upstash Redis | (Antes: órdenes y límites de intentos) | **Retirado el 2026-11-19**: Upstash borró la base; los límites viven en Supabase |
 | Vercel Analytics | Métricas básicas | Activo |
 | Supabase (de la web), proyecto Hechomadera, ref `seazgghpynhflxvrjpee` | Leads, CRM, usuarios, fotos, precios | Activo (plan gratis) |
-| API de Anthropic | Agente de IA | **Por crear en W6** (tope de gasto aprobado) |
+| API de Anthropic | Agente de IA (modelo `claude-haiku-5-5`, API de Mensajes, SDK `@anthropic-ai/sdk` 1.5.0 fijo) | Código listo (W6); **cuenta, llave y tope mensual por crear por Alberto** en https://platform.claude.com. Apagar: `AGENTE_IA_ACTIVO=false` o quitar la llave |
 
 ## Variables de entorno (solo nombres; ver `.env.example`)
 - Sitio: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_WHATSAPP_PHONE`, `NEXT_PUBLIC_PROMO_*`.
@@ -21,6 +21,8 @@
 - Admin: `ADMIN_API_TOKEN` y `ADMIN_PASSWORD` **obsoletos** desde W1 (login con Supabase). Quitarlos de Vercel tras pasar a producción.
 - Supabase: `NEXT_PUBLIC_SUPABASE_URL` (`https://seazgghpynhflxvrjpee.supabase.co`), `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`.
 - W5: `CRON_SECRET` (tarea diaria de reintentos; por crear en Vercel), `MERCADOPAGO_WEBHOOK_ENFORCE=true` recomendado en producción. Las credenciales de Mercado Pago hoy son las mismas en todos los entornos.
+- W6 (agente): `ANTHROPIC_API_KEY` (tipo Secret; también deriva la firma del historial) y `AGENTE_IA_ACTIVO` (`true` para encender). Sin los dos, el botón no aparece y `/api/configurador/agente` responde 503. Pendiente agregarlas sin valor a `.env.example`.
+- Agente, topes: 40 mensajes por IP por hora, 1.500 llamadas por día en todo el sitio, 30 mensajes y 60.000 caracteres por conversación, 50 s y 5 vueltas por mensaje. Código en `lib/agente/` y `components/configurador/Agente.tsx`.
 - Futuras (contrato, cuando exista O3): `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
 
 ## Dónde está cada cosa en el código

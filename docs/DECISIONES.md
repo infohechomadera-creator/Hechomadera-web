@@ -148,3 +148,22 @@
 - **Alberto decidió saltar el pago de prueba de punta a punta** en la vista previa: la conexión con Mercado Pago ya estaba confirmada y funcionando desde antes. Motivo: decisión de Alberto.
 - Riesgo que queda: el cobro por lead y el webhook reescrito no han corrido aún contra Mercado Pago real; el primer pago real será la prueba. Si algo no cuadra, el pago no cuenta y llega correo a gerencia (`avisarPagoParaRevisar`).
 - No hace falta la credencial de prueba en Vercel. El código ya decide el modo de prueba por entorno (credenciales nuevas `APP_USR-`), por si se quiere probar después.
+
+
+## 2026-11-19 · W6 agente de IA en el configurador: decisiones y acciones
+- **Modelo `claude-haiku-5-5`** (el más barato, ~US$0,01 por conversación). Lo eligió Alberto.
+- **API de Mensajes con herramientas propias, no Managed Agents.** Motivo: no hace falta un contenedor; Managed Agents guarda el historial en Anthropic (choca con "no guardar") y cobra tiempo de sesión.
+- **No se guarda la conversación** (decisión de Alberto): vive solo en el navegador y no se registra en logs.
+- **El agente pide nombre y celular** (decisión de Alberto). Al guardarlos en el formulario se borran de toda la conversación. La autorización y "Enviar" siempre los pulsa el cliente.
+- **La IA no inventa precios:** nunca ve la tabla ni el rango (`calcular_rango` responde "mostrado en pantalla"); `quitarPrecios` cambia cualquier texto suyo con dinero (incluye palos, lucas, k, M); las cifras del cliente se tapan con `[cifra]`; el rango sale de `calcularRango` y el lead lo crea solo `/api/configurador/lead`, que recalcula.
+- **Topes de gasto:** historial firmado con HMAC (clave derivada de `ANTHROPIC_API_KEY`), 60.000 caracteres y 30 mensajes; 40 mensajes por IP por hora y 1.500 llamadas por día en el sitio; si no se puede contar el uso, no atiende (`siFalla=false` en `lib/limite.ts`; por defecto todo sigue igual); 50 s, sin reintentos, 5 vueltas. Thinking desactivado y esfuerzo bajo. Interruptor `AGENTE_IA_ACTIVO` + `ANTHROPIC_API_KEY`.
+- **Tope mensual en la consola de Anthropic:** lo fija Alberto (sugerido US$10).
+- **Riesgos aceptados (V1):** reenviar un historial firmado viejo para pasar de 30 mensajes (lo acotan el tope por IP y el diario); ruta pública sin control de origen (acotada por los límites).
+- **Por confirmar:** que Haiku 5.5 acepte `thinking: disabled` y `output_config.effort: low` (se verá en la prueba real). Abogado (Ley 1581): nombre y celular llegan a Anthropic (proveedor fuera de Colombia) antes de marcar la autorización y el texto de autorización y la política no mencionan la IA; alternativa: que el agente no pida contacto.
+- Validador 2 pasadas, 11 hallazgos corregidos; auditor sin violaciones graves. SDK fijado en 1.5.0 (más de 2 semanas de antigüedad). Etiqueta `respaldo-2026-11-19-w6-agente`; etiqueta `hito-6`.
+- `.claude/launch.json` tiene la configuración "web-agente-pantalla" con una llave FALSA solo para ver la pantalla en local. Nunca poner ahí una llave real.
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| API de Anthropic | Servicio nuevo; la cuenta la crea Alberto. En esta sesión no se creó cuenta ni llave | `AGENTE_IA_ACTIVO=false` o quitar `ANTHROPIC_API_KEY` en Vercel (el botón desaparece) y revocar la llave en la consola |
+| Supabase, Vercel, Operflow | No se tocó nada; sin migraciones | No aplica |
