@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Configurador, type OpcionesCiudad } from "@/components/configurador/Configurador";
 import { obtenerPrecios } from "@/lib/precios/fuente";
 import { CIUDADES_ACTIVAS } from "@/lib/precios/tipos";
+import { agenteActivo } from "@/lib/agente/conversar";
 
 // Las opciones salen de la tabla de precios de Supabase; se regenera cada 5 minutos.
 export const revalidate = 300;
@@ -28,7 +29,7 @@ export default async function ConfigurarPage() {
     <div className="mx-auto max-w-3xl px-4 py-8 md:px-6 md:py-12">
       <h1 className="font-display text-3xl font-semibold text-ink md:text-4xl">Configura tu cocina</h1>
       <div className="mt-6">
-        <Configurador ciudades={[...CIUDADES_ACTIVAS]} opciones={opciones} />
+        <Configurador ciudades={[...CIUDADES_ACTIVAS]} opciones={opciones} agente={agenteActivo()} />
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { ELECTRODOMESTICOS, type Electrodomestico } from "@/lib/configurador/val
 import { AUTORIZACION_TEXTO, AUTORIZACION_VERSION } from "@/lib/configurador/autorizacion";
 import { MAX_BYTES_TOTAL } from "@/lib/configurador/fotos";
 import { reducirFoto } from "./reducirFoto";
+import { Agente, type CambiosAgente } from "./Agente";
 
 /** Opciones de cada ciudad (de su tabla de precios), sin montos: los montos los calcula el servidor. */
 export type OpcionesCiudad = Record<CiudadActiva, { colores: { id: string; nombre: string }[]; herrajes: { id: string; nombre: string }[] }>;
@@ -90,7 +91,20 @@ const aMm = (texto: string): number | null => {
 type Rango = { min: number; max: number; ciudad: string };
 type Foto = { blob: Blob; url: string };
 
-export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[]; opciones: OpcionesCiudad }) {
+/** 3.2 → "3,2" (como lo escribe el cliente). */
+const aTexto = (metros: number) => String(metros).replace(".", ",");
+
+export function Configurador({
+  ciudades,
+  opciones,
+  agente = false,
+}: {
+  ciudades: CiudadActiva[];
+  opciones: OpcionesCiudad;
+  /** Muestra el botón del asistente de IA (W6). */
+  agente?: boolean;
+}) {
+  const [chat, setChat] = useState<"cerrado" | "abierto" | "minimizado">("cerrado");
   const [paso, setPaso] = useState(0);
   const [ciudad, setCiudadEstado] = useState<CiudadActiva>(ciudades[0]);
   const [forma, setForma] = useState<Forma | null>(null);
@@ -167,6 +181,63 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
     } finally {
       setOcupado(false);
     }
+  }
+
+  /** Lo que el asistente necesita saber del formulario (sin nombre ni celular). */
+  const estadoAgente = () => {
+    const medidas_m: Record<string, number> = {};
+    for (const [campo, valor] of Object.entries(medidas)) {
+      const mm = aMm(valor ?? "");
+      if (mm !== null && mm > 0) medidas_m[campo] = mm / 1000;
+    }
+    return {
+      ciudad,
+      forma,
+      diseno,
+      color,
+      herrajes,
+      electrodomesticos: electro,
+      medidas_m,
+      tiene_contacto: contacto.nombre.trim().length >= 2 && contacto.telefono.replace(/\D/g, "").length >= 7,
+    };
+  };
+
+  /** Pone en el formulario lo que llenó el asistente y lleva al paso que sigue. */
+  function aplicarAgente({ estado: e, rango: r, contacto: c }: CambiosAgente) {
+    if (!e) return;
+    const antes = JSON.stringify([ciudad, forma, diseno, color, herrajes, medidasMm]);
+    const nuevasMedidas = Object.fromEntries(Object.entries(e.medidas_m).map(([k, v]) => [k, aTexto(v as number)]));
+    const paredesNuevas = e.forma ? PAREDES[e.forma] : [];
+    const medidasNuevasMm = Object.fromEntries(paredesNuevas.map((p) => [p.campo, aMm(nuevasMedidas[p.campo] ?? "")]));
+    const cambio = antes !== JSON.stringify([e.ciudad, e.forma, e.diseno, e.color, e.herrajes, medidasNuevasMm]);
+
+    setCiudadEstado(e.ciudad);
+    setForma(e.forma);
+    setDiseno(e.diseno);
+    setColor(e.color);
+    setHerrajes(e.herrajes);
+    setElectro(e.electrodomesticos);
+    setMedidas(nuevasMedidas);
+    if (r) setRango(r);
+    else if (cambio) setRango(null);
+    if (c) setContacto({ nombre: c.nombre, telefono: c.telefono, email: c.email ?? "" });
+
+    let destino: number | null = null;
+    if (c) destino = P["Tus datos"];
+    else if (r) destino = P["Tu rango"];
+    else if (cambio) {
+      if (!e.forma) destino = P.Forma;
+      else if (!e.diseno) destino = P.Diseño;
+      else if (!e.color) destino = P.Colores;
+      else if (!e.herrajes) destino = P.Herrajes;
+      else destino = P.Medidas;
+    }
+    if (destino !== null) {
+      setError(null);
+      setPaso(destino);
+    }
+    // En el celular, al llegar a "Tus datos" se baja el chat para que el cliente vea la autorización y el botón Enviar.
+    if (c) setChat("minimizado");
   }
 
   async function agregarFotos(lista: FileList | null) {
@@ -270,7 +341,30 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
   const esUltimo = paso === P["Tus datos"];
 
   return (
-    <div className="pb-28">
+    <div className={chat === "abierto" ? "pb-[60dvh] md:pb-28" : "pb-28"}>
+      {agente && chat === "cerrado" && (
+        <div className="mb-6 flex flex-col gap-3 border border-neutral-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-ink">
+            ¿Prefieres conversar? Nuestro asistente con IA te hace las preguntas y llena el formulario por ti.
+          </p>
+          <button
+            type="button"
+            className="shrink-0 border border-ink px-4 py-2 text-sm font-medium text-ink hover:bg-ink hover:text-paper"
+            onClick={() => setChat("abierto")}
+          >
+            Prefiero conversar
+          </button>
+        </div>
+      )}
+      {agente && chat !== "cerrado" && (
+        <Agente
+          estado={estadoAgente()}
+          onCambios={aplicarAgente}
+          minimizado={chat === "minimizado"}
+          onMinimizar={(v) => setChat(v ? "minimizado" : "abierto")}
+          onCerrar={() => setChat("cerrado")}
+        />
+      )}
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
           Paso {paso + 1} de {PASOS.length} · {PASOS[paso]}
