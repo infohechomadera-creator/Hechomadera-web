@@ -12,6 +12,7 @@ import { borrarFotosDelCliente } from "@/lib/borrado";
 import { enviarPendientes } from "@/lib/integracion/salida";
 import { leerCobroLead } from "@/lib/pagos/lead";
 import { crearOrdenId } from "@/lib/pagos/ordenes";
+import { avisarPagoLead } from "@/lib/email-notifications";
 import { ESTADOS_A_MANO, UUID, esEstadoAMano, validarNota, validarProximoContacto } from "@/lib/leads";
 
 export type Resultado = { ok: true } | { ok: false; error: string };
@@ -93,6 +94,7 @@ const MOTIVO_BASE: Record<string, string> = {
   estado: "Ese cambio no aplica al estado actual del lead.",
   datos: "Revisa los datos e intenta de nuevo.",
   no_existe: "No encontramos ese lead.",
+  anticipo_cero: "Con ese valor final el anticipo (35% menos el diseño) no da nada que cobrar. Revisa el valor.",
 };
 
 async function leadVisible(s: NonNullable<Awaited<ReturnType<typeof conSesion>>>, leadId: string): Promise<boolean> {
@@ -108,7 +110,7 @@ async function llamarBase(fn: string, args: Record<string, unknown>): Promise<Re
 }
 
 /** Solo gerencia: registra a mano el siguiente pago (p. ej. transferencia). El valor lo calcula el servidor. */
-export async function marcarPagoManual(leadId: string, nota: string): Promise<Resultado> {
+export async function marcarPagoManual(leadId: string, nota: string, montoVisto: number): Promise<Resultado> {
   if (typeof leadId !== "string" || !UUID.test(leadId)) return NO_ENCONTRADO;
   const limpia = typeof nota === "string" ? nota.trim() : "";
   if (limpia.length < 3 || limpia.length > 300) return { ok: false, error: "Escribe cómo pagó (3 a 300 caracteres), por ejemplo: transferencia Bancolombia 19/11." };
@@ -118,6 +120,8 @@ export async function marcarPagoManual(leadId: string, nota: string): Promise<Re
   if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
   const info = await leerCobroLead(leadId, { porId: true });
   if (!info?.cobro.ok) return { ok: false, error: "Este lead no tiene un pago pendiente." };
+  // Lo que gerencia vio en pantalla debe ser exactamente lo que se registra.
+  if (info.cobro.monto !== montoVisto) return { ok: false, error: "El valor a pagar cambió. Recarga la página y revisa antes de registrar." };
   const r = await llamarBase("registrar_pago_manual", {
     p_lead: leadId,
     p_tipo: info.cobro.tipo,
@@ -127,8 +131,12 @@ export async function marcarPagoManual(leadId: string, nota: string): Promise<Re
     p_orden_id: crearOrdenId(),
   });
   if (!r.ok) return r;
-  if (r.datos?.repetido) return { ok: false, error: "Ese pago ya estaba registrado; quedó para revisar." };
+  if (!r.datos?.nuevo_aprobado) {
+    refrescar(leadId);
+    return { ok: false, error: "El pago quedó registrado pero NO cuenta (repetido o el valor cambió). Revísalo en el historial." };
+  }
   await enviarPendientes({ leadId });
+  await avisarPagoLead({ leadId, tipo: info.cobro.tipo, monto: info.cobro.monto }).catch(() => undefined);
   refrescar(leadId);
   return { ok: true };
 }

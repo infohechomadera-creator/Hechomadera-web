@@ -18,6 +18,7 @@ const e = vi.hoisted(() => ({
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("@/lib/sesion", () => ({ rolActual: async () => e.rol }));
 vi.mock("@/lib/precios/fechas", () => ({ hoyEnColombia: () => "2026-11-19" }));
+vi.mock("@/lib/email-notifications", () => ({ avisarPagoLead: async () => undefined }));
 vi.mock("@/lib/borrado", () => ({ borrarFotosDelCliente: async () => (e.fotosLlamadas++, e.fotosOk) }));
 vi.mock("@/lib/integracion/salida", () => ({ enviarPendientes: async () => ({ enviados: 0, pendientes: 0, fallidos: 0, conectado: false }) }));
 vi.mock("@/lib/pagos/lead", () => ({ leerCobroLead: async () => ({ leadId: LEAD, producto: "cocina", ciudad: "Barranquilla", cobro: e.cobro }) }));
@@ -46,7 +47,7 @@ beforeEach(() => {
   e.visible = true;
   e.lead = { pago_estado: "diseno", estado: "propuesta_enviada" };
   e.rpc.length = 0;
-  e.respuesta = { ok: true };
+  e.respuesta = { ok: true, nuevo_aprobado: true };
   e.fotosOk = true;
   e.fotosLlamadas = 0;
   e.cobro = { ok: true, tipo: "anticipo", monto: 6_700_000 };
@@ -55,7 +56,7 @@ beforeEach(() => {
 describe("pago a mano y valor final: solo gerencia", () => {
   it("un asesor no registra pagos, no pone valor final, no borra clientes ni reenvía", async () => {
     e.rol = "asesor";
-    expect(await marcarPagoManual(LEAD, "transferencia")).toMatchObject({ ok: false });
+    expect(await marcarPagoManual(LEAD, "transferencia", 6_700_000)).toMatchObject({ ok: false });
     expect(await ponerValorFinal(LEAD, 20_000_000, false)).toMatchObject({ ok: false });
     expect(await borrarCliente(LEAD, "BORRAR")).toMatchObject({ ok: false });
     expect(await reenviarOperflow(LEAD)).toMatchObject({ ok: false });
@@ -64,7 +65,7 @@ describe("pago a mano y valor final: solo gerencia", () => {
   });
 
   it("el pago a mano usa el tipo y el valor que calcula el servidor, a nombre de quien lo hace", async () => {
-    expect(await marcarPagoManual(LEAD, "  Transferencia Bancolombia  ")).toEqual({ ok: true });
+    expect(await marcarPagoManual(LEAD, "  Transferencia Bancolombia  ", 6_700_000)).toEqual({ ok: true });
     expect(e.rpc[0]).toMatchObject({
       fn: "registrar_pago_manual",
       args: { p_lead: LEAD, p_tipo: "anticipo", p_monto: 6_700_000, p_autor: UID, p_nota: "Transferencia Bancolombia" },
@@ -74,9 +75,9 @@ describe("pago a mano y valor final: solo gerencia", () => {
 
   it("sin pago pendiente o sin nota, no registra nada", async () => {
     e.cobro = { ok: false, motivo: "espera_propuesta" };
-    expect(await marcarPagoManual(LEAD, "transferencia")).toMatchObject({ ok: false });
+    expect(await marcarPagoManual(LEAD, "transferencia", 6_700_000)).toMatchObject({ ok: false });
     e.cobro = { ok: true, tipo: "diseno", monto: 300000 };
-    expect(await marcarPagoManual(LEAD, "  ")).toMatchObject({ ok: false });
+    expect(await marcarPagoManual(LEAD, "  ", 300000)).toMatchObject({ ok: false });
     expect(e.rpc).toHaveLength(0);
   });
 
@@ -135,5 +136,19 @@ describe("borrar cliente", () => {
     expect(await borrarCliente(LEAD, "BORRAR")).toEqual({ ok: true, borrado: true });
     expect(e.fotosLlamadas).toBe(1);
     expect(e.rpc[0]).toMatchObject({ fn: "borrar_datos_cliente", args: { p_motivo: "borrar" } });
+  });
+});
+
+describe("pago a mano: lo que se vio es lo que se registra", () => {
+  it("si el valor cambió desde que gerencia lo vio, no registra nada", async () => {
+    expect(await marcarPagoManual(LEAD, "transferencia", 6_000_000)).toMatchObject({ ok: false });
+    expect(e.rpc).toHaveLength(0);
+  });
+
+  it("si la base no lo cuenta (repetido o valor cambiado), avisa que NO cuenta", async () => {
+    e.respuesta = { ok: true, nuevo_aprobado: false, alerta: "valor_cambio" };
+    const r = await marcarPagoManual(LEAD, "transferencia", 6_700_000);
+    expect(r).toMatchObject({ ok: false });
+    expect(JSON.stringify(r)).toContain("NO cuenta");
   });
 });

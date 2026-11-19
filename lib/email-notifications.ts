@@ -353,3 +353,50 @@ export async function avisarPagoLead({ leadId, tipo, monto }: { leadId: string; 
     <a href="${SITE_URL}/admin/leads/${encodeURIComponent(leadId)}" style="display:inline-block;background:#0a0a0a;color:#fafafa;padding:10px 18px;font-size:13px;text-decoration:none;">Ver el lead</a>`),
   });
 }
+
+// ---------------------------------------------------------------------------
+// Alerta a gerencia: un pago que necesita revisión (W5). Nunca se pierde un peso sin que alguien lo vea.
+// ---------------------------------------------------------------------------
+const MOTIVO_ALERTA: Record<string, string> = {
+  monto: "Mercado Pago aprobó un pago que no cuadra con el valor cobrado. No se contó.",
+  valor_cambio: "Llegó un pago calculado con un valor que ya cambió (cobro viejo). No se contó: devolver o cobrar la diferencia.",
+  repetido: "Llegó un pago repetido o fuera de orden. No se contó: devolver si corresponde.",
+  devuelto: "Mercado Pago informa que un pago fue devuelto o tuvo contracargo. Ya no cuenta como pagado.",
+  reclamo: "Mercado Pago abrió un reclamo sobre un pago aprobado.",
+  sin_orden: "Entró un pago aprobado que no corresponde a ninguna orden de la web (pudo ser borrada). Revisar y devolver.",
+  prueba_en_produccion: "Llegó un pago de PRUEBA al sitio de producción. Se ignoró.",
+};
+
+export async function avisarPagoParaRevisar({
+  alerta,
+  mpPagoId,
+  monto,
+  leadId,
+}: {
+  alerta: string;
+  mpPagoId: number | null;
+  monto: number | null;
+  leadId?: string | null;
+}): Promise<void> {
+  const from = process.env.RESEND_FROM ?? "Hechomadera <info@hechomadera.com>";
+  const to = process.env.CONTACT_TO_EMAIL ?? "infohechomadera@gmail.com";
+  const enlace = leadId
+    ? `<a href="${SITE_URL}/admin/leads/${encodeURIComponent(leadId)}" style="display:inline-block;background:#0a0a0a;color:#fafafa;padding:10px 18px;font-size:13px;text-decoration:none;">Ver el lead</a>`
+    : `<p style="margin:0;font-size:13px;color:#404040;">Búscalo en Mercado Pago con el número de pago.</p>`;
+  await sendEmail({
+    from,
+    to: [to],
+    subject: `Revisar pago${mpPagoId ? ` ${mpPagoId}` : ""} — Hechomadera`,
+    html: `
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:24px 16px;background:#fafafa;font-family:system-ui,sans-serif;">
+  <div style="max-width:480px;margin:0 auto;background:#fff;border:1px solid #e5e5e5;padding:24px;">
+    <p style="margin:0 0 12px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#b91c1c;">Pago para revisar</p>
+    <p style="margin:0 0 12px;font-size:14px;color:#0a0a0a;">${escaparHtml(MOTIVO_ALERTA[alerta] ?? "Un pago necesita revisión.")}</p>
+    <p style="margin:0 0 16px;font-size:14px;color:#404040;">Pago de Mercado Pago: <strong>${mpPagoId ?? "—"}</strong> · Valor: <strong>${monto != null ? formatCOP(monto) : "—"}</strong></p>
+    ${enlace}
+  </div>
+</body></html>`,
+  });
+}

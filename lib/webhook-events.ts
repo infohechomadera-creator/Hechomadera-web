@@ -106,3 +106,17 @@ export function summarizeWebhookEvents(events: WebhookEventRecord[]): WebhookEve
   }
   return summary;
 }
+
+/** ¿Ya se registró antes este mismo problema para este pago? (para no repetir el correo de alerta). */
+export async function problemaYaRegistrado(mpPagoId: number, error: string): Promise<boolean> {
+  try {
+    const { count } = await clienteSistema()
+      .from("eventos_pago")
+      .select("id", { count: "exact", head: true })
+      .eq("mp_pago_id", mpPagoId)
+      .eq("error", error.slice(0, 300));
+    return (count ?? 0) > 1; // el registro de este aviso ya está guardado
+  } catch {
+    return false;
+  }
+}

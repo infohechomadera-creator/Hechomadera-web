@@ -4,6 +4,8 @@
  */
 import { beforeAll, describe, expect, it } from "vitest";
 import type { PGlite, Transaction } from "@electric-sql/pglite";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { IDS, como, crearBase, sembrarPersonas } from "./entorno";
 
 let db: PGlite;
@@ -33,13 +35,15 @@ async function crearOrden(tx: Tx, id: string, tipo: string, lead: string | null,
 const registrar = (tx: Tx, orden: string, mpId: number, estado: string, monto: number, moneda = "COP") =>
   uno<{ r: Record<string, unknown> }>(
     tx,
-    "select public.registrar_pago($1, $2, $3, $4, $5, 'visa', 'accredited', now()) as r",
+    "select public.registrar_pago($1, $2, $3, $4, $5, 'visa', 'accredited', now(), false) as r",
     [orden, mpId, estado, monto, moneda],
   ).then((x) => x.r);
 
 beforeAll(async () => {
   db = await crearBase();
   await sembrarPersonas(db);
+  // Precios de ejemplo (diseño de cocina 300.000, anticipo 35%): la base recalcula cada cobro con ellos.
+  await db.exec(readFileSync(join(process.cwd(), "supabase", "semillas", "precios_ejemplo.sql"), "utf8"));
 }, 60_000);
 
 describe("quién puede qué", () => {
@@ -47,7 +51,7 @@ describe("quién puede qué", () => {
     for (const quien of [publico, asesorA, gerencia]) {
       await expect(
         como(db, quien, (tx) =>
-          tx.query("select public.registrar_pago('ord_x1234', 1, 'approved', 300000, 'COP', null, null, now())"),
+          tx.query("select public.registrar_pago('ord_x1234', 1, 'approved', 300000, 'COP', null, null, now(), false)"),
         ),
       ).rejects.toThrow(/permission denied/);
       await expect(
@@ -254,7 +258,7 @@ describe("avisos de Operflow (mensaje B)", () => {
     await como(db, sistema, async (tx) => {
       await crearOrden(tx, "ord_ofb1", "diseno", IDS.leadA, 300000);
       await registrar(tx, "ord_ofb1", 401, "approved", 300000);
-      const aviso = `select public.registrar_aviso_operflow('${huella}', '${IDS.leadA}', 'propuesta_lista', 'p-1', 'propuesta', 'lista', 18000000, 'https://operflow.test/p/1') as r`;
+      const aviso = `select public.registrar_aviso_operflow('${huella}', '${IDS.leadA}', 'propuesta_lista', 'p-1', 'propuesta', 'lista', 18000000, 'https://operflow.test/p/1', now()) as r`;
       expect((await uno<{ r: { ok: boolean } }>(tx, aviso)).r.ok).toBe(true);
       expect(await uno(tx, "select estado, valor_final::int, operflow_proyecto_id, operflow_url_propuesta from public.leads where id = $1", [IDS.leadA])).toEqual({
         estado: "propuesta_enviada", valor_final: 18000000, operflow_proyecto_id: "p-1", operflow_url_propuesta: "https://operflow.test/p/1",
@@ -267,7 +271,7 @@ describe("avisos de Operflow (mensaje B)", () => {
   it("no toca leads que no han pagado el diseño", async () => {
     await como(db, sistema, async (tx) => {
       const r = await uno<{ r: { ok: boolean } }>(
-        tx, `select public.registrar_aviso_operflow('${"b".repeat(64)}', '${IDS.leadB}', 'entregado', null, null, null, null, null) as r`);
+        tx, `select public.registrar_aviso_operflow('${"b".repeat(64)}', '${IDS.leadB}', 'entregado', null, null, null, null, null, now()) as r`);
       expect(r.r.ok).toBe(false);
     });
   });
@@ -337,5 +341,139 @@ describe("no aprobó y borrar cliente", () => {
       await registrar(tx, "ord_bor2", 602, "approved", 300000);
       await expect(tx.query("delete from public.clientes where id = $1", [IDS.clienteA])).rejects.toThrow(/foreign key/);
     });
+  });
+});
+
+describe("refuerzo: ningún lead queda pagado con plata faltante", () => {
+  const valorFinal = (tx: Tx, v: number, medido: boolean) =>
+    uno<{ r: Record<string, unknown> }>(tx, `select public.poner_valor_final('${IDS.leadA}', ${v}, ${medido}, '${IDS.gerencia}') as r`).then((x) => x.r);
+  const hastaAnticipo = async (tx: Tx) => {
+    await crearOrden(tx, "ord_r_dis", "diseno", IDS.leadA, 300000);
+    await registrar(tx, "ord_r_dis", 701, "approved", 300000);
+    await valorFinal(tx, 20_000_000, false);
+    await crearOrden(tx, "ord_r_ant", "anticipo", IDS.leadA, 6_700_000);
+    await registrar(tx, "ord_r_ant", 702, "approved", 6_700_000);
+  };
+
+  it("un saldo viejo pagado después de corregir el valor medido no cuenta y avisa", async () => {
+    await como(db, sistema, async (tx) => {
+      await hastaAnticipo(tx);
+      await valorFinal(tx, 21_000_000, true);
+      await crearOrden(tx, "ord_r_sal", "saldo", IDS.leadA, 14_000_000); // cobro con el valor de ese momento
+      await valorFinal(tx, 23_000_000, true); // gerencia corrige: ahora el saldo es 16.000.000
+      const r = await registrar(tx, "ord_r_sal", 703, "approved", 14_000_000);
+      expect(r).toMatchObject({ nuevo_aprobado: false, alerta: "valor_cambio" });
+      expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("anticipo");
+      expect((await uno<{ estado: string; cuenta: boolean }>(tx, "select estado, cuenta from public.pagos where mp_pago_id = 703"))).toEqual({ estado: "revisar", cuenta: false });
+      expect(await contar(tx, "select 1 from public.mensajes_operflow where mensaje = 'C'")).toBe(1);
+    });
+  });
+
+  it("un anticipo viejo pagado después de corregir el valor final no cuenta", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_r2_dis", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_r2_dis", 711, "approved", 300000);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_r2_ant", "anticipo", IDS.leadA, 6_700_000);
+      await valorFinal(tx, 30_000_000, false);
+      expect(await registrar(tx, "ord_r2_ant", 712, "approved", 6_700_000)).toMatchObject({ alerta: "valor_cambio" });
+      expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("diseno");
+    });
+  });
+
+  it("un valor final que deja el anticipo en cero o menos se rechaza", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_r3_dis", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_r3_dis", 721, "approved", 300000);
+      expect(await valorFinal(tx, 500_000, false)).toMatchObject({ ok: false, motivo: "anticipo_cero" });
+      expect((await uno<{ valor_final: number | null }>(tx, "select valor_final from public.leads where id = $1", [IDS.leadA])).valor_final).toBeNull();
+    });
+  });
+
+  it("un pago devuelto deja de contar y avisa; un reclamo sobre un pago aprobado avisa una vez", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_r4xx", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_r4xx", 731, "approved", 300000);
+      expect(await registrar(tx, "ord_r4xx", 731, "in_mediation", 300000)).toMatchObject({ alerta: "reclamo" });
+      expect(await registrar(tx, "ord_r4xx", 731, "in_mediation", 300000)).toMatchObject({ sin_cambios: true });
+      expect((await uno<{ cuenta: boolean }>(tx, "select cuenta from public.pagos where mp_pago_id = 731")).cuenta).toBe(true);
+      expect(await registrar(tx, "ord_r4xx", 731, "refunded", 300000)).toMatchObject({ alerta: "devuelto" });
+      expect((await uno<{ estado: string; cuenta: boolean }>(tx, "select estado, cuenta from public.pagos where mp_pago_id = 731"))).toEqual({ estado: "devuelto", cuenta: false });
+      // Un aviso viejo "aprobado" no lo revive.
+      expect(await registrar(tx, "ord_r4xx", 731, "approved", 300000)).toMatchObject({ sin_cambios: true });
+    });
+  });
+
+  it("un pago de prueba queda marcado y lo dice el historial", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_r5xx", "diseno", IDS.leadA, 300000);
+      await tx.query("select public.registrar_pago('ord_r5xx', 741, 'approved', 300000, 'COP', null, null, now(), true)");
+      expect((await uno<{ modo_prueba: boolean }>(tx, "select modo_prueba from public.pagos where mp_pago_id = 741")).modo_prueba).toBe(true);
+      expect(await contar(tx, "select 1 from public.actividades where detalle like '%PRUEBA, sin dinero real%'")).toBe(1);
+    });
+  });
+});
+
+describe("refuerzo: avisos de Operflow fuera de orden", () => {
+  const aviso = (h: string, lead: string, evento: string, fecha: string, valor: number | null = null) =>
+    `select public.registrar_aviso_operflow('${h.repeat(64)}', '${lead}', '${evento}', 'p-1', 'etapa', 'estado', ${valor ?? "null"}, null, '${fecha}') as r`;
+
+  it("un aviso más viejo se ignora y 'cancelado' no se pisa", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_b1xx", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_b1xx", 801, "approved", 300000);
+      await tx.query(aviso("c", IDS.leadA, "cancelado_tras_medicion", "2026-11-19T12:00:00Z"));
+      expect((await uno<{ r: Record<string, unknown> }>(tx, aviso("d", IDS.leadA, "etapa_cambiada", "2026-11-19T11:00:00Z"))).r).toMatchObject({ viejo: true });
+      await tx.query(aviso("e", IDS.leadA, "etapa_cambiada", "2026-11-19T13:00:00Z"));
+      expect((await uno<{ operflow_estado: string }>(tx, "select operflow_estado from public.leads where id = $1", [IDS.leadA])).operflow_estado).toBe("cancelado");
+    });
+  });
+
+  it("un aviso rechazado no queda como 'ya recibido'", async () => {
+    await como(db, sistema, async (tx) => {
+      expect((await uno<{ r: Record<string, unknown> }>(tx, aviso("f", IDS.leadA, "entregado", "2026-11-19T12:00:00Z"))).r.ok).toBe(false);
+      await crearOrden(tx, "ord_b2xx", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_b2xx", 802, "approved", 300000);
+      expect((await uno<{ r: Record<string, unknown> }>(tx, aviso("f", IDS.leadA, "entregado", "2026-11-19T12:00:00Z"))).r).toEqual({ ok: true });
+    });
+  });
+
+  it("el valor ajustado no cambia un lead que ya pagó todo", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_b3xx", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_b3xx", 803, "approved", 300000);
+      await tx.query("update public.leads set pago_estado = 'saldo', estado = 'aprobado', valor_final_medido = 1000000 where id = $1", [IDS.leadA]);
+      await tx.query(aviso("9", IDS.leadA, "valor_ajustado", "2026-11-19T12:00:00Z", 2_000_000));
+      expect(Number((await uno<{ valor_final_medido: number }>(tx, "select valor_final_medido from public.leads where id = $1", [IDS.leadA])).valor_final_medido)).toBe(1_000_000);
+    });
+  });
+});
+
+describe("refuerzo: borrado", () => {
+  it("un cliente con un cobro reciente (aún pagable) no se borra entero: se conservan las órdenes", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_c1xx", "diseno", IDS.leadB, 300000);
+      await tx.query("update public.ordenes set url_pago = 'https://mp.test/x' where id = 'ord_c1xx'");
+      const r = await uno<{ r: { resultado: string } }>(tx, `select public.borrar_datos_cliente('${IDS.leadB}', '${IDS.gerencia}', 'borrar') as r`);
+      expect(r.r.resultado).toBe("anonimizado");
+      expect(await contar(tx, "select 1 from public.ordenes where id = 'ord_c1xx'")).toBe(1);
+      expect((await uno<{ nombre: string }>(tx, "select nombre from public.clientes where id = $1", [IDS.clienteB])).nombre).toBe("Cliente borrado");
+    });
+  });
+
+  it("el E sale si el A se intentó enviar aunque no haya quedado 'enviado'; la nota del pago a mano se limpia", async () => {
+    await como(db, sistema, async (tx) => {
+      await tx.query(`select public.registrar_pago_manual('${IDS.leadA}', 'diseno', 300000, '${IDS.gerencia}', 'Transferencia de Ana Pérez', 'ord_c2xx')`);
+      await tx.query("update public.mensajes_operflow set intentos = 1 where lead_id = $1 and mensaje = 'A'", [IDS.leadA]);
+      await tx.query(`select public.borrar_datos_cliente('${IDS.leadA}', '${IDS.asesorA}', 'no_aprobo')`);
+      expect(await contar(tx, "select 1 from public.mensajes_operflow where lead_id = $1 and mensaje = 'E' and estado = 'pendiente'", [IDS.leadA])).toBe(1);
+      expect(await contar(tx, "select 1 from public.actividades where detalle like '%Ana Pérez%'")).toBe(0);
+      expect((await uno<{ nota: string | null }>(tx, "select nota from public.ordenes where id = 'ord_c2xx'")).nota).toBeNull();
+    });
+  });
+
+  it("con sesión, ni gerencia borra clientes o leads directamente", async () => {
+    await expect(como(db, gerencia, (tx) => tx.query("delete from public.clientes where id = $1", [IDS.clienteB]))).rejects.toThrow(/permission denied/);
+    await expect(como(db, gerencia, (tx) => tx.query("delete from public.leads where id = $1", [IDS.leadB]))).rejects.toThrow(/permission denied/);
   });
 });

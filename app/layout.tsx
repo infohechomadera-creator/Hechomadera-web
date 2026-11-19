@@ -10,7 +10,7 @@ import { JsonLdSite } from "@/components/seo/JsonLdSite";
 import { JsonLdFaq } from "@/components/seo/JsonLdFaq";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 import { PageTracker } from "@/components/analytics/PageTracker";
-import { Analytics } from "@vercel/analytics/react";
+import { AnaliticaVercel } from "@/components/analytics/AnaliticaVercel";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -104,7 +104,7 @@ export default function RootLayout({
         <CookieConsent />
         <GoogleAnalytics />
         <PageTracker />
-        <Analytics />
+        <AnaliticaVercel />
       </body>
     </html>
   );

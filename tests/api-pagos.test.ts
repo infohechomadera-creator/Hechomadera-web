@@ -22,10 +22,15 @@ vi.mock("@/lib/integracion/salida", () => ({ enviarPendientes }));
 vi.mock("@/lib/pagos/preferencia", () => ({ crearPreferencia }));
 vi.mock("@/lib/email-notifications", () => ({
   avisarPagoLead: vi.fn(async () => undefined),
+  avisarPagoParaRevisar: vi.fn(async () => undefined),
   sendPaymentConfirmationToBuyer: vi.fn(async () => undefined),
   sendNewOrderAlertToSeller: vi.fn(async () => undefined),
 }));
-vi.mock("@/lib/sesion", () => ({ exigirGerencia: async () => new Response(null, { status: 401 }) }));
+const sesion = vi.hoisted(() => ({ rol: null as string | null }));
+vi.mock("@/lib/sesion", () => ({
+  exigirGerencia: async () => (sesion.rol === "gerencia" ? null : new Response(null, { status: 401 })),
+  rolActual: async () => sesion.rol,
+}));
 vi.mock("@/lib/supabase/servidor", () => ({
   clienteSistema: () => ({
     rpc: async (fn: string, args: Record<string, unknown>) => (llamadas.rpc.push({ fn, args }), respuestaRpc),
@@ -56,6 +61,8 @@ beforeEach(() => {
   respuestaRpc = { data: { ok: true, nuevo_aprobado: false }, error: null };
   vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
   vi.stubEnv("MERCADOPAGO_WEBHOOK_ENFORCE", "");
+  vi.stubEnv("VERCEL_ENV", "production");
+  sesion.rol = null;
 });
 afterEach(() => vi.unstubAllEnvs());
 
@@ -178,5 +185,44 @@ describe("avisos de Operflow (mensaje B)", () => {
     const r = await enviar({ evento: "otro", id_externo: "lead_x", datos: { valor_final: -1 } }, "");
     expect(r.status).toBe(400);
     expect((await r.json()).campos).toEqual(["evento", "id_externo", "datos.valor_final"]);
+  });
+});
+
+describe("refuerzo: dinero real solo en producción, y la vista previa solo para gerencia", () => {
+  it("en producción un pago de PRUEBA no toca la base y se avisa", async () => {
+    pagoMP = { ok: true, payment: { id: 900, status: "approved", external_reference: "ord_abc123", transaction_amount: 300000, currency_id: "COP", live_mode: false } };
+    const { POST } = await import("@/app/api/payments/mercadopago/webhook/route");
+    expect((await POST(aviso({ type: "payment", data: { id: "900" } }))).status).toBe(200);
+    expect(llamadas.rpc).toHaveLength(0);
+    const { avisarPagoParaRevisar } = await import("@/lib/email-notifications");
+    expect(avisarPagoParaRevisar).toHaveBeenCalledWith(expect.objectContaining({ alerta: "prueba_en_produccion", mpPagoId: 900 }));
+  });
+
+  it("un pago real marca en la base si fue de prueba o no", async () => {
+    vi.stubEnv("VERCEL_ENV", "preview");
+    pagoMP = { ok: true, payment: { id: 901, status: "approved", external_reference: "ord_abc123", transaction_amount: 300000, currency_id: "COP", live_mode: false } };
+    const { POST } = await import("@/app/api/payments/mercadopago/webhook/route");
+    await POST(aviso({ type: "payment", data: { id: "901" } }));
+    expect(llamadas.rpc[0].args).toMatchObject({ p_modo_prueba: true });
+  });
+
+  it("un pago aprobado sin orden nuestra avisa a gerencia", async () => {
+    pagoMP = { ok: true, payment: { id: 902, status: "approved", external_reference: "algo-raro", transaction_amount: 5000, currency_id: "COP", live_mode: true } };
+    const { POST } = await import("@/app/api/payments/mercadopago/webhook/route");
+    await POST(aviso({ type: "payment", data: { id: "902" } }));
+    const { avisarPagoParaRevisar } = await import("@/lib/email-notifications");
+    expect(avisarPagoParaRevisar).toHaveBeenCalledWith(expect.objectContaining({ alerta: "sin_orden", mpPagoId: 902 }));
+  });
+
+  it("fuera de producción, sin sesión de gerencia no se inicia ningún cobro", async () => {
+    vi.stubEnv("VERCEL_ENV", "preview");
+    const tienda = await import("@/app/api/payments/mercadopago/preference/route");
+    const p = (products as { id: string }[])[0];
+    const r1 = await tienda.POST(new Request("http://local/x", { method: "POST", body: JSON.stringify({ producto: p.id }) }));
+    expect(r1.status).toBe(403);
+    const lead = await import("@/app/api/pagos/lead/route");
+    const r2 = await lead.POST(new Request("http://local/x", { method: "POST", body: JSON.stringify({ token: "a".repeat(64) }) }));
+    expect(r2.status).toBe(403);
+    expect(crearPreferencia).not.toHaveBeenCalled();
   });
 });

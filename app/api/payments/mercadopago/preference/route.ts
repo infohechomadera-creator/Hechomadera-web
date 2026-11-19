@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import products from "@/content/products.json";
 import type { StoreProduct } from "@/lib/products";
-import { exigirGerencia } from "@/lib/sesion";
+import { exigirGerencia, rolActual } from "@/lib/sesion";
+import { puedeCobrarAqui } from "@/lib/pagos/procesar";
 import { dentroDelLimite, ipDe } from "@/lib/limite";
 import { borrarOrdenSinPago, crearOrdenId, guardarOrdenNueva, ponerPreferencia, type ItemOrden } from "@/lib/pagos/ordenes";
 import { crearPreferencia } from "@/lib/pagos/preferencia";
@@ -25,6 +26,10 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
+
+  if (body.prueba !== true && !(await puedeCobrarAqui(rolActual))) {
+    return NextResponse.json({ error: "En la vista previa solo gerencia puede probar pagos." }, { status: 403 });
   }
 
   let items: ItemOrden[];

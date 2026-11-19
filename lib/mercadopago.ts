@@ -9,6 +9,8 @@ export type MercadoPagoPayment = {
   date_approved?: string | null;
   payment_type_id?: string;
   payment_method_id?: string;
+  /** false = pago de prueba (credenciales TEST); true = dinero real. */
+  live_mode?: boolean;
   payer?: {
     email?: string;
     first_name?: string;

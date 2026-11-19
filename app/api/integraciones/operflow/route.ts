@@ -45,6 +45,10 @@ export async function POST(request: Request) {
   const evento = aviso.evento as (typeof EVENTOS)[number];
   const lead = typeof aviso.id_externo === "string" ? aviso.id_externo.match(ID_EXTERNO)?.[1] : undefined;
   const datos = (typeof aviso.datos === "object" && aviso.datos ? aviso.datos : {}) as Record<string, unknown>;
+  const fecha = typeof aviso.fecha === "string" ? new Date(aviso.fecha) : null;
+  // Fecha válida y no del futuro (con 5 minutos de margen); si no, la de llegada.
+  const fechaAviso =
+    fecha && !Number.isNaN(fecha.getTime()) && fecha.getTime() <= Date.now() + 300_000 ? fecha.toISOString() : new Date().toISOString();
   const valor = datos.valor_final;
   const campos = [
     ...(EVENTOS.includes(evento) ? [] : ["evento"]),
@@ -63,6 +67,8 @@ export async function POST(request: Request) {
     p_estado: texto(aviso.estado, 80),
     p_valor_final: typeof valor === "number" && valor > 0 ? valor : null,
     p_url_propuesta: texto(datos.url_propuesta, 500),
+    // La fecha del aviso ordena los avisos: uno más viejo que el último aplicado no cambia nada.
+    p_fecha: fechaAviso,
   });
   if (error) return responder(500, { error: "No se pudo registrar" }, "error de base");
   const r = data as { ok: boolean; repetido?: boolean };

@@ -251,12 +251,13 @@ export function Configurador({ ciudades, opciones }: { ciudades: CiudadActiva[];
             <p className="text-sm text-ink">
               ¿Quieres empezar ya? Paga el diseño y te enviamos la propuesta en máximo 48 horas. Si la apruebas, ese valor se descuenta del anticipo.
             </p>
-            <Link
+            {/* Enlace normal (no navegación interna): la página de pago carga sin analítica. */}
+            <a
               href={`/pago/lead/${enviado.pagoToken}`}
               className="mt-4 inline-flex w-full items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800 sm:w-auto"
             >
               Pagar el diseño
-            </Link>
+            </a>
           </div>
         )}
         <Link href="/cocinas" className="inline-block text-sm text-ink underline underline-offset-4">

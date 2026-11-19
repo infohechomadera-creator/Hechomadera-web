@@ -63,9 +63,10 @@ export default async function PagoResultadoPage({
 
   let paymentDetail: { status: string; status_detail?: string } | null = null;
 
-  if (paymentId) {
+  if (paymentId && orderReference) {
     const result = await fetchMercadoPagoPayment(paymentId);
-    if (result.ok) {
+    // Solo se muestra el estado si el pago es de esta orden (no se consultan pagos ajenos por la dirección).
+    if (result.ok && result.payment.external_reference === orderReference) {
       normalizedState = toNormalized(normalizePaymentState(result.payment.status));
       paymentDetail = { status: result.payment.status, status_detail: result.payment.status_detail };
     }

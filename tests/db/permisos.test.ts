@@ -129,8 +129,10 @@ describe("asesor", () => {
         ]),
       ),
     ).rejects.toThrow(/row-level security/);
-    const borrado = await como(db, asesorA, (tx) => tx.query("delete from public.leads where id = $1", [IDS.leadA]));
-    expect(borrado.affectedRows).toBe(0);
+    // W5: con sesión nadie borra leads ni clientes directamente (solo el servidor, que borra antes las fotos).
+    await expect(como(db, asesorA, (tx) => tx.query("delete from public.leads where id = $1", [IDS.leadA]))).rejects.toThrow(
+      /permission denied/,
+    );
   });
 
   it("puede dejar notas en su lead, pero no en el de otro ni a nombre de otro", async () => {

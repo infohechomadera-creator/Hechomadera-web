@@ -5,10 +5,14 @@ import { StartCheckoutButton } from "@/components/payments/StartCheckoutButton";
 import { leerCobroLead, nombreProducto, tituloCobro } from "@/lib/pagos/lead";
 import { MOTIVO_SIN_COBRO } from "@/lib/pagos/calcular";
 import { pesos } from "@/lib/leads";
+import { puedeCobrarAqui } from "@/lib/pagos/procesar";
+import { rolActual } from "@/lib/sesion";
 
 export const metadata: Metadata = {
   title: "Pago de tu proyecto",
   robots: { index: false, follow: false },
+  // La dirección lleva el código secreto del enlace: no se comparte con otros sitios al salir de aquí.
+  referrer: "no-referrer",
 };
 export const dynamic = "force-dynamic";
 
@@ -24,6 +28,7 @@ export default async function PagoLeadPage({ params }: { params: Promise<{ token
   const info = await leerCobroLead(token);
   if (!info) notFound();
   const producto = nombreProducto(info.producto);
+  const soloGerencia = !(await puedeCobrarAqui(rolActual));
 
   const textos = {
     diseno: {
@@ -46,7 +51,14 @@ export default async function PagoLeadPage({ params }: { params: Promise<{ token
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 md:px-6 md:py-24">
-      {info.cobro.ok ? (
+      {soloGerencia ? (
+        <>
+          <h1 className="font-display text-2xl font-semibold text-ink md:text-3xl">Pago de tu {producto}</h1>
+          <p className="mt-4 text-sm leading-relaxed text-ink-muted">
+            Esta es una versión de prueba del sitio. Para pagar usa el enlace de hechomadera.com que te envió tu asesor.
+          </p>
+        </>
+      ) : info.cobro.ok ? (
         <>
           <span className="inline-block rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-semibold text-ink-muted">
             {info.ciudad}

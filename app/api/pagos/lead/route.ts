@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { dentroDelLimite, ipDe } from "@/lib/limite";
 import { TOKEN, iniciarCobroLead } from "@/lib/pagos/lead";
+import { puedeCobrarAqui } from "@/lib/pagos/procesar";
+import { rolActual } from "@/lib/sesion";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +27,9 @@ export async function POST(request: Request) {
     // cuerpo inválido: se trata como enlace inexistente
   }
   if (!TOKEN.test(token)) return NextResponse.json({ error: "Este enlace de pago no existe." }, { status: 404 });
+  if (!(await puedeCobrarAqui(rolActual))) {
+    return NextResponse.json({ error: "En la vista previa solo gerencia puede probar pagos." }, { status: 403 });
+  }
   const r = await iniciarCobroLead(token);
   if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
   return NextResponse.json({ ok: true, redirect_url: r.url }, { headers: { "Cache-Control": "no-store" } });

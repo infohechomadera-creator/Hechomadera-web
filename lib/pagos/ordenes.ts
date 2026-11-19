@@ -143,9 +143,12 @@ export async function borrarOrdenSinPago(id: string): Promise<void> {
   await clienteSistema().from("ordenes").delete().eq("id", id).eq("estado", "creada").is("preferencia_id", null);
 }
 
-/** Orden abierta del mismo cobro (mismo lead, tipo y valor) creada en las últimas 24 horas. */
+/**
+ * Orden abierta del mismo cobro (mismo lead, tipo y valor) creada en las últimas 20 horas.
+ * El cobro de Mercado Pago vence a las 24 h; con 20 h el cliente tiene al menos 4 h para pagar.
+ */
 export async function buscarOrdenAbierta(leadId: string, tipo: TipoOrden, total: number): Promise<{ id: string; url: string } | null> {
-  const desde = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const desde = new Date(Date.now() - 20 * 3600 * 1000).toISOString();
   const { data } = await clienteSistema()
     .from("ordenes")
     .select("id, url_pago")

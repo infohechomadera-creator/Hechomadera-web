@@ -11,7 +11,18 @@ import type { ItemOrden } from "./ordenes";
 export function urlDelSitio(): string {
   const rama = process.env.VERCEL_BRANCH_URL;
   if (process.env.VERCEL_ENV === "preview" && rama) return `https://${rama}`;
+  // En producción, el dominio de producción que da Vercel: así el aviso de pago siempre llega aquí.
+  const produccion = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  if (process.env.VERCEL_ENV === "production" && produccion) return `https://${produccion}`;
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+}
+
+/** Un cobro vence a las 24 horas: después no se puede pagar con un valor viejo (ver ordenes.ts). */
+export const VIGENCIA_COBRO_HORAS = 24;
+
+/** Fecha en el formato de Mercado Pago, hora de Colombia: 2026-11-19T10:00:00.000-05:00. */
+export function fechaMP(d: Date): string {
+  return `${new Date(d.getTime() - 5 * 3600_000).toISOString().slice(0, 23)}-05:00`;
 }
 
 export type ResultadoPreferencia =
@@ -36,6 +47,9 @@ export async function crearPreferencia(args: {
     auto_return: "approved",
     statement_descriptor: "HECHOMADERA",
     external_reference: args.ordenId,
+    expires: true,
+    expiration_date_from: fechaMP(new Date(Date.now() - 60_000)),
+    expiration_date_to: fechaMP(new Date(Date.now() + VIGENCIA_COBRO_HORAS * 3600_000)),
     // Solo en https: Mercado Pago no avisa a localhost.
     ...(base.startsWith("https://") ? { notification_url: `${base}/api/payments/mercadopago/webhook` } : {}),
   };

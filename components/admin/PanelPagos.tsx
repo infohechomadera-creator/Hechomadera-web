@@ -70,7 +70,10 @@ export function PanelPagos(p: Props) {
   }
 
   const medido = p.pagoEstado === "anticipo";
-  const pideValor = p.esGerencia && !p.datosBorrados && ((p.pagoEstado === "diseno" && !p.valorFinal) || (medido && !p.valorMedido));
+  // Gerencia puede poner (o corregir) el valor mientras no se haya pagado lo que depende de él.
+  const pideValor =
+    p.esGerencia && !p.datosBorrados && ((p.pagoEstado === "diseno" && ["diseno_pagado", "propuesta_enviada"].includes(p.estado)) || medido);
+  const valorActual = medido ? p.valorMedido : p.valorFinal;
   const puedeNoAprobo = !p.datosBorrados && p.pagoEstado === "diseno" && ["diseno_pagado", "propuesta_enviada"].includes(p.estado);
   const hayPendientes = p.mensajes.some((m) => m.estado === "pendiente" || m.estado === "fallido");
 
@@ -161,10 +164,15 @@ export function PanelPagos(p: Props) {
           className="mt-4 border border-neutral-200 bg-white p-4"
           onSubmit={(e) => {
             e.preventDefault();
-            hacer(() => ponerValorFinal(p.leadId, Number(valor), medido), "Valor guardado.", () => setValor(""));
+            const v = Number(valor);
+            const pregunta =
+              `¿Confirmas ${medido ? "el valor con medidas confirmadas" : "el valor final de la propuesta"}: ${pesos(v)}?` +
+              (valorActual ? `\n\nReemplaza ${pesos(valorActual)}. Un cobro abierto con el valor anterior ya no contará si el cliente lo paga.` : "");
+            if (window.confirm(pregunta)) hacer(() => ponerValorFinal(p.leadId, v, medido), "Valor guardado.", () => setValor(""));
           }}
         >
           <label htmlFor="valor" className={rotulo}>
+            {valorActual ? "Corregir: " : ""}
             {medido ? "Valor final con medidas confirmadas" : "Valor final de la propuesta"}
           </label>
           <div className="mt-2 flex gap-2">
@@ -193,7 +201,11 @@ export function PanelPagos(p: Props) {
           className="mt-4 border border-neutral-200 bg-white p-4"
           onSubmit={(e) => {
             e.preventDefault();
-            hacer(() => marcarPagoManual(p.leadId, nota), "Pago registrado.", () => setNota(""));
+            if (!("monto" in p.cobro)) return;
+            const { tipo, monto } = p.cobro;
+            if (window.confirm(`¿Confirmas que el cliente ya pagó ${TIPO[tipo]?.toLowerCase()} por ${pesos(monto)} fuera de Mercado Pago?`)) {
+              hacer(() => marcarPagoManual(p.leadId, nota, monto), "Pago registrado.", () => setNota(""));
+            }
           }}
         >
           <label htmlFor="nota-pago" className={rotulo}>
@@ -204,7 +216,7 @@ export function PanelPagos(p: Props) {
               id="nota-pago"
               className={campo}
               maxLength={300}
-              placeholder="Cómo pagó. Ej: transferencia Bancolombia 19/11"
+              placeholder="Cómo pagó, sin nombres. Ej: transferencia Bancolombia 19/11"
               value={nota}
               disabled={guardando}
               onChange={(e) => setNota(e.target.value)}

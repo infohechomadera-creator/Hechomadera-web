@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchLatestPaymentByExternalReference, normalizePaymentState } from "@/lib/mercadopago";
+import { exigirGerencia } from "@/lib/sesion";
 
 export const runtime = "nodejs";
 
@@ -11,6 +12,9 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ externalReference: string }> },
 ) {
+  // Solo gerencia (W5): sin sesión cualquiera podía consultar pagos ajenos.
+  const negado = await exigirGerencia();
+  if (negado) return negado;
   const { externalReference } = await params;
   const result = await fetchLatestPaymentByExternalReference(externalReference);
 

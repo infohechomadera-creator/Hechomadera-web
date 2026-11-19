@@ -153,6 +153,10 @@ async function armar(m: Mensaje): Promise<{ ruta: string; cuerpo: unknown } | nu
 export async function enviarPendientes({ leadId, forzar = false, limite = 20 }: { leadId?: string; forzar?: boolean; limite?: number } = {}) {
   const db = clienteSistema();
   const ahora = new Date().toISOString();
+  // El botón "Reenviar" (forzar) también vuelve a intentar los que fallaron, empezando de cero.
+  if (forzar && leadId) {
+    await db.from("mensajes_operflow").update({ estado: "pendiente", intentos: 0 }).eq("lead_id", leadId).eq("estado", "fallido");
+  }
   let q = db.from("mensajes_operflow").select("id, lead_id, mensaje, pago_id, intentos").eq("estado", "pendiente").order("id").limit(limite);
   if (leadId) q = q.eq("lead_id", leadId);
   if (!forzar) q = q.lte("proximo_intento_at", ahora);
@@ -182,10 +186,11 @@ export async function enviarPendientes({ leadId, forzar = false, limite = 20 }: 
       }
       conA.add(m.lead_id);
     }
-    // Se "toma" el mensaje para que otro proceso no lo envíe a la vez.
+    // Se "toma" el mensaje subiendo el contador de intentos solo si nadie lo cambió (operación atómica):
+    // si otro proceso (botón, webhook o tarea diaria) ya lo tomó, este no lo envía.
     const { data: tomado } = await db
       .from("mensajes_operflow")
-      .update({ proximo_intento_at: new Date(Date.now() + 2 * 60_000).toISOString() })
+      .update({ intentos: m.intentos + 1, proximo_intento_at: new Date(Date.now() + 2 * 60_000).toISOString() })
       .eq("id", m.id)
       .eq("estado", "pendiente")
       .eq("intentos", m.intentos)
@@ -199,19 +204,30 @@ export async function enviarPendientes({ leadId, forzar = false, limite = 20 }: 
       continue;
     }
     const { status, json } = await llamar(armado.ruta, armado.cuerpo);
-    const d = decidir(status, m.intentos);
-    await db
+    // "Borrar" un proyecto que Operflow ya no tiene (404) cuenta como hecho.
+    const d = decidir(m.mensaje === "E" && status === 404 ? 200 : status, m.intentos);
+    // Solo se actualiza si sigue pendiente: si mientras tanto se canceló (datos borrados), no se pisa.
+    const { data: actualizado } = await db
       .from("mensajes_operflow")
       .update({
         estado: d.estado,
-        intentos: m.intentos + 1,
         ultimo_error: d.error,
         respuesta_http: status || null,
         enviado_at: d.estado === "enviado" ? new Date().toISOString() : null,
         proximo_intento_at: new Date(Date.now() + d.esperaMin * 60_000).toISOString(),
       })
-      .eq("id", m.id);
+      .eq("id", m.id)
+      .eq("estado", "pendiente")
+      .select("id");
     await registrarEvento({ direccion: "salida", mensaje: m.mensaje, estado_http: status, detalle: `lead ${m.lead_id.slice(0, 8)}` });
+    if (!actualizado?.length) {
+      // Se canceló durante el envío. Si el proyecto alcanzó a crearse en Operflow, hay que pedir que lo borre.
+      if (m.mensaje === "A" && d.estado === "enviado") {
+        // Si ya existe un E para este lead, la base lo rechaza por repetido (23505) y no pasa nada.
+        await db.from("mensajes_operflow").insert({ lead_id: m.lead_id, mensaje: "E" });
+      }
+      continue;
+    }
 
     if (d.estado === "enviado") {
       resultado.enviados++;
