@@ -126,3 +126,31 @@ describe("mensaje A y respuestas de Operflow", () => {
     expect(decidir(500, 11).estado).toBe("fallido");
   });
 });
+
+describe("copia de órdenes viejas de Redis", async () => {
+  const { aFilas } = await import("@/lib/orders-store");
+  const vieja = {
+    order_id: "ord_m3abc_x1y2z3",
+    source_reference: "tienda-1",
+    status: "approved",
+    created_at: "2026-10-01T10:00:00Z",
+    updated_at: "2026-10-01T10:05:00Z",
+    preference_id: "pref",
+    redirect_url: "https://mp/x",
+    items: [{ title: "Mesa", quantity: 2, unit_price: 100000, currency_id: "COP" as const }],
+    total_cop: 200000,
+    payment: { id: 123, status: "approved", status_detail: "accredited", date_created: null, date_approved: "2026-10-01T10:04:00Z", payment_method_id: "visa" },
+  };
+
+  it("conserva id, total y estado, y su pago aprobado cuenta", () => {
+    const f = aFilas(vieja)!;
+    expect(f.orden).toMatchObject({ id: vieja.order_id, tipo: "tienda", origen: "redis", total_cop: 200000, estado: "aprobada" });
+    expect(f.pago).toMatchObject({ mp_pago_id: 123, estado: "aprobado", cuenta: true, monto: 200000 });
+  });
+
+  it("omite órdenes con id raro o sin valor", () => {
+    expect(aFilas({ ...vieja, order_id: "otra cosa" })).toBeNull();
+    expect(aFilas({ ...vieja, total_cop: 0, items: [] })).toBeNull();
+    expect(aFilas({ ...vieja, payment: undefined })!.pago).toBeNull();
+  });
+});
