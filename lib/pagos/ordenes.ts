@@ -1,5 +1,5 @@
 /**
- * Órdenes en Supabase (W5). Reemplaza `lib/orders-store.ts` (Redis).
+ * Órdenes en Supabase (W5). Antes vivían en Upstash Redis (ya no se usa).
  * Una orden es un cobro: de la tienda o de un lead (diseño, anticipo o saldo).
  * La forma `StoredOrder` se conserva para que el panel, el CSV y los correos sigan igual.
  * Escribe solo el servidor (llave secreta); el panel lee como la persona con sesión (RLS).

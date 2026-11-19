@@ -36,7 +36,6 @@ describe("GET /api/integraciones/precios (mensaje D)", () => {
   beforeEach(() => {
     eventos.length = 0;
     vi.stubEnv("OPERFLOW_API_KEY", CLAVE);
-    vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
   });
   afterEach(() => vi.unstubAllEnvs());
 

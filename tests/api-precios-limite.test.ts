@@ -1,28 +1,20 @@
-/** Límites de la API de precios para Operflow: por IP antes de la clave, y por clave. */
+/** Límites de la API de precios para Operflow: por IP antes de la clave, y por clave (contador en Supabase). */
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { PRECIOS_EJEMPLO } from "@/lib/precios/semilla";
 import { LIMITE_IP_POR_MINUTO, LIMITE_POR_MINUTO } from "@/lib/integracion/operflow";
 
 const eventos: unknown[] = [];
-
-vi.mock("@upstash/redis", () => {
-  const contadores = new Map<string, number>();
-  return {
-    Redis: class {
-      async incr(clave: string) {
-        const n = (contadores.get(clave) ?? 0) + 1;
-        contadores.set(clave, n);
-        return n;
-      }
-      async expire() {
-        return 1;
-      }
-    },
-  };
-});
+const contadores = new Map<string, number>();
 
 vi.mock("@/lib/supabase/servidor", () => ({
   clienteSistema: () => ({
+    // Imita contar_intento(): suma uno por clave y dice si queda cupo.
+    rpc: async (fn: string, a: { p_clave: string; p_limite: number }) => {
+      if (fn !== "contar_intento") return { data: null, error: { code: "x" } };
+      const n = (contadores.get(a.p_clave) ?? 0) + 1;
+      contadores.set(a.p_clave, n);
+      return { data: n <= a.p_limite, error: null };
+    },
     from: (tabla: string) => {
       if (tabla === "eventos_integracion") {
         return { insert: async (e: unknown) => (eventos.push(e), { error: null }) };
@@ -50,8 +42,9 @@ const pedir = async (ip: string, auth: string) => {
 describe("límites de /api/integraciones/precios", () => {
   beforeAll(() => {
     vi.stubEnv("OPERFLOW_API_KEY", CLAVE);
-    vi.stubEnv("UPSTASH_REDIS_REST_URL", "https://redis.prueba.test");
-    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "token-de-prueba");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://supabase.prueba.test");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "publica-de-prueba");
+    vi.stubEnv("SUPABASE_SECRET_KEY", "secreta-de-prueba");
   });
 
   it("quien intenta adivinar la clave queda frenado por IP y deja de escribir en el registro", async () => {
@@ -71,5 +64,14 @@ describe("límites de /api/integraciones/precios", () => {
     const antes = eventos.length;
     expect((await pedir("198.51.100.250", `Bearer ${CLAVE}`)).status).toBe(429);
     expect(eventos.length).toBe(antes + 1);
+  });
+});
+
+describe("el contador no guarda la IP", () => {
+  it("la clave que llega a la base es una huella, no contiene la IP", () => {
+    for (const clave of contadores.keys()) {
+      expect(clave).toMatch(/^[0-9a-f]{64}$/);
+      expect(clave).not.toContain("203.0.113.7");
+    }
   });
 });

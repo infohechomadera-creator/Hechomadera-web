@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listOrders, type StoredOrder } from "@/lib/pagos/ordenes";
 import { clienteUsuario } from "@/lib/supabase/servidor";
-import { CopiarRedis } from "@/components/admin/CopiarRedis";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
 export const metadata: Metadata = {
@@ -114,7 +113,6 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
           >
             Exportar CSV
           </Link>
-          <CopiarRedis />
           <LogoutButton />
         </div>
       </div>

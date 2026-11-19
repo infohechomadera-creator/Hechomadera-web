@@ -59,7 +59,6 @@ beforeEach(() => {
   enviarPendientes.mockClear();
   crearPreferencia.mockClear();
   respuestaRpc = { data: { ok: true, nuevo_aprobado: false }, error: null };
-  vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
   vi.stubEnv("MERCADOPAGO_WEBHOOK_ENFORCE", "");
   vi.stubEnv("VERCEL_ENV", "production");
   sesion.rol = null;

@@ -78,7 +78,7 @@ export default async function PagoResultadoPage({
     }
   }
 
-  // Cargar resumen del pedido desde Redis
+  // Cargar resumen del pedido (Supabase)
   const order = orderReference ? await getOrder(orderReference) : null;
 
   // Contenido por estado

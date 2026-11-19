@@ -1,28 +1,26 @@
 /**
- * Límite de solicitudes con Upstash Redis (ventana fija). Lo usan las API públicas
- * (configurador) y la de Operflow. Si Redis no está configurado o falla, no bloquea.
+ * Límite de solicitudes (ventana fija) con un contador en Supabase (`contar_intento`). Lo usan las API
+ * públicas (configurador, enlaces de pago, aviso de Mercado Pago) y las de Operflow.
+ * Antes usaba Upstash Redis; Upstash borró esa base por falta de uso y se decidió no usar Redis (2026-11-19).
+ * La clave se guarda como huella SHA-256: en la base no queda la IP.
+ * Si Supabase no está configurado o falla, no bloquea (sin Supabase la web tampoco puede guardar nada).
  */
-import { Redis } from "@upstash/redis";
-
-let redis: Redis | null | undefined;
-function clienteRedis(): Redis | null {
-  if (redis !== undefined) return redis;
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  redis = url && token ? new Redis({ url, token }) : null;
-  return redis;
-}
+import { createHash } from "node:crypto";
+import { supabaseConfigurado } from "@/lib/supabase/config";
+import { clienteSistema } from "@/lib/supabase/servidor";
 
 /** true si todavía hay cupo en la ventana actual (`ventanaSeg` segundos). */
 export async function dentroDelLimite(nombre: string, limite: number, ventanaSeg = 60): Promise<boolean> {
-  const r = clienteRedis();
-  if (!r) return true;
+  if (!supabaseConfigurado() || !process.env.SUPABASE_SECRET_KEY) return true;
   try {
-    const ventana = Math.floor(Date.now() / (ventanaSeg * 1000));
-    const clave = `hm:limite:${nombre}:${ventanaSeg}:${ventana}`;
-    const n = await r.incr(clave);
-    if (n === 1) await r.expire(clave, ventanaSeg * 2);
-    return n <= limite;
+    const clave = createHash("sha256").update(`hm:limite:${nombre}:${ventanaSeg}`).digest("hex");
+    const { data, error } = await clienteSistema().rpc("contar_intento", {
+      p_clave: clave,
+      p_ventana_seg: ventanaSeg,
+      p_limite: limite,
+    });
+    if (error) return true;
+    return data !== false;
   } catch {
     return true;
   }
