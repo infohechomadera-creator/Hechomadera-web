@@ -176,3 +176,11 @@ describe("abonos netos (igual que monto_esperado en la base)", () => {
     expect(siguienteCobro({ ...base, pago_estado: "anticipo", valor_final_medido: 21_000_000 }, tabla, { diseno: 300000, anticipo: 5_700_000, saldo: 0 })).toEqual({ ok: true, tipo: "saldo", monto: 15_000_000 });
   });
 });
+
+describe("saldo recobrable tras una devolución", () => {
+  it("con el saldo pagado pero plata faltante, se cobra solo lo que falta", () => {
+    const pagado = { diseno: 300000, anticipo: 6_700_000, saldo: 12_000_000 }; // se devolvieron 2.000.000 del saldo
+    expect(siguienteCobro({ ...base, pago_estado: "saldo", valor_final_medido: 21_000_000 }, tabla, pagado)).toEqual({ ok: true, tipo: "saldo", monto: 2_000_000 });
+    expect(siguienteCobro({ ...base, pago_estado: "saldo", valor_final_medido: 21_000_000 }, tabla, { ...pagado, saldo: 14_000_000 })).toEqual({ ok: false, motivo: "pagado_todo" });
+  });
+});

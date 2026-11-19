@@ -644,3 +644,88 @@ describe("segundo refuerzo: leads cerrados, devueltos y valores", () => {
     );
   });
 });
+
+describe("cuarto refuerzo: devoluciones de pagos que contaban", () => {
+  const valorFinal = (tx: Tx, v: number, medido: boolean) =>
+    uno<{ r: Record<string, unknown> }>(tx, `select public.poner_valor_final('${IDS.leadA}', ${v}, ${medido}, '${IDS.gerencia}') as r`).then((x) => x.r);
+  const reg = (tx: Tx, orden: string, mp: number, estado: string, monto: number, devuelto: number) =>
+    uno<{ r: Record<string, unknown> }>(
+      tx, `select public.registrar_pago('${orden}', ${mp}, '${estado}', ${monto}, 'COP', null, null, now(), false, ${devuelto}) as r`,
+    ).then((x) => x.r);
+
+  it("contracargo de un abono que gerencia conservó: avisa, deja de contar y vuelve a bloquear", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_t001", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_t001", 1001, "approved", 300000);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_t002", "anticipo", IDS.leadA, 6_700_000);
+      await valorFinal(tx, 15_000_000, false); // ahora faltan 4.950.000; el viejo de 6.700.000 queda para revisar
+      await registrar(tx, "ord_t002", 1002, "approved", 6_700_000);
+      // Gerencia devuelve 1.750.000 en MP y conserva el resto (4.950.000), que completa el anticipo.
+      await reg(tx, "ord_t002", 1002, "approved", 6_700_000, 1_750_000);
+      const p = await uno<{ id: number }>(tx, "select id from public.pagos where mp_pago_id = 1002");
+      expect((await uno<{ r: Record<string, unknown> }>(tx, `select public.resolver_pago(${p.id}, '${IDS.gerencia}', 'Se queda el resto', 'conservar') as r`)).r).toMatchObject({ ok: true, completo: true });
+      // Después, el cliente hace un contracargo.
+      expect(await reg(tx, "ord_t002", 1002, "charged_back", 6_700_000, 6_700_000)).toMatchObject({ alerta: "devuelto" });
+      expect(await uno(tx, "select estado, cuenta, resuelto_at from public.pagos where mp_pago_id = 1002")).toEqual({ estado: "devuelto", cuenta: false, resuelto_at: null });
+      // Bloquea nuevos pagos hasta que gerencia lo resuelva.
+      await valorFinal(tx, 21_000_000, true);
+      await crearOrden(tx, "ord_t003", "saldo", IDS.leadA, 1_000_000);
+      expect(await registrar(tx, "ord_t003", 1003, "approved", 1_000_000)).toMatchObject({ alerta: "en_revision" });
+    });
+  });
+
+  it("un pago que llega aprobado pero ya con una parte devuelta cuenta lo neto y no completa el tipo", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_t011", "diseno", IDS.leadA, 300000);
+      expect(await reg(tx, "ord_t011", 1011, "approved", 300000, 100000)).toMatchObject({ alerta: "devolucion_parcial", nuevo_aprobado: false });
+      expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("nada");
+      expect(Number((await uno<{ v: number }>(tx, `select public.monto_esperado('${IDS.leadA}', 'diseno') as v`)).v)).toBe(100000);
+      // El siguiente cobro pide solo los 100.000 y completa el diseño.
+      await crearOrden(tx, "ord_t012", "diseno", IDS.leadA, 100000);
+      expect(await registrar(tx, "ord_t012", 1012, "approved", 100000)).toMatchObject({ nuevo_aprobado: true });
+      expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("diseno");
+    });
+  });
+
+  it("devolución parcial del saldo: se puede cobrar lo que falta aunque el lead ya esté en 'saldo'", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_t021", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_t021", 1021, "approved", 300000);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_t022", "anticipo", IDS.leadA, 6_700_000);
+      await registrar(tx, "ord_t022", 1022, "approved", 6_700_000);
+      await valorFinal(tx, 21_000_000, true);
+      await crearOrden(tx, "ord_t023", "saldo", IDS.leadA, 14_000_000);
+      await registrar(tx, "ord_t023", 1023, "approved", 14_000_000);
+      expect(await reg(tx, "ord_t023", 1023, "approved", 14_000_000, 2_000_000)).toMatchObject({ alerta: "devolucion_parcial" });
+      expect(Number((await uno<{ v: number }>(tx, `select public.monto_esperado('${IDS.leadA}', 'saldo') as v`)).v)).toBe(2_000_000);
+      await crearOrden(tx, "ord_t024", "saldo", IDS.leadA, 2_000_000);
+      expect(await registrar(tx, "ord_t024", 1024, "approved", 2_000_000)).toMatchObject({ nuevo_aprobado: true });
+      // Ya completo: otro saldo no cuenta.
+      await crearOrden(tx, "ord_t025", "saldo", IDS.leadA, 2_000_000);
+      expect(await registrar(tx, "ord_t025", 1025, "approved", 2_000_000)).toMatchObject({ nuevo_aprobado: false });
+    });
+  });
+
+  it("no se conserva un pago de un cliente con datos borrados", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_t031", "diseno", IDS.leadA, 300000);
+      await tx.query("update public.ordenes set url_pago = 'https://mp.test/z' where id = 'ord_t031'");
+      await tx.query(`select public.borrar_datos_cliente('${IDS.leadA}', '${IDS.gerencia}', 'borrar')`);
+      await registrar(tx, "ord_t031", 1031, "approved", 300000); // queda "cerrado" para revisar
+      const p = await uno<{ id: number }>(tx, "select id from public.pagos where mp_pago_id = 1031");
+      expect((await uno<{ r: Record<string, unknown> }>(tx, `select public.resolver_pago(${p.id}, '${IDS.gerencia}', 'quedarse', 'conservar') as r`)).r).toMatchObject({ ok: false, motivo: "no_conservable" });
+    });
+  });
+
+  it("propuesta de Operflow que no deja anticipo por cobrar: avisa", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_t041", "diseno", IDS.leadA, 300000);
+      await registrar(tx, "ord_t041", 1041, "approved", 300000);
+      const r = await uno<{ r: Record<string, unknown> }>(tx,
+        `select public.registrar_aviso_operflow('${"5".repeat(64)}', '${IDS.leadA}', 'propuesta_lista', 'p', null, null, 800000, null, now()) as r`);
+      expect(r.r).toMatchObject({ ok: true, alerta: "sin_cobro" });
+    });
+  });
+});

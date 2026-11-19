@@ -20,7 +20,8 @@ export type Alerta =
   | "en_revision"
   | "error_base"
   | "saldo_negativo"
-  | "devolucion_parcial";
+  | "devolucion_parcial"
+  | "sin_cobro";
 
 export type ResultadoRegistro = {
   ok: boolean;

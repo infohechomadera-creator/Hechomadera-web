@@ -90,8 +90,11 @@ export function siguienteCobro(
     case "anticipo":
       if (!lead.valor_final_medido) return { ok: false, motivo: "espera_medidas" };
       return conMonto("saldo", montoSaldo(lead.valor_final_medido, pagado));
-    default:
-      return { ok: false, motivo: "pagado_todo" };
+    default: {
+      // Saldo ya pagado; si después hubo una devolución y falta plata, se cobra lo que falta (igual que la base).
+      const falta = lead.valor_final_medido ? montoSaldo(lead.valor_final_medido, pagado) : 0;
+      return falta > 0 ? conMonto("saldo", falta) : { ok: false, motivo: "pagado_todo" };
+    }
   }
 }
 
