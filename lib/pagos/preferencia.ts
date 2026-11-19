@@ -72,8 +72,10 @@ export async function crearPreferencia(args: {
     console.error("[preferencia] Mercado Pago rechazó la preferencia", res.status);
     return { ok: false, status: 502, error: "Mercado Pago rechazó el cobro. Intenta de nuevo." };
   }
-  // Con credenciales de prueba (TEST-…) se usa el pago de prueba; con las reales, el normal.
-  const url = token.startsWith("TEST-") ? (data.sandbox_init_point ?? data.init_point) : (data.init_point ?? data.sandbox_init_point);
+  // Producción: el pago normal. Vista previa y local: el pago de prueba. (Las credenciales de prueba nuevas
+  // empiezan por APP_USR- igual que las reales, así que se decide por el entorno; las viejas TEST- también.)
+  const prueba = process.env.VERCEL_ENV !== "production" || token.startsWith("TEST-");
+  const url = prueba ? (data.sandbox_init_point ?? data.init_point) : (data.init_point ?? data.sandbox_init_point);
   if (!url || !url.startsWith("https://")) return { ok: false, status: 502, error: "Mercado Pago no devolvió el enlace de pago." };
   return { ok: true, preferenciaId: data.id ?? null, url };
 }

@@ -58,7 +58,9 @@ export async function POST(request: Request) {
     secret: process.env.MERCADOPAGO_WEBHOOK_SECRET,
   });
   const errorFirma = firma.ok ? null : `signature_invalid:${firma.reason ?? "unknown"}`;
-  if (!firma.ok && process.env.MERCADOPAGO_WEBHOOK_ENFORCE === "true") {
+  // La firma obligatoria aplica en producción. La seguridad real no depende de ella: cada pago se vuelve a
+  // consultar en la API de Mercado Pago con nuestra credencial.
+  if (!firma.ok && process.env.MERCADOPAGO_WEBHOOK_ENFORCE === "true" && process.env.VERCEL_ENV === "production") {
     await saveWebhookEvent({ ...base, ...vacio, processed: false, error: errorFirma });
     return NextResponse.json({ received: false, error: "Invalid webhook signature" }, { status: 401 });
   }
