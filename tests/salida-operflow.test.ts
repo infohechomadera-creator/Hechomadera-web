@@ -112,3 +112,26 @@ describe("bandeja de salida a Operflow", () => {
     expect(llamadas).toHaveLength(0);
   });
 });
+
+describe("el borrado (E) sí sale aunque el A no haya quedado 'enviado'", () => {
+  it("A cancelado durante el envío → E creado y luego ENVIADO", async () => {
+    const { enviarPendientes } = await import("@/lib/integracion/salida");
+    alResponder = () => Object.assign(tablas.mensajes_operflow[0], { estado: "cancelado" });
+    await enviarPendientes({ leadId: LEAD });
+    alResponder = null;
+    await enviarPendientes({ leadId: LEAD });
+    expect(llamadas).toContain(`https://operflow.test/api/v1/proyectos/${encodeURIComponent(`lead_${LEAD}`)}/eliminar`);
+    expect(tablas.mensajes_operflow.find((m) => m.mensaje === "E")).toMatchObject({ estado: "enviado" });
+  });
+
+  it("A fallido que alguna vez tuvo respuesta → el E se envía; un C no", async () => {
+    tablas.mensajes_operflow = [
+      { id: 1, lead_id: LEAD, mensaje: "A", pago_id: null, estado: "cancelado", intentos: 0, respuesta_http: 0, proximo_intento_at: "2000-01-01" },
+      { id: 2, lead_id: LEAD, mensaje: "C", pago_id: 9, estado: "pendiente", intentos: 0, respuesta_http: null, proximo_intento_at: "2000-01-01" },
+      { id: 3, lead_id: LEAD, mensaje: "E", pago_id: null, estado: "pendiente", intentos: 0, respuesta_http: null, proximo_intento_at: "2000-01-01" },
+    ];
+    const { enviarPendientes } = await import("@/lib/integracion/salida");
+    await enviarPendientes({ leadId: LEAD });
+    expect(llamadas).toEqual([`https://operflow.test/api/v1/proyectos/${encodeURIComponent(`lead_${LEAD}`)}/eliminar`]);
+  });
+});

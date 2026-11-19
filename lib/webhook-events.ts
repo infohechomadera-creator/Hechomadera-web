@@ -120,3 +120,17 @@ export async function problemaYaRegistrado(mpPagoId: number, error: string): Pro
     return false;
   }
 }
+
+/** Cuántas veces quedó registrado este problema para este pago. */
+export async function vecesRegistrado(mpPagoId: number, error: string): Promise<number> {
+  try {
+    const { count } = await clienteSistema()
+      .from("eventos_pago")
+      .select("id", { count: "exact", head: true })
+      .eq("mp_pago_id", mpPagoId)
+      .eq("error", error.slice(0, 300));
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}

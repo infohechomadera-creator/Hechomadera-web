@@ -7,7 +7,19 @@
 import { fetchMercadoPagoPayment, type MercadoPagoPayment } from "@/lib/mercadopago";
 import { clienteSistema } from "@/lib/supabase/servidor";
 
-export type Alerta = "monto" | "valor_cambio" | "repetido" | "devuelto" | "reclamo" | "sin_orden" | "prueba_en_produccion";
+export type Alerta =
+  | "monto"
+  | "valor_cambio"
+  | "repetido"
+  | "devuelto"
+  | "reclamo"
+  | "sin_orden"
+  | "prueba_en_produccion"
+  | "cerrado"
+  | "prueba"
+  | "en_revision"
+  | "error_base"
+  | "saldo_negativo";
 
 export type ResultadoRegistro = {
   ok: boolean;
@@ -54,7 +66,8 @@ export async function procesarPagoMP(paymentId: string): Promise<Procesado> {
   const { data, error } = await clienteSistema().rpc("registrar_pago", {
     p_orden_id: orden,
     p_mp_pago_id: p.id,
-    p_estado_mp: p.status,
+    // Una devolución parcial deja el pago "approved" en Mercado Pago: aquí cuenta como devuelto (no cuenta).
+    p_estado_mp: (p.transaction_amount_refunded ?? 0) > 0 && p.status === "approved" ? "refunded" : p.status,
     p_monto: p.transaction_amount ?? null,
     p_moneda: p.currency_id ?? null,
     p_metodo: p.payment_method_id ?? null,

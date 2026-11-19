@@ -40,7 +40,7 @@ vi.mock("@/lib/supabase/servidor", () => ({
   }),
 }));
 
-import { borrarCliente, marcarPagoManual, noAprobo, ponerValorFinal, reenviarOperflow } from "@/app/admin/leads/acciones";
+import { borrarCliente, marcarPagoManual, noAprobo, ponerValorFinal, reenviarOperflow, resolverPago } from "@/app/admin/leads/acciones";
 
 beforeEach(() => {
   e.rol = "gerencia";
@@ -150,5 +150,17 @@ describe("pago a mano: lo que se vio es lo que se registra", () => {
     const r = await marcarPagoManual(LEAD, "transferencia", 6_700_000);
     expect(r).toMatchObject({ ok: false });
     expect(JSON.stringify(r)).toContain("NO cuenta");
+  });
+});
+
+describe("marcar resuelto un pago", () => {
+  it("solo gerencia, con nota, y a su nombre", async () => {
+    e.rol = "asesor";
+    expect(await resolverPago(LEAD, 7, "devuelto en MP")).toMatchObject({ ok: false });
+    expect(e.rpc).toHaveLength(0);
+    e.rol = "gerencia";
+    expect(await resolverPago(LEAD, 7, "  ")).toMatchObject({ ok: false });
+    expect(await resolverPago(LEAD, 7, "Devuelto en MP el 20/11")).toEqual({ ok: true });
+    expect(e.rpc[0]).toMatchObject({ fn: "resolver_pago", args: { p_pago_id: 7, p_autor: UID, p_nota: "Devuelto en MP el 20/11" } });
   });
 });

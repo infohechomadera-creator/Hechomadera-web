@@ -36,7 +36,7 @@ type Fila = {
   valor_final_medido: number | null;
   operflow_estado: string | null;
   clientes: { datos_borrados_at: string | null } | null;
-  pagos: { tipo: string; monto: number; cuenta: boolean }[];
+  pagos: { tipo: string; monto: number; cuenta: boolean; estado: string; resuelto_at: string | null }[];
 };
 
 /** Por el código del enlace (cliente) o por el id del lead (panel, ya revisado el permiso). */
@@ -44,11 +44,11 @@ export async function leerCobroLead(token: string, { porId = false } = {}): Prom
   if (porId ? !/^[0-9a-f-]{36}$/.test(token) : !TOKEN.test(token)) return null;
   const { data } = await clienteSistema()
     .from("leads")
-    .select("id, producto, ciudad, pago_estado, estado, valor_final, valor_final_medido, operflow_estado, clientes(datos_borrados_at), pagos(tipo, monto, cuenta)")
+    .select("id, producto, ciudad, pago_estado, estado, valor_final, valor_final_medido, operflow_estado, clientes(datos_borrados_at), pagos(tipo, monto, cuenta, estado, resuelto_at)")
     .eq(porId ? "id" : "pago_token", token)
     .maybeSingle<Fila>();
   if (!data || !CIUDADES_ACTIVAS.includes(data.ciudad as CiudadActiva)) return null;
-  const { tablas } = await obtenerPrecios();
+  const { tablas, origen } = await obtenerPrecios();
   const cobro = siguienteCobro(
     {
       producto: data.producto,
@@ -58,6 +58,8 @@ export async function leerCobroLead(token: string, { porId = false } = {}): Prom
       valor_final_medido: data.valor_final_medido == null ? null : Number(data.valor_final_medido),
       operflow_estado: data.operflow_estado,
       datos_borrados: Boolean(data.clientes?.datos_borrados_at),
+      pago_en_revision: (data.pagos ?? []).some((p) => (p.estado === "devuelto" || p.estado === "revisar") && !p.resuelto_at),
+      sin_precios: origen[data.ciudad as CiudadActiva] !== "supabase",
     },
     tablas[data.ciudad as CiudadActiva],
     sumarPagado(data.pagos ?? []),

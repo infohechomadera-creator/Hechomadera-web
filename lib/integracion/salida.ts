@@ -172,19 +172,21 @@ export async function enviarPendientes({ leadId, forzar = false, limite = 20 }: 
   const conA = new Set<string>();
   for (const m of mensajes) {
     // C y E solo cuando el proyecto ya existe en Operflow (A enviado).
+    // C (pago) solo cuando el proyecto ya existe en Operflow (A enviado).
+    // E (borrar) también si el A se intentó alguna vez: pudo crearse allá aunque no supiéramos la respuesta.
     if (m.mensaje !== "A" && !conA.has(m.lead_id)) {
       const { data: a } = await db
         .from("mensajes_operflow")
-        .select("id")
+        .select("id, estado, intentos, respuesta_http")
         .eq("lead_id", m.lead_id)
         .eq("mensaje", "A")
-        .eq("estado", "enviado")
-        .maybeSingle();
-      if (!a) {
+        .maybeSingle<{ id: number; estado: string; intentos: number; respuesta_http: number | null }>();
+      const listo = a && (a.estado === "enviado" || (m.mensaje === "E" && (a.intentos > 0 || a.respuesta_http !== null)));
+      if (!listo) {
         resultado.pendientes++;
         continue;
       }
-      conA.add(m.lead_id);
+      if (a.estado === "enviado") conA.add(m.lead_id);
     }
     // Se "toma" el mensaje subiendo el contador de intentos solo si nadie lo cambió (operación atómica):
     // si otro proceso (botón, webhook o tarea diaria) ya lo tomó, este no lo envía.
@@ -212,7 +214,8 @@ export async function enviarPendientes({ leadId, forzar = false, limite = 20 }: 
       .update({
         estado: d.estado,
         ultimo_error: d.error,
-        respuesta_http: status || null,
+        // 0 = sin respuesta (se guarda igual: indica que el mensaje se intentó y pudo llegar).
+        respuesta_http: status,
         enviado_at: d.estado === "enviado" ? new Date().toISOString() : null,
         proximo_intento_at: new Date(Date.now() + d.esperaMin * 60_000).toISOString(),
       })

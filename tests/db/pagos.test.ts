@@ -404,8 +404,19 @@ describe("refuerzo: ningún lead queda pagado con plata faltante", () => {
     });
   });
 
-  it("un pago de prueba queda marcado y lo dice el historial", async () => {
+  it("un pago de prueba en un lead REAL no cuenta y avisa", async () => {
     await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_r6xx", "diseno", IDS.leadA, 300000);
+      const r = await uno<{ r: Record<string, unknown> }>(tx, "select public.registrar_pago('ord_r6xx', 742, 'approved', 300000, 'COP', null, null, now(), true) as r");
+      expect(r.r).toMatchObject({ nuevo_aprobado: false, alerta: "prueba" });
+      expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("nada");
+      expect(await contar(tx, "select 1 from public.mensajes_operflow")).toBe(0);
+    });
+  });
+
+  it("un pago de prueba en un lead de PRUEBA cuenta y lo dice el historial", async () => {
+    await como(db, sistema, async (tx) => {
+      await tx.query("update public.leads set es_prueba = true where id = $1", [IDS.leadA]);
       await crearOrden(tx, "ord_r5xx", "diseno", IDS.leadA, 300000);
       await tx.query("select public.registrar_pago('ord_r5xx', 741, 'approved', 300000, 'COP', null, null, now(), true)");
       expect((await uno<{ modo_prueba: boolean }>(tx, "select modo_prueba from public.pagos where mp_pago_id = 741")).modo_prueba).toBe(true);
@@ -475,5 +486,105 @@ describe("refuerzo: borrado", () => {
   it("con sesión, ni gerencia borra clientes o leads directamente", async () => {
     await expect(como(db, gerencia, (tx) => tx.query("delete from public.clientes where id = $1", [IDS.clienteB]))).rejects.toThrow(/permission denied/);
     await expect(como(db, gerencia, (tx) => tx.query("delete from public.leads where id = $1", [IDS.leadB]))).rejects.toThrow(/permission denied/);
+  });
+});
+
+describe("segundo refuerzo: leads cerrados, devueltos y valores", () => {
+  const valorFinal = (tx: Tx, v: number, medido: boolean) =>
+    uno<{ r: Record<string, unknown> }>(tx, `select public.poner_valor_final('${IDS.leadA}', ${v}, ${medido}, '${IDS.gerencia}') as r`).then((x) => x.r);
+  const conDiseno = async (tx: Tx, mp: number) => {
+    await crearOrden(tx, `ord_s${mp}`, "diseno", IDS.leadA, 300000);
+    await registrar(tx, `ord_s${mp}`, mp, "approved", 300000);
+  };
+
+  it("un anticipo pagado después de 'no aprobó' no cuenta (lead cerrado) y avisa", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 901);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_s902", "anticipo", IDS.leadA, 6_700_000);
+      await tx.query(`select public.borrar_datos_cliente('${IDS.leadA}', '${IDS.asesorA}', 'no_aprobo')`);
+      expect(await registrar(tx, "ord_s902", 902, "approved", 6_700_000)).toMatchObject({ nuevo_aprobado: false, alerta: "cerrado" });
+      expect((await uno<{ pago_estado: string; estado: string }>(tx, "select pago_estado, estado from public.leads where id = $1", [IDS.leadA]))).toEqual({ pago_estado: "diseno", estado: "no_aprobo" });
+      expect(await contar(tx, "select 1 from public.mensajes_operflow where mensaje = 'C'")).toBe(0);
+    });
+  });
+
+  it("un diseño pagado después de 'borrar cliente' no cuenta", async () => {
+    await como(db, sistema, async (tx) => {
+      await crearOrden(tx, "ord_s903", "diseno", IDS.leadA, 300000);
+      await tx.query("update public.ordenes set url_pago = 'https://mp.test/y' where id = 'ord_s903'");
+      await tx.query(`select public.borrar_datos_cliente('${IDS.leadA}', '${IDS.gerencia}', 'borrar')`);
+      expect(await registrar(tx, "ord_s903", 903, "approved", 300000)).toMatchObject({ alerta: "cerrado" });
+      expect(await contar(tx, "select 1 from public.mensajes_operflow where mensaje = 'A'")).toBe(0);
+    });
+  });
+
+  it("un saldo pagado después de 'cancelado tras medición' no cuenta", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 904);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_s905", "anticipo", IDS.leadA, 6_700_000);
+      await registrar(tx, "ord_s905", 905, "approved", 6_700_000);
+      await valorFinal(tx, 21_000_000, true);
+      await crearOrden(tx, "ord_s906", "saldo", IDS.leadA, 14_000_000);
+      await tx.query(`select public.registrar_aviso_operflow('${"1".repeat(64)}', '${IDS.leadA}', 'cancelado_tras_medicion', null, null, null, null, null, now())`);
+      expect(await registrar(tx, "ord_s906", 906, "approved", 14_000_000)).toMatchObject({ alerta: "cerrado" });
+      expect((await uno<{ pago_estado: string }>(tx, "select pago_estado from public.leads where id = $1", [IDS.leadA])).pago_estado).toBe("anticipo");
+    });
+  });
+
+  it("con un pago devuelto sin resolver, el siguiente no cuenta; al resolverlo, sí", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 907);
+      await registrar(tx, "ord_s907", 907, "refunded", 300000);
+      // El lead sigue en 'diseno' (gerencia decide), pero el diseño ya no cuenta: el anticipo sería 35% completo.
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_s908", "anticipo", IDS.leadA, 7_000_000);
+      expect(await registrar(tx, "ord_s908", 908, "approved", 7_000_000)).toMatchObject({ alerta: "en_revision" });
+      const devuelto = await uno<{ id: number }>(tx, "select id from public.pagos where mp_pago_id = 907");
+      // Solo gerencia resuelve, con nota.
+      expect((await uno<{ r: { ok: boolean } }>(tx, `select public.resolver_pago(${devuelto.id}, '${IDS.asesorA}', 'devuelto') as r`)).r.ok).toBe(false);
+      expect((await uno<{ r: { ok: boolean } }>(tx, `select public.resolver_pago(${devuelto.id}, '${IDS.gerencia}', 'Devuelto en MP el 20/11') as r`)).r.ok).toBe(true);
+      await crearOrden(tx, "ord_s909", "anticipo", IDS.leadA, 7_000_000);
+      expect(await registrar(tx, "ord_s909", 909, "approved", 7_000_000)).toMatchObject({ nuevo_aprobado: true });
+    });
+  });
+
+  it("un valor medido que no deja saldo se rechaza", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 910);
+      await valorFinal(tx, 20_000_000, false);
+      await crearOrden(tx, "ord_s911", "anticipo", IDS.leadA, 6_700_000);
+      await registrar(tx, "ord_s911", 911, "approved", 6_700_000);
+      expect(await valorFinal(tx, 7_000_000, true)).toMatchObject({ ok: false, motivo: "saldo_cero" });
+    });
+  });
+
+  it("un valor ajustado tardío se aplica aunque haya llegado antes un cambio de etapa más nuevo", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 912);
+      await tx.query(`select public.registrar_aviso_operflow('${"2".repeat(64)}', '${IDS.leadA}', 'etapa_cambiada', 'p', 'produccion', 'x', null, null, '2026-11-19T15:00:00Z')`);
+      await tx.query(`select public.registrar_aviso_operflow('${"3".repeat(64)}', '${IDS.leadA}', 'valor_ajustado', 'p', null, null, 21000000, null, '2026-11-19T14:00:00Z')`);
+      expect(Number((await uno<{ v: number }>(tx, "select valor_final_medido as v from public.leads where id = $1", [IDS.leadA])).v)).toBe(21_000_000);
+      // Y uno de valor más viejo que el último valor sí se ignora (con rastro en el historial).
+      await tx.query(`select public.registrar_aviso_operflow('${"4".repeat(64)}', '${IDS.leadA}', 'valor_ajustado', 'p', null, null, 19000000, null, '2026-11-19T13:00:00Z')`);
+      expect(Number((await uno<{ v: number }>(tx, "select valor_final_medido as v from public.leads where id = $1", [IDS.leadA])).v)).toBe(21_000_000);
+      expect(await contar(tx, "select 1 from public.actividades where detalle like '%más viejo que el último%'")).toBe(1);
+    });
+  });
+
+  it("el E sale si el A obtuvo alguna respuesta, aunque fallara", async () => {
+    await como(db, sistema, async (tx) => {
+      await conDiseno(tx, 913);
+      await tx.query("update public.mensajes_operflow set estado = 'fallido', intentos = 0, respuesta_http = 0 where mensaje = 'A'");
+      await tx.query(`select public.borrar_datos_cliente('${IDS.leadA}', '${IDS.asesorA}', 'no_aprobo')`);
+      expect(await contar(tx, "select 1 from public.mensajes_operflow where mensaje = 'E'")).toBe(1);
+    });
+  });
+
+  it("con sesión nadie marca un lead como de prueba", async () => {
+    await expect(como(db, gerencia, (tx) => tx.query("update public.leads set es_prueba = true where id = $1", [IDS.leadA]))).rejects.toThrow(
+      /lo cambia solo el sistema/,
+    );
   });
 });

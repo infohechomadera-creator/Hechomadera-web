@@ -23,6 +23,10 @@ export interface LeadParaCobro {
   valor_final_medido: number | null;
   operflow_estado: string | null;
   datos_borrados: boolean;
+  /** Hay un pago devuelto o en revisión sin resolver: no se cobra nada más hasta que gerencia lo vea. */
+  pago_en_revision?: boolean;
+  /** Los precios no salieron de la tabla de Supabase (se usó la semilla de ejemplo): no se cobra. */
+  sin_precios?: boolean;
 }
 
 /** Lo que el lead ya pagó y cuenta (aprobado, no repetido), por tipo. */
@@ -33,7 +37,9 @@ export type MotivoSinCobro =
   | "espera_propuesta"
   | "espera_medidas"
   | "cerrado"
-  | "sin_monto";
+  | "sin_monto"
+  | "en_revision"
+  | "sin_precios";
 
 export type SiguienteCobro = { ok: true; tipo: TipoCobro; monto: number } | { ok: false; motivo: MotivoSinCobro };
 
@@ -43,6 +49,8 @@ export const MOTIVO_SIN_COBRO: Record<MotivoSinCobro, string> = {
   espera_medidas: "El anticipo ya está pagado. El saldo se habilita cuando confirmemos las medidas.",
   cerrado: "Este enlace de pago ya no está activo.",
   sin_monto: "No hay un valor pendiente por pagar. Escríbenos si tienes dudas.",
+  en_revision: "Estamos revisando un pago de este proyecto. Escríbenos por WhatsApp antes de pagar.",
+  sin_precios: "No podemos calcular el pago en este momento. Escríbenos por WhatsApp.",
 };
 
 export function montoDiseno(tabla: Pick<TablaPrecios, "valor_diseno">, producto: Producto): number {
@@ -66,6 +74,8 @@ export function siguienteCobro(
   if (lead.datos_borrados || lead.estado === "no_aprobo" || lead.operflow_estado === "cancelado") {
     return { ok: false, motivo: "cerrado" };
   }
+  if (lead.pago_en_revision) return { ok: false, motivo: "en_revision" };
+  if (lead.sin_precios) return { ok: false, motivo: "sin_precios" };
   const conMonto = (tipo: TipoCobro, monto: number): SiguienteCobro =>
     Number.isSafeInteger(monto) && monto > 0 ? { ok: true, tipo, monto } : { ok: false, motivo: "sin_monto" };
 

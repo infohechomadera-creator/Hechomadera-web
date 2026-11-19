@@ -57,6 +57,7 @@ type Lead = {
   operflow_etapa: string | null;
   operflow_estado: string | null;
   operflow_url_propuesta: string | null;
+  es_prueba: boolean;
 };
 
 type Pago = {
@@ -68,6 +69,7 @@ type Pago = {
   pagado_at: string | null;
   creado_at: string;
   mp_pago_id: number | null;
+  resuelto_at: string | null;
 };
 
 export default async function AdminLeadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -84,13 +86,13 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
   const { data: lead } = await supabase
     .from("leads")
     .select(
-      "id, ciudad, estado, pago_estado, asesor_id, proximo_contacto, rango_min, rango_max, configuracion, creado_at, producto, pago_token, valor_final, valor_final_medido, operflow_proyecto_id, operflow_etapa, operflow_estado, operflow_url_propuesta, clientes(nombre, telefono, email, autorizacion_datos_at, autorizacion_version, datos_borrados_at), archivos(ruta)",
+      "id, ciudad, estado, pago_estado, asesor_id, proximo_contacto, rango_min, rango_max, configuracion, creado_at, producto, pago_token, valor_final, valor_final_medido, operflow_proyecto_id, operflow_etapa, operflow_estado, operflow_url_propuesta, es_prueba, clientes(nombre, telefono, email, autorizacion_datos_at, autorizacion_version, datos_borrados_at), archivos(ruta)",
     )
     .eq("id", id)
     .maybeSingle<Lead>();
   if (!lead) notFound();
 
-  const [{ data: actividades }, { data: nombres }, { data: activos }, { data: pagos }, { data: mensajes }, { tablas }] = await Promise.all([
+  const [{ data: actividades }, { data: nombres }, { data: activos }, { data: pagos }, { data: mensajes }, { tablas, origen }] = await Promise.all([
     supabase
       .from("actividades")
       .select("id, tipo, detalle, autor_id, creado_at")
@@ -106,7 +108,7 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
     // Pagos y bandeja de Operflow: RLS deja ver solo los del lead propio (o todo a gerencia).
     supabase
       .from("pagos")
-      .select("id, tipo, monto, estado, cuenta, pagado_at, creado_at, mp_pago_id")
+      .select("id, tipo, monto, estado, cuenta, pagado_at, creado_at, mp_pago_id, resuelto_at")
       .eq("lead_id", lead.id)
       .order("creado_at", { ascending: false })
       .returns<Pago[]>(),
@@ -131,6 +133,8 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
           valor_final_medido: lead.valor_final_medido == null ? null : Number(lead.valor_final_medido),
           operflow_estado: lead.operflow_estado,
           datos_borrados: datosBorrados,
+          pago_en_revision: (pagos ?? []).some((x) => (x.estado === "devuelto" || x.estado === "revisar") && !x.resuelto_at),
+          sin_precios: origen[lead.ciudad as CiudadActiva] !== "supabase",
         },
         tabla,
         sumarPagado(pagos ?? []),
@@ -172,7 +176,7 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
     ["Rango", `${pesos(lead.rango_min)} – ${pesos(lead.rango_max)}`],
     ["Precios usados", c.precios_vigente_desde ? `vigentes desde ${c.precios_vigente_desde}` : "—"],
     ["Estado", `${ETIQUETA_ESTADO[lead.estado] ?? lead.estado} · pagó: ${lead.pago_estado}`],
-    ["Llegó", fechaCorta(lead.creado_at)],
+    ["Llegó", fechaCorta(lead.creado_at) + (lead.es_prueba ? " · LEAD DE PRUEBA (creado fuera de producción)" : "")],
   ];
 
   return (
@@ -235,6 +239,7 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
           cuenta: x.cuenta,
           cuando: fechaCorta(x.pagado_at ?? x.creado_at),
           origen: x.mp_pago_id ? "Mercado Pago" : "a mano",
+          resuelto: Boolean(x.resuelto_at),
         }))}
         operflow={{
           proyectoId: lead.operflow_proyecto_id,

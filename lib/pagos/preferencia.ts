@@ -48,6 +48,8 @@ export async function crearPreferencia(args: {
     statement_descriptor: "HECHOMADERA",
     external_reference: args.ordenId,
     expires: true,
+    // Pagos en efectivo (Efecty y similares): el ticket también vence a las 24 h.
+    date_of_expiration: fechaMP(new Date(Date.now() + VIGENCIA_COBRO_HORAS * 3600_000)),
     expiration_date_from: fechaMP(new Date(Date.now() - 60_000)),
     expiration_date_to: fechaMP(new Date(Date.now() + VIGENCIA_COBRO_HORAS * 3600_000)),
     // Solo en https: Mercado Pago no avisa a localhost.

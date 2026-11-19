@@ -365,6 +365,11 @@ const MOTIVO_ALERTA: Record<string, string> = {
   reclamo: "Mercado Pago abrió un reclamo sobre un pago aprobado.",
   sin_orden: "Entró un pago aprobado que no corresponde a ninguna orden de la web (pudo ser borrada). Revisar y devolver.",
   prueba_en_produccion: "Llegó un pago de PRUEBA al sitio de producción. Se ignoró.",
+  cerrado: "Llegó un pago en un lead cerrado (no aprobó, datos borrados o cancelado). No se contó: devolver.",
+  prueba: "Llegó un pago de PRUEBA en un lead real. No se contó.",
+  en_revision: "Llegó un pago en un lead que tiene otro pago devuelto sin resolver. No se contó: revisar.",
+  error_base: "La base no pudo registrar un pago después de varios intentos. Revisar YA en Mercado Pago y en Supabase.",
+  saldo_negativo: "Operflow informó un valor ajustado que no deja saldo: hay que devolver la diferencia al cliente.",
 };
 
 export async function avisarPagoParaRevisar({

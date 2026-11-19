@@ -3,7 +3,7 @@ import { normalizePaymentState } from "@/lib/mercadopago";
 import { validateMercadoPagoWebhookSignature } from "@/lib/mercadopago-webhook-signature";
 import { getOrder } from "@/lib/pagos/ordenes";
 import { procesarPagoMP } from "@/lib/pagos/procesar";
-import { problemaYaRegistrado, saveWebhookEvent } from "@/lib/webhook-events";
+import { problemaYaRegistrado, saveWebhookEvent, vecesRegistrado } from "@/lib/webhook-events";
 import { dentroDelLimite, ipDe } from "@/lib/limite";
 import {
   avisarPagoLead,
@@ -85,6 +85,10 @@ export async function POST(request: Request) {
   let alerta = r.ok ? r.registro.alerta : r.alerta;
   if (!r.ok && alerta && p?.id && (await problemaYaRegistrado(p.id, r.error))) alerta = undefined;
   if (r.ok && !r.registro.ok && alerta && p?.id && (await problemaYaRegistrado(p.id, r.registro.motivo ?? "rechazado_por_la_base"))) alerta = undefined;
+  // Si la base falla con el mismo pago una y otra vez, Mercado Pago se cansa de reintentar: se avisa al tercer intento.
+  if (!r.ok && r.error.startsWith("base:") && p?.id && p.status === "approved" && (await vecesRegistrado(p.id, r.error)) === 3) {
+    alerta = "error_base";
+  }
   const leadId = r.ok ? r.registro.lead_id : undefined;
   const nuevo = r.ok && r.registro.nuevo_aprobado ? r.registro : null;
 

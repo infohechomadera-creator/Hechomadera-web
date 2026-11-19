@@ -154,3 +154,12 @@ describe("copia de órdenes viejas de Redis", async () => {
     expect(aFilas({ ...vieja, payment: undefined })!.pago).toBeNull();
   });
 });
+
+describe("no se ofrece cobro con un pago en revisión o sin precios reales", () => {
+  it("pago devuelto o para revisar sin resolver: en_revision", () => {
+    expect(siguienteCobro({ ...base, pago_en_revision: true }, tabla, nada)).toEqual({ ok: false, motivo: "en_revision" });
+  });
+  it("precios de la semilla (no de Supabase): sin_precios", () => {
+    expect(siguienteCobro({ ...base, sin_precios: true }, tabla, nada)).toEqual({ ok: false, motivo: "sin_precios" });
+  });
+});

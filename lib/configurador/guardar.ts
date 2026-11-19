@@ -99,6 +99,8 @@ export async function guardarLead(solicitud: SolicitudLead, rango: Rango, fotos:
       producto: "cocina",
       ciudad: c.ciudad,
       envio_id,
+      // Lead creado fuera de producción (vista previa o local) = lead de prueba: solo ahí cuentan pagos de prueba.
+      es_prueba: process.env.VERCEL_ENV !== "production",
       rango_min: rango.min,
       rango_max: rango.max,
       configuracion: {

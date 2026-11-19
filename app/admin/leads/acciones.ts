@@ -94,6 +94,7 @@ const MOTIVO_BASE: Record<string, string> = {
   estado: "Ese cambio no aplica al estado actual del lead.",
   datos: "Revisa los datos e intenta de nuevo.",
   no_existe: "No encontramos ese lead.",
+  saldo_cero: "Con ese valor medido no queda saldo: el cliente ya pagó eso o más. Si hay que devolver, hazlo en Mercado Pago.",
   anticipo_cero: "Con ese valor final el anticipo (35% menos el diseño) no da nada que cobrar. Revisa el valor.",
 };
 
@@ -197,6 +198,22 @@ export async function borrarCliente(leadId: string, confirmacion: string): Promi
   revalidatePath("/admin/leads");
   if (!borrado) revalidatePath(`/admin/leads/${leadId}`);
   return { ok: true, borrado };
+}
+
+/** Solo gerencia: marca resuelto un pago para revisar o devuelto (ya se devolvió, se cobró la diferencia…). */
+export async function resolverPago(leadId: string, pagoId: number, nota: string): Promise<Resultado> {
+  if (typeof leadId !== "string" || !UUID.test(leadId) || !Number.isSafeInteger(pagoId)) return NO_ENCONTRADO;
+  const limpia = typeof nota === "string" ? nota.trim() : "";
+  if (limpia.length < 3 || limpia.length > 300) return { ok: false, error: "Escribe cómo se resolvió (3 a 300 caracteres)." };
+  const s = await conSesion();
+  if (!s) return SESION_VENCIDA;
+  if (s.rol !== "gerencia") return { ok: false, error: "Solo gerencia resuelve pagos." };
+  if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
+  const { data: pago } = await s.supabase.from("pagos").select("id").eq("id", pagoId).eq("lead_id", leadId).maybeSingle();
+  if (!pago) return NO_ENCONTRADO;
+  const r = await llamarBase("resolver_pago", { p_pago_id: pagoId, p_autor: s.uid, p_nota: limpia });
+  if (r.ok) refrescar(leadId);
+  return r.ok ? { ok: true } : r;
 }
 
 /** Solo gerencia: reintenta ya los mensajes pendientes para Operflow de este lead. */

@@ -2,10 +2,27 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { borrarCliente, marcarPagoManual, noAprobo, ponerValorFinal, reenviarOperflow, type Resultado } from "@/app/admin/leads/acciones";
+import {
+  borrarCliente,
+  marcarPagoManual,
+  noAprobo,
+  ponerValorFinal,
+  reenviarOperflow,
+  resolverPago,
+  type Resultado,
+} from "@/app/admin/leads/acciones";
 import { pesos } from "@/lib/leads";
 
-export type FilaPago = { id: number; tipo: string; monto: number; estado: string; cuenta: boolean; cuando: string; origen: string };
+export type FilaPago = {
+  id: number;
+  tipo: string;
+  monto: number;
+  estado: string;
+  cuenta: boolean;
+  cuando: string;
+  origen: string;
+  resuelto: boolean;
+};
 export type FilaMensaje = { id: number; mensaje: string; estado: string; error: string | null; intentos: number };
 
 type Props = {
@@ -144,7 +161,23 @@ export function PanelPagos(p: Props) {
                 }`}
               >
                 {ESTADO_PAGO[x.estado] ?? x.estado}
+                {x.resuelto ? " · resuelto" : ""}
               </span>
+              {p.esGerencia && (x.estado === "revisar" || x.estado === "devuelto") && !x.resuelto && (
+                <button
+                  type="button"
+                  className="border border-neutral-300 px-3 py-1 text-xs text-ink hover:border-ink disabled:opacity-50"
+                  disabled={guardando}
+                  onClick={() => {
+                    const nota = window.prompt(
+                      "¿Cómo se resolvió? (por ejemplo: devuelto en Mercado Pago el 20/11). Mientras no lo marques, el lead no acepta pagos nuevos.",
+                    );
+                    if (nota && nota.trim().length >= 3) hacer(() => resolverPago(p.leadId, x.id, nota), "Pago marcado como resuelto.");
+                  }}
+                >
+                  Marcar resuelto
+                </button>
+              )}
             </li>
           ))}
         </ul>

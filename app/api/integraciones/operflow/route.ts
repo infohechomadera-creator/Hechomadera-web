@@ -4,6 +4,7 @@ import { LIMITE_IP_POR_MINUTO, registrarEvento } from "@/lib/integracion/operflo
 import { ENCABEZADO_FIRMA, firmaOperflowValida } from "@/lib/integracion/firma";
 import { dentroDelLimite, ipDe } from "@/lib/limite";
 import { clienteSistema } from "@/lib/supabase/servidor";
+import { avisarPagoParaRevisar } from "@/lib/email-notifications";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,7 +72,12 @@ export async function POST(request: Request) {
     p_fecha: fechaAviso,
   });
   if (error) return responder(500, { error: "No se pudo registrar" }, "error de base");
-  const r = data as { ok: boolean; repetido?: boolean };
+  const r = data as { ok: boolean; repetido?: boolean; alerta?: string };
   if (!r.ok) return responder(404, { error: "No existe ese proyecto en la web" }, `lead ${lead!.slice(0, 8)}`);
+  if (r.alerta) {
+    await avisarPagoParaRevisar({ alerta: r.alerta, mpPagoId: null, monto: typeof valor === "number" ? valor : null, leadId: lead }).catch(
+      () => undefined,
+    );
+  }
   return responder(200, { ok: true, repetido: Boolean(r.repetido) }, `${evento} lead ${lead!.slice(0, 8)}`);
 }
