@@ -66,7 +66,7 @@ const escaparRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
  * Quita del historial nuevo el nombre, el celular y el correo una vez puestos en el formulario,
  * para que no se vuelvan a mandar a la IA en cada mensaje.
  */
-function ocultarContacto(nuevos: Anthropic.MessageParam[], c: Contacto): Anthropic.MessageParam[] {
+export function ocultarContacto(nuevos: Anthropic.MessageParam[], c: Contacto): Anthropic.MessageParam[] {
   const palabras = [c.nombre, ...c.nombre.split(" "), c.email ?? ""].filter((p) => p.length >= 3).sort((a, b) => b.length - a.length);
   // Solo palabras completas ("Ana" no toca "ventana").
   const nombre = palabras.length ? new RegExp(`(?<![\\p{L}\\p{N}])(?:${palabras.map(escaparRegex).join("|")})(?![\\p{L}\\p{N}])`, "giu") : null;
@@ -75,10 +75,11 @@ function ocultarContacto(nuevos: Anthropic.MessageParam[], c: Contacto): Anthrop
     if (nombre) s = s.replace(nombre, "[dato guardado]");
     return s;
   };
-  return nuevos.map((m, i) => {
+  return nuevos.map((m) => {
     if (!Array.isArray(m.content)) return m;
-    const content = m.content.map((b, j) => {
-      if (b.type === "text" && !(i === 0 && j === 0)) return { ...b, text: tapar(b.text) };
+    const content = m.content.map((b) => {
+      // El estado del formulario lo pone la web y no lleva datos de contacto.
+      if (b.type === "text" && !b.text.startsWith("<estado_configurador>")) return { ...b, text: tapar(b.text) };
       if (b.type === "tool_use" && b.name === "guardar_contacto") return { ...b, input: { nombre: "[guardado]", telefono: "[guardado]" } };
       return b;
     });

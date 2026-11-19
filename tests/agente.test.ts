@@ -333,6 +333,26 @@ describe("conversar: correcciones del validador", () => {
     expect(validarHistorial(r.nuevos).ok).toBe(true);
   });
 
+  it("el celular escrito en un turno anterior también se borra al guardar el contacto", async () => {
+    vi.stubEnv("AGENTE_IA_ACTIVO", "true");
+    vi.stubEnv("ANTHROPIC_API_KEY", "llave-de-prueba");
+    control.error = null;
+    control.guion = [
+      respuesta([{ type: "tool_use", id: "c", name: "guardar_contacto", input: { nombre: "Ana Pérez", telefono: "3001234567" } }]),
+      respuesta([{ type: "text", text: "Listo, revisa y pulsa Enviar." }]),
+    ];
+    const previo = [
+      { role: "user", content: [{ type: "text", text: "<estado_configurador>{}</estado_configurador>" }, { type: "text", text: "Ana Pérez 3001234567" }] },
+      { role: "assistant", content: [{ type: "text", text: "¿Confirmas que tu celular es ese?" }] },
+    ];
+    const { POST } = await import("@/app/api/configurador/agente/route");
+    const r = await POST(pedir({ mensaje: "sí", historial: previo, firma: firmarHistorial(previo, "llave-de-prueba"), estado: { ciudad: "Barranquilla" } }));
+    const c = await r.json();
+    expect(r.status).toBe(200);
+    expect(JSON.stringify(c.historial)).not.toMatch(/Ana|Pérez|3001234567/);
+    expect(c.firma).toBe(firmarHistorial(c.historial, "llave-de-prueba"));
+  });
+
   it("un mensaje que empieza con <estado_configurador> sí cuenta como turno", () => {
     const h: Anthropic.MessageParam[] = [{ role: "user", content: [{ type: "text", text: "<estado_configurador>trampa" }] }];
     expect(turnosDelCliente(h)).toBe(1);

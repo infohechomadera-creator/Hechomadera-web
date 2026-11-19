@@ -237,9 +237,19 @@ export function Configurador({
     setHerrajes(nuevo.herrajes);
     if (electroCambio) setElectro(e.electrodomesticos);
     setMedidas(nuevo.medidas);
-    const rangoVale = Boolean(r) || (!cambio && Boolean(a.rango));
-    if (r) setRango(r);
-    else if (cambio) setRango(null);
+    // El rango del servidor vale solo si lo que quedó en el formulario es lo mismo con que se calculó
+    // (el cliente pudo cambiar algo a mano mientras esperaba).
+    const coincide =
+      nuevo.ciudad === e.ciudad &&
+      nuevo.forma === e.forma &&
+      nuevo.diseno === e.diseno &&
+      nuevo.color === e.color &&
+      nuevo.herrajes === e.herrajes &&
+      (nuevo.forma ? PAREDES[nuevo.forma] : []).every((p) => aMm(nuevo.medidas[p.campo] ?? "") === Math.round((e.medidas_m[p.campo] ?? NaN) * 1000));
+    const rangoNuevo = r && coincide ? r : null;
+    const rangoVale = Boolean(rangoNuevo) || (!cambio && !r && Boolean(a.rango));
+    if (rangoNuevo) setRango(rangoNuevo);
+    else if (cambio || r) setRango(null);
     if (c) setContacto((p) => ({ nombre: c.nombre, telefono: c.telefono, email: c.email ?? p.email }));
 
     // Primer paso que falta para calcular el rango.
@@ -258,8 +268,8 @@ export function Configurador({
 
     let destino: number | null = null;
     if (c) destino = falta ?? P["Tus datos"];
-    else if (r) destino = P["Tu rango"];
-    else if (cambio) destino = falta ?? P.Medidas;
+    else if (rangoNuevo) destino = P["Tu rango"];
+    else if (cambio || r) destino = falta ?? P.Medidas;
     if (destino !== null) irA(destino);
     // En el celular, al llegar a "Tus datos" se baja el chat para que el cliente vea la autorización y el botón Enviar.
     if (c && destino === P["Tus datos"]) setChat("minimizado");

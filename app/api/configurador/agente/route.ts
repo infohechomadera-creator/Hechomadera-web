@@ -4,7 +4,7 @@ import { obtenerPrecios } from "@/lib/precios/fuente";
 import { dentroDelLimite, ipDe } from "@/lib/limite";
 import { LIMITES_CHARLA, firmaValida, firmarHistorial, turnosDelCliente, validarHistorial, validarMensaje } from "@/lib/agente/guardia";
 import { leerEstado } from "@/lib/agente/herramientas";
-import { MENSAJE_SIN_SERVICIO, SinCupo, agenteActivo, clienteAnthropic, conversar } from "@/lib/agente/conversar";
+import { MENSAJE_SIN_SERVICIO, SinCupo, agenteActivo, clienteAnthropic, conversar, ocultarContacto } from "@/lib/agente/conversar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,7 +67,8 @@ export async function POST(request: Request) {
       tablas,
       permitirLlamada: () => dentroDelLimite("agente-llamadas:dia", LIMITE_LLAMADAS_DIA, 86_400, false),
     });
-    const completo = [...historial.valor, ...r.nuevos];
+    // Si se guardó el contacto, se borra de TODA la conversación (el cliente pudo escribirlo en un mensaje anterior).
+    const completo = r.contacto ? ocultarContacto([...historial.valor, ...r.nuevos], r.contacto) : [...historial.valor, ...r.nuevos];
     return responder(200, {
       ok: true,
       texto: r.texto,

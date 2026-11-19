@@ -63,7 +63,7 @@ export const LIMITES_CHARLA = {
   /** Entradas del historial (cliente, IA y resultados de herramientas). */
   entradas: 200,
   /** Tamaño total del historial en caracteres. */
-  caracteres: 30_000,
+  caracteres: 60_000,
 } as const;
 
 export type Resultado<T> = { ok: true; valor: T } | { ok: false; error: string };
@@ -94,7 +94,9 @@ export function validarHistorial(datos: unknown): Resultado<Anthropic.MessagePar
   const mal = { ok: false as const, error: "La conversación no es válida; empieza de nuevo" };
   if (datos === undefined || datos === null) return { ok: true, valor: [] };
   if (!Array.isArray(datos) || datos.length > LIMITES_CHARLA.entradas) return mal;
-  if (JSON.stringify(datos).length > LIMITES_CHARLA.caracteres) return mal;
+  if (JSON.stringify(datos).length > LIMITES_CHARLA.caracteres) {
+    return { ok: false, error: "Llegamos al máximo de esta conversación. Sigue con el formulario o empieza de nuevo." };
+  }
 
   const salida: Anthropic.MessageParam[] = [];
   for (const m of datos) {
