@@ -17,8 +17,11 @@ export async function copiarOrdenesRedis(): Promise<ResultadoCopia> {
   let viejas: OrdenRedis[] | null;
   try {
     viejas = await leerOrdenesRedis();
-  } catch {
-    return { ok: false, error: "No se pudo leer Redis. Intenta de nuevo." };
+  } catch (e) {
+    // El mensaje de Upstash no trae la llave; ayuda a saber si la base está archivada o caída.
+    const motivo = e instanceof Error ? e.message.replace(/[A-Za-z0-9_-]{30,}/g, "…").slice(0, 120) : "desconocido";
+    console.error("[copiar-redis] no se pudo leer Redis:", motivo);
+    return { ok: false, error: `No se pudo leer Redis (${motivo}).` };
   }
   if (!viejas) return { ok: false, error: "Redis no está configurado en este entorno." };
   const filas = viejas.map(aFilas);
