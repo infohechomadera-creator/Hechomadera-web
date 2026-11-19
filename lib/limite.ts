@@ -3,15 +3,16 @@
  * públicas (configurador, enlaces de pago, aviso de Mercado Pago) y las de Operflow.
  * Antes usaba Upstash Redis; Upstash borró esa base por falta de uso y se decidió no usar Redis (2026-11-19).
  * La clave se guarda como huella SHA-256: en la base no queda la IP.
- * Si Supabase no está configurado o falla, no bloquea (sin Supabase la web tampoco puede guardar nada).
+ * Si Supabase no está configurado o falla, por defecto no bloquea (sin Supabase la web tampoco puede guardar nada).
+ * Lo que cuesta dinero (el agente de IA) pasa `siFalla = false`: si no se puede contar, no se atiende.
  */
 import { createHash } from "node:crypto";
 import { supabaseConfigurado } from "@/lib/supabase/config";
 import { clienteSistema } from "@/lib/supabase/servidor";
 
-/** true si todavía hay cupo en la ventana actual (`ventanaSeg` segundos). */
-export async function dentroDelLimite(nombre: string, limite: number, ventanaSeg = 60): Promise<boolean> {
-  if (!supabaseConfigurado() || !process.env.SUPABASE_SECRET_KEY) return true;
+/** true si todavía hay cupo en la ventana actual (`ventanaSeg` segundos). `siFalla`: qué responder si no se puede contar. */
+export async function dentroDelLimite(nombre: string, limite: number, ventanaSeg = 60, siFalla = true): Promise<boolean> {
+  if (!supabaseConfigurado() || !process.env.SUPABASE_SECRET_KEY) return siFalla;
   try {
     const clave = createHash("sha256").update(`hm:limite:${nombre}:${ventanaSeg}`).digest("hex");
     const { data, error } = await clienteSistema().rpc("contar_intento", {
@@ -19,10 +20,10 @@ export async function dentroDelLimite(nombre: string, limite: number, ventanaSeg
       p_ventana_seg: ventanaSeg,
       p_limite: limite,
     });
-    if (error) return true;
+    if (error) return siFalla;
     return data !== false;
   } catch {
-    return true;
+    return siFalla;
   }
 }
 

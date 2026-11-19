@@ -3,26 +3,51 @@
  *  - `tienePrecio` / `quitarPrecios`: si el texto de la IA menciona dinero, no llega al cliente.
  *  - `validarHistorial`: la conversación la guarda el navegador y no se confía en ella.
  */
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import type Anthropic from "@anthropic-ai/sdk";
 
 export const MENSAJE_SIN_PRECIOS =
   "No te puedo dar precios por aquí: el rango lo calcula la web con la tabla vigente y lo ves en pantalla. ¿Seguimos con tu cocina?";
 
+const NUMERO_EN_LETRAS =
+  "(?:un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince|veinte|treinta|cuarenta|cincuenta|cien|doscientos|trescientos|quinientos)";
+const NO_LETRA = "(?![a-záéíóúñü])";
+
+/** Patrones de dinero (con la bandera g para poder taparlos). Incluye jerga: palos, lucas, k, M. */
 const PATRONES_DINERO: RegExp[] = [
-  /\$\s*\d/, // $ 12.000.000, $12
-  /\b(?:cop|usd|us\$)\s*\d/i, // COP 5.000.000
-  /\d[\d.,\s]*\s*(?:millones|mill[oó]n|mill?s?\.?(?=\s|$)|mil(?:\s+pesos)?\b|pesos|cop\b|usd\b|d[oó]lares)/i, // 12 millones, 800 mil
-  /\bmill[oó]n(?:es)?\b/i, // "un millón", "dos millones"
-  /\b\d{1,3}(?:[.,\s]\d{3}){2,}\b/, // 12.000.000 (un millón o más con separadores)
-  /\b\d{7,}\b/, // 12000000
-  /\b(?:pesos|d[oó]lares)\b/i,
+  /\$\s*\d[\d.,]*/g, // $ 12.000.000, $12
+  /\b(?:cop|usd|us\$)\s*\d[\d.,]*/gi, // COP 5.000.000
+  new RegExp(`\\d[\\d.,\\s]*\\s*(?:millones|mill[oó]n|mil${NO_LETRA}|pesos|cop${NO_LETRA}|usd${NO_LETRA}|d[oó]lares|palos?${NO_LETRA}|lucas?${NO_LETRA}|barras?${NO_LETRA}|k${NO_LETRA})`, "gi"), // 12 millones, 800 mil, 500 lucas, 800k
+  /\d[\d.,]*\s?M\b/g, // 12 M, 12M (la "m" minúscula son metros)
+  new RegExp(`\\b${NUMERO_EN_LETRAS}\\s+(?:millones|mill[oó]n|palos?|lucas?|barras?)${NO_LETRA}(?!\\s+de\\s+(?!pesos))`, "gi"), // doce palos, un millón (no "un palo de escoba")
+  /\bmill[oó]n(?:es)?\b/gi,
+  /\b\d{1,3}(?:[.,\s]\d{3}){2,}\b/g, // 12.000.000 (un millón o más con separadores)
+  /\b\d{7,}\b/g, // 12000000
+  /\b(?:pesos|d[oó]lares)\b/gi,
 ];
+
+/** Un celular colombiano (3XX XXX XXXX) no es un precio. */
+const CELULAR = /(?:\+?57[\s.-]?)?\b3\d{2}[\s.-]?\d{3}[\s.-]?\d{4}\b/g;
 
 /** true si el texto parece mencionar una cifra de dinero. */
 export function tienePrecio(texto: string): boolean {
-  // Un celular colombiano (3XX XXX XXXX) no es un precio: se ignora antes de buscar cifras de dinero.
-  const sinCelulares = texto.replace(/(?:\+?57[\s.-]?)?\b3\d{2}[\s.-]?\d{3}[\s.-]?\d{4}\b/g, " ");
-  return PATRONES_DINERO.some((p) => p.test(sinCelulares));
+  const sinCelulares = texto.replace(CELULAR, " ");
+  return PATRONES_DINERO.some((p) => {
+    p.lastIndex = 0;
+    return p.test(sinCelulares);
+  });
+}
+
+/**
+ * Tapa las cifras de dinero que escribe el cliente antes de mandarlas a la IA, para que no pueda
+ * repetirlas ni hacer cuentas con ellas ("me salió 12 millones, ¿y con isla?"). Los celulares se respetan.
+ */
+export function taparCifras(texto: string): string {
+  const celulares: string[] = [];
+  let t = texto.replace(CELULAR, (c) => `\u0000${celulares.push(c) - 1}\u0000`);
+  for (const p of PATRONES_DINERO) t = t.replace(p, "[cifra]");
+  // eslint-disable-next-line no-control-regex
+  return t.replace(/\u0000(\d+)\u0000/g, (_, i: string) => celulares[Number(i)]);
 }
 
 /** Devuelve el texto tal cual, o el mensaje fijo si menciona dinero. */
@@ -38,7 +63,7 @@ export const LIMITES_CHARLA = {
   /** Entradas del historial (cliente, IA y resultados de herramientas). */
   entradas: 200,
   /** Tamaño total del historial en caracteres. */
-  caracteres: 80_000,
+  caracteres: 30_000,
 } as const;
 
 export type Resultado<T> = { ok: true; valor: T } | { ok: false; error: string };
@@ -110,9 +135,24 @@ export function validarHistorial(datos: unknown): Resultado<Anthropic.MessagePar
   return { ok: true, valor: salida };
 }
 
-/** Mensajes escritos por el cliente (sin contar resultados de herramientas). */
+/** Mensajes escritos por el cliente: los del cliente empiezan con texto; los de resultados de herramientas, no. */
 export function turnosDelCliente(historial: Anthropic.MessageParam[]): number {
-  return historial.filter(
-    (m) => m.role === "user" && Array.isArray(m.content) && m.content.some((b) => b.type === "text" && !b.text.startsWith("<estado_configurador>")),
-  ).length;
+  return historial.filter((m) => m.role === "user" && Array.isArray(m.content) && m.content[0]?.type === "text").length;
+}
+
+/**
+ * Firma del historial (HMAC-SHA256). El navegador guarda la conversación, pero solo se acepta la que
+ * firmó el servidor: así no se puede inventar historial ni saltarse el máximo de mensajes.
+ * La clave se deriva de la llave de Anthropic (no hace falta otra variable); si la llave cambia,
+ * las conversaciones abiertas empiezan de nuevo.
+ */
+export function firmarHistorial(historial: unknown[], secreto = process.env.ANTHROPIC_API_KEY ?? ""): string {
+  const clave = createHash("sha256").update(`hm:agente:historial:${secreto}`).digest();
+  return createHmac("sha256", clave).update(JSON.stringify(historial)).digest("hex");
+}
+
+export function firmaValida(historial: unknown[], firma: unknown, secreto = process.env.ANTHROPIC_API_KEY ?? ""): boolean {
+  if (!historial.length) return true;
+  if (typeof firma !== "string" || !/^[0-9a-f]{64}$/.test(firma) || !secreto) return false;
+  return timingSafeEqual(Buffer.from(firmarHistorial(historial, secreto), "hex"), Buffer.from(firma, "hex"));
 }

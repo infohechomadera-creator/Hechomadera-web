@@ -1,31 +1,47 @@
 /**
  * Ciclo de conversación del agente de IA (W6) con la API de Mensajes de Anthropic.
  * El servidor ejecuta las herramientas; la IA nunca ve precios y su texto pasa por `quitarPrecios`.
- * No se guarda nada: la conversación vive en el navegador del cliente.
+ * No se guarda nada: la conversación vive en el navegador del cliente (firmada por el servidor).
  */
 import Anthropic from "@anthropic-ai/sdk";
 import type { Contacto } from "@/lib/configurador/validar";
 import type { Tablas } from "./catalogo";
-import { quitarPrecios } from "./guardia";
+import { quitarPrecios, taparCifras } from "./guardia";
 import { definirHerramientas, ejecutarHerramienta, textoEstado, type EstadoAgente, type RangoPantalla } from "./herramientas";
 import { instrucciones } from "./prompt";
 
 export const MODELO = "claude-haiku-5-5";
 const MAX_VUELTAS = 5;
 const MAX_TOKENS = 2048;
+/** Tiempo total para responder (Vercel corta la función a los 60 s). */
+const TIEMPO_TOTAL_MS = 50_000;
+const TIEMPO_POR_LLAMADA_MS = 25_000;
+/** Con menos de esto no se empieza otra vuelta. */
+const TIEMPO_MINIMO_MS = 8_000;
+const MAX_RESULTADO = 4000;
 
 export const MENSAJE_SIN_SERVICIO = "El asistente no está disponible en este momento. Puedes seguir con el formulario paso a paso.";
 const MENSAJE_SIGAMOS = "Listo, ya actualicé el formulario. ¿Seguimos?";
 
 /** Lo mínimo del SDK que usa el ciclo (las pruebas pasan uno simulado). */
 export interface ClienteMensajes {
-  messages: { create(params: Anthropic.MessageCreateParamsNonStreaming): Promise<Anthropic.Message> };
+  messages: {
+    create(params: Anthropic.MessageCreateParamsNonStreaming, opciones?: { timeout?: number }): Promise<Anthropic.Message>;
+  };
+}
+
+/** No hay cupo para llamar a la IA (tope diario de llamadas o no se pudo contar). */
+export class SinCupo extends Error {
+  constructor() {
+    super("Sin cupo para el agente");
+    this.name = "SinCupo";
+  }
 }
 
 export interface Respuesta {
   /** Texto para el cliente (ya sin precios). */
   texto: string;
-  /** Entradas nuevas del historial (el navegador las agrega a las que ya tiene). */
+  /** Entradas nuevas del historial. */
   nuevos: Anthropic.MessageParam[];
   estado: EstadoAgente;
   /** Rango calculado por el servidor en este turno, válido para `estado`. */
@@ -44,36 +60,79 @@ function limpiarRespuesta(contenido: Anthropic.ContentBlock[]): (Anthropic.TextB
   return bloques;
 }
 
+const escaparRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Quita del historial nuevo el nombre, el celular y el correo una vez puestos en el formulario,
+ * para que no se vuelvan a mandar a la IA en cada mensaje.
+ */
+function ocultarContacto(nuevos: Anthropic.MessageParam[], c: Contacto): Anthropic.MessageParam[] {
+  const palabras = [c.nombre, ...c.nombre.split(" "), c.email ?? ""].filter((p) => p.length >= 3).sort((a, b) => b.length - a.length);
+  // Solo palabras completas ("Ana" no toca "ventana").
+  const nombre = palabras.length ? new RegExp(`(?<![\\p{L}\\p{N}])(?:${palabras.map(escaparRegex).join("|")})(?![\\p{L}\\p{N}])`, "giu") : null;
+  const tapar = (t: string) => {
+    let s = t.replace(/\+?\d(?:[\s().-]?\d){6,}/g, "[celular guardado]");
+    if (nombre) s = s.replace(nombre, "[dato guardado]");
+    return s;
+  };
+  return nuevos.map((m, i) => {
+    if (!Array.isArray(m.content)) return m;
+    const content = m.content.map((b, j) => {
+      if (b.type === "text" && !(i === 0 && j === 0)) return { ...b, text: tapar(b.text) };
+      if (b.type === "tool_use" && b.name === "guardar_contacto") return { ...b, input: { nombre: "[guardado]", telefono: "[guardado]" } };
+      return b;
+    });
+    return { ...m, content } as Anthropic.MessageParam;
+  });
+}
+
 export async function conversar(opciones: {
   cliente: ClienteMensajes;
   historial: Anthropic.MessageParam[];
   mensaje: string;
   estado: EstadoAgente;
   tablas: Tablas;
+  /** Se pregunta antes de cada llamada a la IA (tope diario de llamadas). */
+  permitirLlamada?: () => Promise<boolean>;
+  tiempoTotalMs?: number;
 }): Promise<Respuesta> {
-  const { cliente, historial, mensaje, tablas } = opciones;
+  const { cliente, historial, mensaje, tablas, permitirLlamada = async () => true } = opciones;
+  const fin = Date.now() + (opciones.tiempoTotalMs ?? TIEMPO_TOTAL_MS);
   let estado = opciones.estado;
   let rango: RangoPantalla | null = null;
   let contacto: Contacto | null = null;
 
-  const nuevos: Anthropic.MessageParam[] = [
-    { role: "user", content: [{ type: "text", text: textoEstado(estado) }, { type: "text", text: mensaje }] },
+  // Las cifras de dinero que escriba el cliente se tapan: la IA no puede repetirlas ni hacer cuentas.
+  let nuevos: Anthropic.MessageParam[] = [
+    { role: "user", content: [{ type: "text", text: textoEstado(estado) }, { type: "text", text: taparCifras(mensaje) }] },
   ];
   const sistema: Anthropic.TextBlockParam[] = [{ type: "text", text: instrucciones(tablas), cache_control: { type: "ephemeral" } }];
   const herramientas = definirHerramientas(tablas);
   let texto = "";
 
   for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
-    const r = await cliente.messages.create({
-      model: MODELO,
-      max_tokens: MAX_TOKENS,
-      system: sistema,
-      tools: herramientas,
-      // Conversación corta para llenar un formulario: sin razonamiento extendido y esfuerzo bajo (más barato y rápido).
-      thinking: { type: "disabled" },
-      output_config: { effort: "low" },
-      messages: [...historial, ...nuevos],
-    });
+    const restante = fin - Date.now();
+    if (vuelta > 0 && restante < TIEMPO_MINIMO_MS) break;
+    if (!(await permitirLlamada())) {
+      if (vuelta === 0) throw new SinCupo();
+      break;
+    }
+
+    const r = await cliente.messages.create(
+      {
+        model: MODELO,
+        max_tokens: MAX_TOKENS,
+        system: sistema,
+        tools: herramientas,
+        // Conversación corta para llenar un formulario: sin razonamiento extendido y esfuerzo bajo (más barato y rápido).
+        thinking: { type: "disabled" },
+        output_config: { effort: "low" },
+        // Caché automática del historial: cada mensaje nuevo reutiliza lo ya enviado.
+        cache_control: { type: "ephemeral" },
+        messages: [...historial, ...nuevos],
+      },
+      { timeout: Math.max(1000, Math.min(TIEMPO_POR_LLAMADA_MS, restante)) },
+    );
 
     if (r.stop_reason === "refusal") {
       // Se descarta el turno para que la conversación pueda seguir.
@@ -100,12 +159,18 @@ export async function conversar(opciones: {
       if (res.cambioConfiguracion) rango = null; // un rango viejo ya no vale
       if (res.rango) rango = res.rango;
       if (res.contacto) contacto = res.contacto;
-      resultados.push({ type: "tool_result", tool_use_id: llamada.id, content: res.texto, ...(res.error ? { is_error: true } : {}) });
+      resultados.push({
+        type: "tool_result",
+        tool_use_id: llamada.id,
+        content: res.texto.slice(0, MAX_RESULTADO),
+        ...(res.error ? { is_error: true } : {}),
+      });
     }
     nuevos.push({ role: "user", content: resultados });
     texto = "";
   }
 
+  if (contacto) nuevos = ocultarContacto(nuevos, contacto);
   return { texto: texto || MENSAJE_SIGAMOS, nuevos, estado, rango, contacto, rechazo: false };
 }
 
@@ -115,6 +180,6 @@ export function agenteActivo(): boolean {
 }
 
 export function clienteAnthropic(): ClienteMensajes {
-  // Lee ANTHROPIC_API_KEY del entorno. Pocos reintentos y tiempo corto: el cliente espera en el celular.
-  return new Anthropic({ maxRetries: 1, timeout: 25_000 });
+  // Lee ANTHROPIC_API_KEY del entorno. Sin reintentos: el tiempo lo controla el ciclo y el cliente espera en el celular.
+  return new Anthropic({ maxRetries: 0, timeout: TIEMPO_POR_LLAMADA_MS });
 }

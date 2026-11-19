@@ -9,6 +9,8 @@ const SALUDO =
 
 export interface CambiosAgente {
   estado: EstadoAgente;
+  /** El estado que se mandó al pedir: solo se aplica lo que el agente cambió respecto a él. */
+  enviado: EstadoAgente;
   rango: RangoPantalla | null;
   contacto: { nombre: string; telefono: string; email: string | null } | null;
 }
@@ -35,18 +37,21 @@ export function Agente({
   onCerrar: () => void;
 }) {
   const [historial, setHistorial] = useState<unknown[]>([]);
+  const [firma, setFirma] = useState<string | null>(null);
   const [burbujas, setBurbujas] = useState<Burbuja[]>([{ de: "agente", texto: SALUDO }]);
   const [texto, setTexto] = useState("");
   const [ocupado, setOcupado] = useState(false);
-  const fin = useRef<HTMLDivElement>(null);
+  const lista = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fin.current?.scrollIntoView({ block: "end" });
+    // Solo se mueve la lista del chat, no la página.
+    if (lista.current) lista.current.scrollTop = lista.current.scrollHeight;
   }, [burbujas, minimizado]);
 
   async function enviar() {
     const mensaje = texto.trim();
     if (!mensaje || ocupado) return;
+    const enviado = estado;
     setTexto("");
     setOcupado(true);
     setBurbujas((b) => [...b, { de: "cliente", texto: mensaje }]);
@@ -54,7 +59,7 @@ export function Agente({
       const r = await fetch("/api/configurador/agente", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ historial, mensaje, estado }),
+        body: JSON.stringify({ historial, firma, mensaje, estado }),
       });
       let cuerpo: Record<string, unknown> = {};
       try {
@@ -63,11 +68,15 @@ export function Agente({
         /* respuesta sin JSON */
       }
       if (!r.ok) {
-        if (cuerpo.reiniciar) setHistorial([]);
+        if (cuerpo.reiniciar) {
+          setHistorial([]);
+          setFirma(null);
+        }
         setBurbujas((b) => [...b, { de: "web", texto: String(cuerpo.error ?? "Algo falló. Intenta de nuevo o sigue con el formulario.") }]);
         return;
       }
-      setHistorial((h) => [...h, ...((cuerpo.historial as unknown[]) ?? [])]);
+      setHistorial(Array.isArray(cuerpo.historial) ? cuerpo.historial : []);
+      setFirma(typeof cuerpo.firma === "string" ? cuerpo.firma : null);
       const rango = (cuerpo.rango as RangoPantalla | null) ?? null;
       const contacto = (cuerpo.contacto as CambiosAgente["contacto"]) ?? null;
       setBurbujas((b) => [
@@ -77,7 +86,7 @@ export function Agente({
           : []),
         { de: "agente", texto: String(cuerpo.texto ?? "") },
       ]);
-      onCambios({ estado: cuerpo.estado as EstadoAgente, rango, contacto });
+      onCambios({ enviado, estado: cuerpo.estado as EstadoAgente, rango, contacto });
     } catch {
       setBurbujas((b) => [...b, { de: "web", texto: "Sin conexión. Revisa tu internet e intenta de nuevo." }]);
     } finally {
@@ -117,7 +126,7 @@ export function Agente({
         </div>
       </header>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3" aria-live="polite">
+      <div ref={lista} className="flex-1 space-y-3 overflow-y-auto px-4 py-3" aria-live="polite">
         {burbujas.map((b, i) => (
           <p
             key={i}
@@ -133,7 +142,7 @@ export function Agente({
           </p>
         ))}
         {ocupado && <p className="mr-auto text-xs text-ink-muted">Escribiendo…</p>}
-        <div ref={fin} />
+
       </div>
 
       <form

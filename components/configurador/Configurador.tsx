@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { DISENOS_COCINA, FORMAS_COCINA } from "@/content/cocinas";
 import { EscenaCocina } from "@/components/cocinas/EscenaCocina";
@@ -123,6 +123,10 @@ export function Configurador({
   const [error, setError] = useState<string | null>(null);
   const [enviado, setEnviado] = useState<{ referencia: string | null; rango: Rango | null; pagoToken: string | null } | null>(null);
 
+  // Valores actuales del formulario, para aplicar lo del asistente cuando llega su respuesta (puede tardar).
+  const actual = useRef({ ciudad, forma, diseno, color, herrajes, medidas, rango });
+  actual.current = { ciudad, forma, diseno, color, herrajes, medidas, rango };
+
   const opc = opciones[ciudad];
   const disenoInfo = DISENOS_COCINA.find((d) => d.id === diseno) ?? DISENOS_COCINA[0];
   const paredes = forma ? PAREDES[forma] : [];
@@ -203,41 +207,62 @@ export function Configurador({
   };
 
   /** Pone en el formulario lo que llenó el asistente y lleva al paso que sigue. */
-  function aplicarAgente({ estado: e, rango: r, contacto: c }: CambiosAgente) {
-    if (!e) return;
-    const antes = JSON.stringify([ciudad, forma, diseno, color, herrajes, medidasMm]);
-    const nuevasMedidas = Object.fromEntries(Object.entries(e.medidas_m).map(([k, v]) => [k, aTexto(v as number)]));
-    const paredesNuevas = e.forma ? PAREDES[e.forma] : [];
-    const medidasNuevasMm = Object.fromEntries(paredesNuevas.map((p) => [p.campo, aMm(nuevasMedidas[p.campo] ?? "")]));
-    const cambio = antes !== JSON.stringify([e.ciudad, e.forma, e.diseno, e.color, e.herrajes, medidasNuevasMm]);
+  function aplicarAgente({ enviado: env, estado: e, rango: r, contacto: c }: CambiosAgente) {
+    if (!e || !env) return;
+    // Solo lo que cambió el agente (respecto a lo que se le mandó) se pone sobre lo que hay AHORA en el
+    // formulario: si el cliente cambió algo a mano mientras esperaba, no se pierde.
+    const a = actual.current;
+    const nuevo = { ...a, medidas: { ...a.medidas } };
+    let cambio = false;
+    for (const campo of ["ciudad", "forma", "diseno", "color", "herrajes"] as const) {
+      if (e[campo] !== env[campo]) {
+        (nuevo as Record<string, unknown>)[campo] = e[campo];
+        cambio = true;
+      }
+    }
+    if (nuevo.color && !opciones[nuevo.ciudad].colores.some((o) => o.id === nuevo.color)) nuevo.color = null;
+    const electroCambio = JSON.stringify(e.electrodomesticos) !== JSON.stringify(env.electrodomesticos);
+    for (const campo of ["pared_a", "pared_b", "pared_c", "isla"] as const) {
+      const v = e.medidas_m[campo];
+      if (v !== undefined && v !== env.medidas_m[campo]) {
+        nuevo.medidas[campo] = aTexto(v);
+        cambio = true;
+      }
+    }
 
-    setCiudadEstado(e.ciudad);
-    setForma(e.forma);
-    setDiseno(e.diseno);
-    setColor(e.color);
-    setHerrajes(e.herrajes);
-    setElectro(e.electrodomesticos);
-    setMedidas(nuevasMedidas);
+    setCiudadEstado(nuevo.ciudad);
+    setForma(nuevo.forma);
+    setDiseno(nuevo.diseno);
+    setColor(nuevo.color);
+    setHerrajes(nuevo.herrajes);
+    if (electroCambio) setElectro(e.electrodomesticos);
+    setMedidas(nuevo.medidas);
+    const rangoVale = Boolean(r) || (!cambio && Boolean(a.rango));
     if (r) setRango(r);
     else if (cambio) setRango(null);
-    if (c) setContacto({ nombre: c.nombre, telefono: c.telefono, email: c.email ?? "" });
+    if (c) setContacto((p) => ({ nombre: c.nombre, telefono: c.telefono, email: c.email ?? p.email }));
+
+    // Primer paso que falta para calcular el rango.
+    const faltaMedida = !nuevo.forma || PAREDES[nuevo.forma].some((p) => aMm(nuevo.medidas[p.campo] ?? "") === null);
+    const falta = !nuevo.forma
+      ? P.Forma
+      : !nuevo.diseno
+        ? P.Diseño
+        : !nuevo.color
+          ? P.Colores
+          : !nuevo.herrajes
+            ? P.Herrajes
+            : faltaMedida || !rangoVale
+              ? P.Medidas
+              : null;
 
     let destino: number | null = null;
-    if (c) destino = P["Tus datos"];
+    if (c) destino = falta ?? P["Tus datos"];
     else if (r) destino = P["Tu rango"];
-    else if (cambio) {
-      if (!e.forma) destino = P.Forma;
-      else if (!e.diseno) destino = P.Diseño;
-      else if (!e.color) destino = P.Colores;
-      else if (!e.herrajes) destino = P.Herrajes;
-      else destino = P.Medidas;
-    }
-    if (destino !== null) {
-      setError(null);
-      setPaso(destino);
-    }
+    else if (cambio) destino = falta ?? P.Medidas;
+    if (destino !== null) irA(destino);
     // En el celular, al llegar a "Tus datos" se baja el chat para que el cliente vea la autorización y el botón Enviar.
-    if (c) setChat("minimizado");
+    if (c && destino === P["Tus datos"]) setChat("minimizado");
   }
 
   async function agregarFotos(lista: FileList | null) {
