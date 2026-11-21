@@ -6,6 +6,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PromoBanner } from "@/components/layout/PromoBanner";
 import { CookieConsent } from "@/components/layout/CookieConsent";
 import { WhatsAppFloat } from "@/components/layout/WhatsAppFloat";
+import { SoloPublico } from "@/components/layout/SoloPublico";
 import { JsonLdSite } from "@/components/seo/JsonLdSite";
 import { JsonLdFaq } from "@/components/seo/JsonLdFaq";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
@@ -96,12 +97,16 @@ export default function RootLayout({
       <body className={`${inter.variable} ${display.variable} min-h-screen font-sans antialiased`}>
         <JsonLdSite />
         <JsonLdFaq />
-        <PromoBanner />
-        <SiteHeader />
+        <SoloPublico>
+          <PromoBanner />
+          <SiteHeader />
+        </SoloPublico>
         <main>{children}</main>
-        <SiteFooter />
-        <WhatsAppFloat />
-        <CookieConsent />
+        <SoloPublico>
+          <SiteFooter />
+          <WhatsAppFloat />
+          <CookieConsent />
+        </SoloPublico>
         <GoogleAnalytics />
         <PageTracker />
         <AnaliticaVercel />

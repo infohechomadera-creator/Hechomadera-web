@@ -23,7 +23,7 @@ function FormularioIngreso() {
         setError("Correo o contraseña incorrectos.");
         return;
       }
-      router.push("/admin");
+      router.push("/admin/leads");
       router.refresh();
     } catch {
       setError("Error de conexión. Intenta de nuevo.");
