@@ -101,7 +101,7 @@ export function Configurador({
 }: {
   ciudades: CiudadActiva[];
   opciones: OpcionesCiudad;
-  /** Muestra el botón del asistente de IA (W6). */
+  /** El asistente de IA (W6) está encendido (llave e interruptor). El botón se muestra siempre (decisión de Alberto). */
   agente?: boolean;
 }) {
   const [chat, setChat] = useState<"cerrado" | "abierto" | "minimizado">("cerrado");
@@ -377,7 +377,7 @@ export function Configurador({
 
   return (
     <div className={chat === "abierto" ? "pb-[60dvh] md:pb-28" : "pb-28"}>
-      {agente && chat === "cerrado" && (
+      {chat === "cerrado" && (
         <div className="mb-6 flex flex-col gap-3 border border-neutral-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-ink">
             ¿Prefieres conversar? Nuestro asistente con IA te hace las preguntas y llena el formulario por ti.
@@ -391,8 +391,9 @@ export function Configurador({
           </button>
         </div>
       )}
-      {agente && chat !== "cerrado" && (
+      {chat !== "cerrado" && (
         <Agente
+          disponible={agente}
           estado={estadoAgente()}
           onCambios={aplicarAgente}
           minimizado={chat === "minimizado"}

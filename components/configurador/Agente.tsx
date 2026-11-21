@@ -15,6 +15,10 @@ export interface CambiosAgente {
   contacto: { nombre: string; telefono: string; email: string | null } | null;
 }
 
+/** Mientras el asistente no esté encendido. */
+const AVISO_PRONTO =
+  "¡Hola! Nuestro asistente estará disponible muy pronto. Por ahora puedes llenar el formulario paso a paso: toma unos 3 minutos y al final ves tu rango de precio.";
+
 type Burbuja = { de: "cliente" | "agente" | "web"; texto: string };
 
 const pesos = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
@@ -27,18 +31,21 @@ export function Agente({
   estado,
   onCambios,
   minimizado,
+  disponible,
   onMinimizar,
   onCerrar,
 }: {
   estado: EstadoAgente;
   onCambios: (c: CambiosAgente) => void;
   minimizado: boolean;
+  /** false mientras no estén la llave y el interruptor: se avisa y no se deja escribir. */
+  disponible: boolean;
   onMinimizar: (v: boolean) => void;
   onCerrar: () => void;
 }) {
   const [historial, setHistorial] = useState<unknown[]>([]);
   const [firma, setFirma] = useState<string | null>(null);
-  const [burbujas, setBurbujas] = useState<Burbuja[]>([{ de: "agente", texto: SALUDO }]);
+  const [burbujas, setBurbujas] = useState<Burbuja[]>([{ de: "agente", texto: disponible ? SALUDO : AVISO_PRONTO }]);
   const [texto, setTexto] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const lista = useRef<HTMLDivElement>(null);
@@ -154,7 +161,8 @@ export function Agente({
       >
         <input
           className="min-w-0 flex-1 border border-neutral-300 bg-white px-3 py-3 text-base text-ink focus:border-ink focus:outline-none"
-          placeholder="Escribe aquí…"
+          placeholder={disponible ? "Escribe aquí…" : "Disponible muy pronto"}
+          disabled={!disponible}
           maxLength={1000}
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
@@ -162,7 +170,7 @@ export function Agente({
         />
         <button
           type="submit"
-          disabled={ocupado || !texto.trim()}
+          disabled={!disponible || ocupado || !texto.trim()}
           className="border border-ink bg-ink px-4 py-3 text-sm font-medium text-paper disabled:opacity-40"
         >
           Enviar
