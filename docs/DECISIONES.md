@@ -167,3 +167,8 @@
 | --- | --- | --- |
 | API de Anthropic | Servicio nuevo; la cuenta la crea Alberto. En esta sesión no se creó cuenta ni llave | `AGENTE_IA_ACTIVO=false` o quitar `ANTHROPIC_API_KEY` en Vercel (el botón desaparece) y revocar la llave en la consola |
 | Supabase, Vercel, Operflow | No se tocó nada; sin migraciones | No aplica |
+
+## 2026-11-21 · Prueba real del agente de IA, al final
+- **Alberto decidió seguir sin la cuenta de Anthropic por ahora**: el código del agente (W6) ya está listo; el crédito y la prueba real se hacen al final. Mientras no existan `ANTHROPIC_API_KEY` y `AGENTE_IA_ACTIVO=true` en Vercel, el botón "Prefiero conversar" no aparece y `/api/configurador/agente` responde 503. Motivo: decisión de Alberto.
+- La cuenta de la API puede quedar con su correo personal (la API se cobra aparte del plan de Claude); se sugiere nombrar la organización "Hechomadera", poner los datos de la empresa en la facturación e invitar después el correo de Hechomadera si hace falta.
+- Servicios externos: ninguno tocado (solo se miraron en Vercel los nombres de las variables, sin valores).

@@ -20,9 +20,8 @@
 - Datos de clientes con `SUPABASE_SECRET_KEY` aún no tipo Secret; textos legales sin revisar por abogado.
 
 ## Siguiente paso exacto
-1. Alberto: crear cuenta de Anthropic (https://platform.claude.com), cargar crédito, poner tope mensual (sugerido US$10), crear la llave y ponerla en Vercel como `ANTHROPIC_API_KEY` (Secret, Production y Preview) y en `.env.local`; `AGENTE_IA_ACTIVO=true` en Vercel; agregar ambos nombres sin valor a `.env.example`.
-2. **Sesión nueva** con `/retomar`: prueba real del agente en la vista previa (conversación completa desde el celular hasta un lead guardado; revisar registros "[agente]"). Cuesta centavos.
-3. Con visto bueno de Alberto: pasar a `main` y quitar `ADMIN_PASSWORD` y `ADMIN_API_TOKEN` de Vercel.
+1. Con visto bueno de Alberto: pasar a `main` y quitar `ADMIN_PASSWORD` y `ADMIN_API_TOKEN` de Vercel. Antes conviene que Alberto ponga los precios reales en `/admin/precios` (el configurador queda público).
+2. **Al final (decisión de Alberto, 2026-11-21):** cuenta de Anthropic con su correo personal (organización "Hechomadera"), crédito, tope mensual (sugerido US$10), llave en Vercel como `ANTHROPIC_API_KEY` (Secret, Production y Preview) y `AGENTE_IA_ACTIVO=true`; agregar ambos nombres sin valor a `.env.example`. Luego prueba real del agente en la vista previa (conversación completa desde el celular hasta un lead guardado; revisar registros "[agente]"). Mientras tanto el botón del asistente no aparece.
 4. Alberto, cuando exista O3: `CRON_SECRET`, `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
 5. Alberto: cerrar la pestaña del SQL Editor de Supabase (descartar cambios).
 
