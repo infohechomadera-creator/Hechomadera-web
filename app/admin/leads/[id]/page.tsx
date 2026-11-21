@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LogoutButton } from "@/components/admin/LogoutButton";
 import { rolActual } from "@/lib/sesion";
 import { clienteSistema, clienteUsuario } from "@/lib/supabase/servidor";
 import { CUBETA_FOTOS } from "@/lib/configurador/guardar";
@@ -182,29 +181,18 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 md:px-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            {esGerencia && (
-              <>
-                <Link href="/admin" className="hover:underline">
-                  Admin
-                </Link>{" "}
-                ·{" "}
-              </>
-            )}
-            <Link href="/admin/leads" className="hover:underline">
-              {esGerencia ? "Leads" : "Mis leads"}
-            </Link>{" "}
-            · {lead.id.slice(0, 8).toUpperCase()}
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-ink">{cli?.nombre ?? "Lead"}</h1>
-          <p className="mt-1 text-sm text-ink-muted">
-            {cli?.telefono}
-            {cli?.email ? ` · ${cli.email}` : ""}
-          </p>
-        </div>
-        <LogoutButton />
+      <div>
+        <p className="text-sm text-ink-muted">
+          <Link href="/admin/leads" className="text-ink underline-offset-4 hover:underline">
+            ← {esGerencia ? "Leads" : "Mis leads"}
+          </Link>{" "}
+          · Ref. {lead.id.slice(0, 8).toUpperCase()}
+        </p>
+        <h1 className="mt-2 font-display text-3xl font-semibold text-ink">{cli?.nombre ?? "Lead"}</h1>
+        <p className="mt-1 text-sm text-ink-muted">
+          {cli?.telefono}
+          {cli?.email ? ` · ${cli.email}` : ""}
+        </p>
       </div>
 
       <dl className="mt-8 divide-y divide-neutral-200 border border-neutral-200 bg-white">

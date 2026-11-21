@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { listOrders, type StoredOrder } from "@/lib/pagos/ordenes";
 import { clienteUsuario } from "@/lib/supabase/servidor";
-import { LogoutButton } from "@/components/admin/LogoutButton";
 
 export const metadata: Metadata = {
   title: "Admin · Órdenes",
@@ -93,27 +92,14 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold text-ink">Admin · Órdenes</h1>
+        <h1 className="font-display text-3xl font-semibold text-ink">Órdenes de tienda</h1>
         <div className="flex gap-2">
-          <Link
-            href="/admin/leads"
-            className="inline-flex items-center justify-center border border-neutral-300 px-4 py-2 text-sm font-medium text-ink hover:border-ink"
-          >
-            Leads
-          </Link>
-          <Link
-            href="/admin/precios"
-            className="inline-flex items-center justify-center border border-neutral-300 px-4 py-2 text-sm font-medium text-ink hover:border-ink"
-          >
-            Precios
-          </Link>
           <Link
             href={`/api/admin/orders/export${from || to ? `?${from ? `from=${from}` : ""}${from && to ? "&" : ""}${to ? `to=${to}` : ""}` : ""}`}
             className="inline-flex items-center justify-center border border-ink bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-neutral-800"
           >
             Exportar CSV
           </Link>
-          <LogoutButton />
         </div>
       </div>
 

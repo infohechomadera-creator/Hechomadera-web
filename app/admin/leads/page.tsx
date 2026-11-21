@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LogoutButton } from "@/components/admin/LogoutButton";
+import { FiltrosLeads } from "@/components/admin/FiltrosLeads";
 import { rolActual } from "@/lib/sesion";
 import { clienteUsuario } from "@/lib/supabase/servidor";
 import { hoyEnColombia } from "@/lib/precios/fechas";
@@ -8,7 +8,6 @@ import {
   ESTADOS_A_MANO,
   ETIQUETA_ESTADO,
   leerFiltros,
-  type Filtros,
   fechaCorta,
   fechaDia,
   nombreDiseno,
@@ -35,25 +34,6 @@ type Fila = {
   clientes: { nombre: string; telefono: string } | null;
   archivos: { count: number }[];
 };
-
-function enlace(actual: Filtros, cambio: Filtros): string {
-  const f = { ...actual, ...cambio };
-  const q = new URLSearchParams();
-  for (const [k, v] of Object.entries(f)) if (v) q.set(k, v);
-  const s = q.toString();
-  return s ? `/admin/leads?${s}` : "/admin/leads";
-}
-
-function Chip({ href, activo, children }: { href: string; activo: boolean; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className={`border px-3 py-1.5 text-sm ${activo ? "border-ink bg-ink text-paper" : "border-neutral-300 text-ink hover:border-ink"}`}
-    >
-      {children}
-    </Link>
-  );
-}
 
 export default async function AdminLeadsPage({
   searchParams,
@@ -91,68 +71,44 @@ export default async function AdminLeadsPage({
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            {esGerencia ? (
-              <>
-                <Link href="/admin" className="hover:underline">
-                  Admin
-                </Link>{" "}
-                · Leads
-              </>
-            ) : (
-              "Mis leads"
-            )}
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-ink">{esGerencia ? "Leads del configurador" : "Mis leads"}</h1>
-          <p className="mt-2 text-sm text-ink-muted">
-            {esGerencia ? "Los 100 más recientes. Asigna cada lead desde su ficha." : "Ordenados por próximo contacto."}
-          </p>
-        </div>
-        <LogoutButton />
+      <div>
+        <h1 className="font-display text-3xl font-semibold text-ink">{esGerencia ? "Leads del configurador" : "Mis leads"}</h1>
+        <p className="mt-2 text-sm text-ink-muted">
+          {esGerencia ? "Los 100 más recientes. Asigna cada lead desde su ficha." : "Ordenados por próximo contacto."}
+        </p>
       </div>
 
-      <div className="mt-6 space-y-3">
-        <div className="flex flex-wrap gap-2">
-          <Chip href={enlace(f, { estado: undefined })} activo={!f.estado}>
-            Todos
-          </Chip>
-          {ESTADOS_A_MANO.map((e) => (
-            <Chip key={e} href={enlace(f, { estado: e })} activo={f.estado === e}>
-              {ETIQUETA_ESTADO[e]}
-            </Chip>
-          ))}
-          <Chip href={enlace(f, { estado: "diseno_pagado" })} activo={f.estado === "diseno_pagado"}>
-            {ETIQUETA_ESTADO.diseno_pagado}
-          </Chip>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Chip href={enlace(f, { filtro: undefined })} activo={!f.filtro}>
-            Con y sin pago
-          </Chip>
-          <Chip href={enlace(f, { filtro: "si" })} activo={f.filtro === "si"}>
-            Pasó el filtro
-          </Chip>
-          <Chip href={enlace(f, { filtro: "no" })} activo={f.filtro === "no"}>
-            Sin pagar el diseño
-          </Chip>
-        </div>
-        {esGerencia && (
-          <div className="flex flex-wrap gap-2">
-            <Chip href={enlace(f, { asesor: undefined })} activo={!f.asesor}>
-              Todo el equipo
-            </Chip>
-            <Chip href={enlace(f, { asesor: "sin" })} activo={f.asesor === "sin"}>
-              Sin asignar
-            </Chip>
-            {equipo.map((p) => (
-              <Chip key={p.id} href={enlace(f, { asesor: p.id })} activo={f.asesor === p.id}>
-                {p.nombre}
-              </Chip>
-            ))}
-          </div>
-        )}
+      <div className="mt-6">
+        <FiltrosLeads
+          actual={{ estado: f.estado, filtro: f.filtro, asesor: f.asesor }}
+          filtros={[
+            {
+              clave: "estado",
+              etiqueta: "Estado",
+              todos: "Todos los estados",
+              opciones: [...ESTADOS_A_MANO, "diseno_pagado" as const].map((e) => ({ valor: e, texto: ETIQUETA_ESTADO[e] })),
+            },
+            {
+              clave: "filtro",
+              etiqueta: "Pago del diseño",
+              todos: "Con y sin pago",
+              opciones: [
+                { valor: "si", texto: "Pasó el filtro (pagó)" },
+                { valor: "no", texto: "Sin pagar el diseño" },
+              ],
+            },
+            ...(esGerencia
+              ? [
+                  {
+                    clave: "asesor" as const,
+                    etiqueta: "Asesor",
+                    todos: "Todo el equipo",
+                    opciones: [{ valor: "sin", texto: "Sin asignar" }, ...equipo.map((p) => ({ valor: p.id, texto: p.nombre }))],
+                  },
+                ]
+              : []),
+          ]}
+        />
       </div>
 
       {error && <p className="mt-6 border border-red-300 bg-red-50 p-3 text-sm text-red-800">No se pudieron leer los leads.</p>}

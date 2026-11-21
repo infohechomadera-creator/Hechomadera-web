@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LogoutButton } from "@/components/admin/LogoutButton";
 import { EditorPrecios } from "@/components/admin/EditorPrecios";
 import { elegirTablas } from "@/lib/precios/fuente";
 import { hoyEnColombia } from "@/lib/precios/fechas";
@@ -38,21 +37,12 @@ export default async function AdminPreciosPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 md:px-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-            <Link href="/admin" className="hover:underline">
-              Admin
-            </Link>{" "}
-            · Precios
-          </p>
-          <h1 className="mt-1 font-display text-3xl font-semibold text-ink">Tabla de precios por ciudad</h1>
-          <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-            Cada vez que guardas se crea una versión nueva; las anteriores quedan en el historial. La web y Operflow usan
-            siempre la versión vigente. Los precios actuales son de ejemplo.
-          </p>
-        </div>
-        <LogoutButton />
+      <div>
+        <h1 className="font-display text-3xl font-semibold text-ink">Tabla de precios por ciudad</h1>
+        <p className="mt-2 max-w-2xl text-sm text-ink-muted">
+          Cada vez que guardas se crea una versión nueva; las anteriores quedan en el historial. La web y Operflow usan
+          siempre la versión vigente. Los precios actuales son de ejemplo.
+        </p>
       </div>
 
       {CIUDADES_ACTIVAS.some((c) => origen[c] === "semilla") && (
