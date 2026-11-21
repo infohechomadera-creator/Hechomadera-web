@@ -13,7 +13,7 @@ export default function NotFound() {
         Esta página no existe.
       </h1>
       <p className="mt-4 max-w-md text-sm text-ink-muted">
-        El enlace puede estar roto o la página fue movida. Desde aquí podés volver al inicio o
+        El enlace puede estar roto o la página fue movida. Desde aquí puedes volver al inicio o
         escribirnos directamente.
       </p>
       <div className="mt-10 flex flex-wrap justify-center gap-4">

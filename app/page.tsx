@@ -91,17 +91,17 @@ export default function HomePage() {
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
-                href="/proyectos"
+                href="/cocinas/configurar"
                 className="inline-flex items-center justify-center border border-paper bg-paper px-6 py-4 text-sm font-medium tracking-wide text-ink hover:bg-paper/90"
               >
-                Cotizar mi proyecto
+                Cotiza tu cocina
               </Link>
-              <Link
-                href="/proyectos"
+              <a
+                href="#como-funciona"
                 className="inline-flex items-center justify-center border border-paper/60 px-6 py-4 text-sm font-medium tracking-wide text-paper hover:border-paper hover:bg-paper/10"
               >
                 Ver cómo funciona
-              </Link>
+              </a>
               <a
                 href={wa}
                 target="_blank"
@@ -131,7 +131,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 3. PROCESO ──────────────────────────────────────────── */}
-      <section data-track-section="home-proceso" className="border-b border-neutral-200">
+      <section id="como-funciona" data-track-section="home-proceso" className="scroll-mt-20 border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">El proceso</p>
           <h2 className="font-display mt-3 max-w-xl text-3xl font-semibold text-ink md:text-4xl">

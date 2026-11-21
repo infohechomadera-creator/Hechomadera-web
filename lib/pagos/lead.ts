@@ -77,7 +77,21 @@ export async function tokenDePago(leadId: string): Promise<string | null> {
   }
 }
 
-export type ResultadoCobro = { ok: true; url: string } | { ok: false; status: number; error: string };
+/**
+ * Enlace de pago del lead al que pertenece una orden (para "Intentar de nuevo" en /pago/resultado).
+ * null si la orden es de la tienda o no existe. El número de orden es aleatorio (no se puede adivinar).
+ */
+export async function tokenDeOrden(ordenId: string | undefined): Promise<string | null> {
+  if (!ordenId || !/^ord_[a-z0-9]{1,20}_[0-9a-f]{16}$/.test(ordenId)) return null;
+  try {
+    const { data } = await clienteSistema().from("ordenes").select("lead_id").eq("id", ordenId).maybeSingle<{ lead_id: string | null }>();
+    return data?.lead_id ? await tokenDePago(data.lead_id) : null;
+  } catch {
+    return null;
+  }
+}
+
+export type ResultadoCobro ={ ok: true; url: string } | { ok: false; status: number; error: string };
 
 /** Crea (o reusa) la orden del siguiente cobro y devuelve el enlace de Mercado Pago. */
 export async function iniciarCobroLead(token: string): Promise<ResultadoCobro> {

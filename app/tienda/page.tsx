@@ -43,7 +43,7 @@ export default function TiendaPage() {
           {categories.map((cat) => (
             <li key={cat}>
               <a
-                href="#catalogo"
+                href={`#cat-${cat}`}
                 className="group relative block aspect-square overflow-hidden bg-neutral-100"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -64,7 +64,7 @@ export default function TiendaPage() {
       </div>
 
       {/* ── catalog ──────────────────────────────────────────── */}
-      <section id="catalogo" data-track-section="tienda-catalogo" className="mt-16 border-t border-neutral-200 pt-10">
+      <section id="catalogo" data-track-section="tienda-catalogo" className="mt-16 scroll-mt-20 border-t border-neutral-200 pt-10">
         <TiendaCatalog products={list} />
       </section>
     </div>
