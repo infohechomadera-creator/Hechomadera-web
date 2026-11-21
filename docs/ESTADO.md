@@ -21,7 +21,7 @@
 
 ## Siguiente paso exacto
 1. **Urgente, Alberto:** poner los precios reales en `/admin/precios`: el configurador ya está público en hechomadera.com con precios de prueba. Fotos reales para Inicio, Inspiración y Tienda.
-2. Con OK de Alberto: borrar `ADMIN_PASSWORD` de Vercel (el código ya no lo usa; `ADMIN_API_TOKEN` ya no existe).
+2. Hecho 2026-11-21: `ADMIN_PASSWORD` borrada de Vercel (ver DECISIONES).
 3. **Al final (decisión de Alberto, 2026-11-21):** cuenta de Anthropic con su correo personal (organización "Hechomadera"), crédito, tope mensual (sugerido US$10), llave en Vercel como `ANTHROPIC_API_KEY` (Secret, Production y Preview) y `AGENTE_IA_ACTIVO=true`; agregar ambos nombres sin valor a `.env.example`. Luego prueba real del agente en la vista previa (conversación completa desde el celular hasta un lead guardado; revisar registros "[agente]"). El botón "Prefiero conversar" se muestra siempre (decisión de Alberto, 2026-11-21); sin llave, el chat avisa "disponible muy pronto" y no deja escribir.
 4. Alberto, cuando exista O3: `CRON_SECRET`, `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
 5. Alberto: cerrar la pestaña del SQL Editor de Supabase (descartar cambios).

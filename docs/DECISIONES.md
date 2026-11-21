@@ -192,3 +192,10 @@
 | --- | --- | --- |
 | GitHub | Etiqueta `respaldo-2026-11-21-antes-main` (main anterior, `0e6d701`); PR #1 creado y fusionado en `main` | En Vercel, "Instant Rollback" al despliegue anterior de producción; o en git, `git revert -m 1 1747b00` en `main` (con OK de Alberto) |
 | Vercel `hechomadera-web` | Despliegue automático de producción desde `main`; solo lectura de la lista de variables (sin valores) | "Instant Rollback" en la página del proyecto |
+
+## 2026-11-21 · Borrada ADMIN_PASSWORD de Vercel
+- Con OK explícito de Alberto ("Sí, bórrala") se borró `ADMIN_PASSWORD` de Vercel (todos los entornos). El admin nuevo usa los usuarios de Supabase; el código ya no la leía. Las demás variables quedaron igual.
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| Vercel `hechomadera-web` | Borrada la variable `ADMIN_PASSWORD` desde Chrome (sesión de Alberto) | No se puede recuperar el valor; si hiciera falta, Alberto crea una nueva con "Add Environment Variable" (el código actual no la usa) |
