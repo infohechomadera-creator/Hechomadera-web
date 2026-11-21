@@ -5,7 +5,8 @@ import {
   fetchMercadoPagoPayment,
   normalizePaymentState,
 } from "@/lib/mercadopago";
-import { getOrder } from "@/lib/orders-store";
+import { getOrder } from "@/lib/pagos/ordenes";
+import { tokenDeOrden } from "@/lib/pagos/lead";
 
 export const metadata: Metadata = {
   title: "Resultado del pago",
@@ -63,9 +64,10 @@ export default async function PagoResultadoPage({
 
   let paymentDetail: { status: string; status_detail?: string } | null = null;
 
-  if (paymentId) {
+  if (paymentId && orderReference) {
     const result = await fetchMercadoPagoPayment(paymentId);
-    if (result.ok) {
+    // Solo se muestra el estado si el pago es de esta orden (no se consultan pagos ajenos por la dirección).
+    if (result.ok && result.payment.external_reference === orderReference) {
       normalizedState = toNormalized(normalizePaymentState(result.payment.status));
       paymentDetail = { status: result.payment.status, status_detail: result.payment.status_detail };
     }
@@ -77,8 +79,10 @@ export default async function PagoResultadoPage({
     }
   }
 
-  // Cargar resumen del pedido desde Redis
+  // Cargar resumen del pedido (Supabase)
   const order = orderReference ? await getOrder(orderReference) : null;
+  // Si la orden es el cobro de un lead (diseño, anticipo o saldo), "Intentar de nuevo" vuelve a su enlace de pago.
+  const tokenLead = normalizedState === "rejected" ? await tokenDeOrden(orderReference) : null;
 
   // Contenido por estado
   const content = {
@@ -184,10 +188,10 @@ export default async function PagoResultadoPage({
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         {normalizedState === "rejected" ? (
           <Link
-            href="/tienda"
+            href={tokenLead ? `/pago/lead/${tokenLead}` : "/tienda"}
             className="inline-flex items-center justify-center border border-ink bg-ink px-6 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
           >
-            Volver a la tienda
+            {tokenLead ? "Intentar de nuevo" : "Volver a la tienda"}
           </Link>
         ) : (
           <Link

@@ -1,22 +1,22 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthorized } from "@/lib/admin-auth";
-import { listOrders } from "@/lib/orders-store";
+import { exigirGerencia } from "@/lib/sesion";
+import { listOrders } from "@/lib/pagos/ordenes";
+import { clienteUsuario } from "@/lib/supabase/servidor";
 
 export const runtime = "nodejs";
 
 /**
- * GET /api/admin/orders?limit=50&status=approved&token=...
- * API interna para operación (protegida por ADMIN_API_TOKEN).
+ * GET /api/admin/orders?limit=50&status=approved
+ * API interna para operación (solo gerencia, con sesión de Supabase).
  */
 export async function GET(request: Request) {
-  if (!isAdminAuthorized(request)) {
-    return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 401 });
-  }
+  const negado = await exigirGerencia();
+  if (negado) return negado;
 
   const url = new URL(request.url);
   const limit = Number(url.searchParams.get("limit") ?? "50");
   const status = url.searchParams.get("status");
-  const all = await listOrders(limit);
+  const all = await listOrders(await clienteUsuario(), limit);
   const orders = status ? all.filter((o) => o.status === status) : all;
 
   return NextResponse.json({

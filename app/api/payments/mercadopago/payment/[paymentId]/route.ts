@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { fetchMercadoPagoPayment, normalizePaymentState } from "@/lib/mercadopago";
+import { exigirGerencia } from "@/lib/sesion";
 
 export const runtime = "nodejs";
 
 /**
  * GET /api/payments/mercadopago/payment/:paymentId
- * Consulta estado del pago en Mercado Pago (server-to-server).
+ * Consulta estado del pago en Mercado Pago (server-to-server). Solo gerencia (W5).
  */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ paymentId: string }> },
 ) {
+  const negado = await exigirGerencia();
+  if (negado) return negado;
   const { paymentId } = await params;
   const result = await fetchMercadoPagoPayment(paymentId);
   if (!result.ok) {

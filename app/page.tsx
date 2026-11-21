@@ -91,17 +91,17 @@ export default function HomePage() {
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link
-                href="/proyectos"
+                href="/cocinas/configurar"
                 className="inline-flex items-center justify-center border border-paper bg-paper px-6 py-4 text-sm font-medium tracking-wide text-ink hover:bg-paper/90"
               >
-                Cotizar mi proyecto
+                Cotiza tu cocina
               </Link>
-              <Link
-                href="/proyectos"
+              <a
+                href="#como-funciona"
                 className="inline-flex items-center justify-center border border-paper/60 px-6 py-4 text-sm font-medium tracking-wide text-paper hover:border-paper hover:bg-paper/10"
               >
                 Ver cómo funciona
-              </Link>
+              </a>
               <a
                 href={wa}
                 target="_blank"
@@ -131,7 +131,7 @@ export default function HomePage() {
       </section>
 
       {/* ── 3. PROCESO ──────────────────────────────────────────── */}
-      <section data-track-section="home-proceso" className="border-b border-neutral-200">
+      <section id="como-funciona" data-track-section="home-proceso" className="scroll-mt-20 border-b border-neutral-200">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-ink-muted">El proceso</p>
           <h2 className="font-display mt-3 max-w-xl text-3xl font-semibold text-ink md:text-4xl">
@@ -170,7 +170,7 @@ export default function HomePage() {
             ¿Ya sabes lo que quieres o estás empezando a imaginar?
           </h2>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
             {/* Tienda */}
             <div className="flex flex-col border border-neutral-200 bg-white p-8">
               <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Tienda</p>
@@ -188,6 +188,26 @@ export default function HomePage() {
                   className="inline-flex items-center justify-center border border-ink px-5 py-3 text-sm font-medium text-ink hover:bg-ink hover:text-paper"
                 >
                   Ver tienda →
+                </Link>
+              </div>
+            </div>
+
+            {/* Cocinas */}
+            <div className="flex flex-col border border-neutral-200 bg-white p-8">
+              <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">Cocinas a medida</p>
+              <h3 className="font-display mt-3 text-2xl font-semibold text-ink">
+                Tu cocina y su precio en minutos.
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-muted">
+                Mira las cocinas por forma y diseño con su precio desde en tu ciudad. Luego la configuras
+                con tus medidas y ves tu rango al instante.
+              </p>
+              <div className="mt-8">
+                <Link
+                  href="/cocinas"
+                  className="inline-flex items-center justify-center border border-ink px-5 py-3 text-sm font-medium text-ink hover:bg-ink hover:text-paper"
+                >
+                  Ver cocinas →
                 </Link>
               </div>
             </div>

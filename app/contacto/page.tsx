@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { siteConfig } from "@/lib/site-config";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { getWhatsAppHref } from "@/lib/whatsapp";
@@ -49,11 +50,16 @@ export default function ContactoPage() {
           </div>
 
           <div className="border border-neutral-200 bg-paper-dim p-8">
-            <h2 className="font-display text-xl font-semibold text-ink">Agenda</h2>
+            <h2 className="font-display text-xl font-semibold text-ink">¿Es una cocina?</h2>
             <p className="mt-2 text-sm text-ink-muted">
-              Calendario Google (por asesor) se integrará aquí o enlace externo — configuración manual cuando definan
-              flujo.
+              Configúrala en pocos minutos: eliges forma, diseño y medidas, y ves el rango de precio al instante.
             </p>
+            <Link
+              href="/cocinas/configurar"
+              className="mt-4 inline-flex items-center justify-center border border-ink bg-ink px-5 py-3 text-sm font-medium text-paper hover:bg-neutral-800"
+            >
+              Configurar mi cocina
+            </Link>
           </div>
         </div>
       </div>

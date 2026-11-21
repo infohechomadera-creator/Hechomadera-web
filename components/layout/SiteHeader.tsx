@@ -32,7 +32,7 @@ export function SiteHeader() {
               href={item.href}
               data-track-nav={item.href}
               title={item.label}
-              className="rounded px-3 py-2 text-sm text-ink-muted transition-colors hover:bg-ink hover:text-paper"
+              className="whitespace-nowrap rounded px-2 py-2 text-sm text-ink-muted transition-colors hover:bg-ink hover:text-paper xl:px-3"
             >
               {item.label}
             </Link>
@@ -43,7 +43,7 @@ export function SiteHeader() {
           <Button href="/tienda" variant="secondary" className="!px-3 !py-2 text-xs">
             Comprar
           </Button>
-          <Button href="/contacto" variant="secondary" className="!px-3 !py-2 text-xs">
+          <Button href="/cocinas/configurar" variant="secondary" className="!px-3 !py-2 text-xs">
             Cotizar
           </Button>
           <a
@@ -83,7 +83,7 @@ export function SiteHeader() {
             ))}
             <div className="mt-4 flex flex-col gap-2 border-t border-neutral-200 pt-4">
               <Button href="/tienda">Comprar</Button>
-              <Button href="/contacto" variant="secondary">
+              <Button href="/cocinas/configurar" variant="secondary">
                 Cotizar
               </Button>
               <a

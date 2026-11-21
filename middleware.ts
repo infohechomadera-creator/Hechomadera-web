@@ -1,46 +1,56 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { decidirAcceso, zonaProtegida, type Rol } from "@/lib/acceso";
 
-function isAuthenticated(request: NextRequest): boolean {
-  const session = request.cookies.get("hm_admin")?.value;
-  const expected = process.env.ADMIN_PASSWORD;
-  return !!expected && session === expected;
+/** Lee la sesión de Supabase (y la renueva) y devuelve el rol activo del usuario, si tiene. */
+async function rolDeSesion(request: NextRequest, response: NextResponse): Promise<Rol | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const publica = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !publica) return null;
+  const supabase = createServerClient(url, publica, {
+    cookies: {
+      getAll: () => request.cookies.getAll(),
+      setAll: (lista) => {
+        for (const { name, value, options } of lista) {
+          request.cookies.set(name, value);
+          response.cookies.set(name, value, options);
+        }
+      },
+    },
+  });
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return null;
+  // RLS: cada usuario solo puede leer su propio perfil.
+  const { data: perfil } = await supabase
+    .from("perfiles")
+    .select("rol, activo")
+    .eq("id", data.user.id)
+    .maybeSingle();
+  return perfil?.activo ? (perfil.rol as Rol) : null;
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const response = NextResponse.next({ request });
+  if (!zonaProtegida(pathname)) return response;
 
-  // Skip the login page and the auth API endpoint
-  if (pathname === "/admin/login" || pathname === "/api/admin/auth") {
-    return NextResponse.next();
+  const rol = await rolDeSesion(request, response).catch(() => null);
+  const decision = decidirAcceso(pathname, rol);
+
+  if (decision === "permitir") return response;
+  if (decision === "no_autorizado_api") {
+    return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 401 });
   }
-
-  // Protect /admin/* UI routes — redirect to login
-  if (pathname.startsWith("/admin")) {
-    if (!isAuthenticated(request)) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/admin/login";
-      return NextResponse.redirect(url);
-    }
+  const destino = request.nextUrl.clone();
+  if (decision === "ir_a_leads") {
+    destino.pathname = "/admin/leads";
+    destino.search = "";
+    return NextResponse.redirect(destino);
   }
-
-  // Protect /api/admin/* routes — return 401
-  if (pathname.startsWith("/api/admin")) {
-    if (!isAuthenticated(request)) {
-      return NextResponse.json({ ok: false, error: "No autorizado" }, { status: 401 });
-    }
-  }
-
-  // Protect /pago/prueba — solo admins
-  if (pathname === "/pago/prueba") {
-    if (!isAuthenticated(request)) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/admin/login";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  return NextResponse.next();
+  destino.pathname = "/admin/login";
+  destino.search = decision === "sin_permiso" ? "?aviso=sin_permiso" : "";
+  return NextResponse.redirect(destino);
 }
 
 export const config = {

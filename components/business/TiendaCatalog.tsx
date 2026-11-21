@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { formatPriceCOP, CATEGORY_LABELS, type StoreProduct, type ProductCategory } from "@/lib/products";
 import { track } from "@/lib/analytics";
@@ -73,6 +73,20 @@ export function TiendaCatalog({ products }: { products: StoreProduct[] }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const categories = Object.keys(CATEGORY_LABELS) as ProductCategory[];
+
+  // Las tarjetas "Explorar por categoría" llevan a #cat-<categoría>: se filtra por esa categoría y se baja al catálogo.
+  useEffect(() => {
+    function desdeHash() {
+      const cat = window.location.hash.replace(/^#cat-/, "") as ProductCategory;
+      if (!window.location.hash.startsWith("#cat-") || !Object.hasOwn(CATEGORY_LABELS, cat)) return;
+      setActiveCategories([cat]);
+      setActivePriceIdx(null);
+      document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    desdeHash();
+    window.addEventListener("hashchange", desdeHash);
+    return () => window.removeEventListener("hashchange", desdeHash);
+  }, []);
 
   function toggleCategory(cat: ProductCategory) {
     setActiveCategories((prev) => {

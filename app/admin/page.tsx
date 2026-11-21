@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { listOrders, type StoredOrder } from "@/lib/orders-store";
-import { LogoutButton } from "@/components/admin/LogoutButton";
+import { listOrders, type StoredOrder } from "@/lib/pagos/ordenes";
+import { clienteUsuario } from "@/lib/supabase/servidor";
 
 export const metadata: Metadata = {
   title: "Admin · Órdenes",
@@ -76,7 +76,7 @@ function KPICard({ label, value, sub, highlight }: KPICardProps) {
 export default async function AdminOrdersPage({ searchParams }: Props) {
   const { status, limit, from, to } = await searchParams;
   const parsedLimit = Math.max(1, Math.min(200, Number(limit) || 50));
-  const all = await listOrders(parsedLimit);
+  const all = await listOrders(await clienteUsuario(), parsedLimit);
 
   // Aplicar filtro de fechas
   const dateFiltered = filterByDate(all, from, to);
@@ -92,7 +92,7 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold text-ink">Admin · Órdenes</h1>
+        <h1 className="font-display text-3xl font-semibold text-ink">Órdenes de tienda</h1>
         <div className="flex gap-2">
           <Link
             href={`/api/admin/orders/export${from || to ? `?${from ? `from=${from}` : ""}${from && to ? "&" : ""}${to ? `to=${to}` : ""}` : ""}`}
@@ -100,7 +100,6 @@ export default async function AdminOrdersPage({ searchParams }: Props) {
           >
             Exportar CSV
           </Link>
-          <LogoutButton />
         </div>
       </div>
 

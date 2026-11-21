@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getOrder } from "@/lib/orders-store";
+import { getOrderComo } from "@/lib/pagos/ordenes";
+import { clienteUsuario } from "@/lib/supabase/servidor";
 
 export const metadata: Metadata = {
   title: "Admin · Detalle de orden",
@@ -13,7 +14,7 @@ type Props = {
 
 export default async function AdminOrderDetailPage({ params }: Props) {
   const { orderId } = await params;
-  const order = await getOrder(orderId);
+  const order = await getOrderComo(await clienteUsuario(), orderId);
 
   if (!order) {
     return (

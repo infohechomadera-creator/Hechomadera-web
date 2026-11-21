@@ -2,6 +2,7 @@
 
 import Script from "next/script";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { hasAnalyticsConsent, CONSENT_EVENT } from "@/lib/analytics";
 
 /**
@@ -11,6 +12,8 @@ import { hasAnalyticsConsent, CONSENT_EVENT } from "@/lib/analytics";
 export function GoogleAnalytics() {
   const [consented, setConsented] = useState(false);
   const id = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  // El enlace de pago lleva un código secreto en la dirección: ahí no se carga GA (W5).
+  const enPagoLead = usePathname()?.startsWith("/pago/lead") ?? false;
 
   useEffect(() => {
     setConsented(hasAnalyticsConsent());
@@ -20,7 +23,7 @@ export function GoogleAnalytics() {
     return () => window.removeEventListener(CONSENT_EVENT, handler);
   }, []);
 
-  if (!consented || !id) return null;
+  if (!consented || !id || enPagoLead) return null;
 
   return (
     <>
@@ -35,7 +38,8 @@ export function GoogleAnalytics() {
           gtag('js', new Date());
           gtag('config', '${id}', {
             anonymize_ip: true,
-            send_page_view: true
+            send_page_view: true,
+            page_location: location.href.replace(/\\/pago\\/lead\\/[0-9a-f]{64}/, '/pago/lead/enlace')
           });
         `}
       </Script>

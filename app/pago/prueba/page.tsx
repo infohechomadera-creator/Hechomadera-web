@@ -28,7 +28,7 @@ export default function PagoPruebaPage() {
         Usa credenciales de <strong>prueba</strong> en Mercado Pago para no cobrar dinero real. Monto de ejemplo: $5.000 COP.
       </p>
       <div className="mt-10">
-        <StartCheckoutButton title="Pedido de prueba — Hechomadera" unitPrice={5000} quantity={1} />
+        <StartCheckoutButton title="Pedido de prueba — Hechomadera" unitPrice={5000} prueba />
       </div>
       <p className="mt-8 text-xs text-ink-muted">
         Si ves error 503, falta configurar <code className="rounded bg-neutral-100 px-1">MERCADOPAGO_ACCESS_TOKEN</code> en

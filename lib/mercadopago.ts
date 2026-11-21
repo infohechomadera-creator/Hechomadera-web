@@ -9,6 +9,10 @@ export type MercadoPagoPayment = {
   date_approved?: string | null;
   payment_type_id?: string;
   payment_method_id?: string;
+  /** false = pago de prueba (credenciales TEST); true = dinero real. */
+  live_mode?: boolean;
+  /** Valor devuelto al comprador (devolución total o parcial). */
+  transaction_amount_refunded?: number;
   payer?: {
     email?: string;
     first_name?: string;

@@ -5,6 +5,9 @@ import { StyleQuiz } from "@/components/business/StyleQuiz";
 import { PdfDownloadButton } from "@/components/business/PdfDownloadButton";
 import { CollapsibleSection } from "@/components/ui/CollapsibleSection";
 import { siteConfig } from "@/lib/site-config";
+import { getWhatsAppHref } from "@/lib/whatsapp";
+
+const waCotizar = getWhatsAppHref("Hola Hechomadera, quiero cotizar un proyecto a medida.");
 
 export const metadata: Metadata = {
   title: "Proyectos a Medida — Cocinas Integrales, Closets y Remodelación en Colombia",
@@ -73,7 +76,7 @@ const phases = [
 
 /* ─── What's included ────────────────────────────────────── */
 const included = [
-  { label: "Diseño y renders", desc: "Visualizás el resultado antes de fabricar." },
+  { label: "Diseño y renders", desc: "Ves el resultado antes de fabricar." },
   { label: "Medición técnica", desc: "Visita de ajuste incluida en la mayoría de proyectos." },
   { label: "Fabricación", desc: "En taller propio con materiales acordados." },
   { label: "Instalación", desc: "Incluida según alcance del proyecto." },
@@ -97,7 +100,7 @@ export default function ProyectosPage() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <a
-            href="https://wa.me/573012890552?text=Hola%20Hechomadera%2C%20quiero%20cotizar%20un%20proyecto%20a%20medida."
+            href={waCotizar}
             target="_blank"
             rel="noopener noreferrer"
             data-track-location="proyectos_hero"
@@ -111,6 +114,25 @@ export default function ProyectosPage() {
           >
             Formulario de contacto
           </Link>
+        </div>
+        <div className="mt-8 flex flex-col gap-3 border border-neutral-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-ink">
+            <span className="font-semibold">¿Es una cocina?</span> Configúrala con tus medidas y ve tu rango al instante.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/cocinas/configurar"
+              className="inline-flex items-center justify-center border border-ink bg-ink px-4 py-2 text-sm font-medium text-paper hover:bg-neutral-800"
+            >
+              Configurar mi cocina
+            </Link>
+            <Link
+              href="/cocinas"
+              className="inline-flex items-center justify-center border border-neutral-300 px-4 py-2 text-sm font-medium text-ink hover:border-ink"
+            >
+              Ver catálogo
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -235,7 +257,7 @@ export default function ProyectosPage() {
               Guía de medidas para tu proyecto
             </h2>
             <p className="mt-2 max-w-md text-sm text-ink-muted">
-              Antes de la visita técnica podés tomar medidas básicas tú mismo. Descargá la guía
+              Antes de la visita técnica puedes tomar medidas básicas tú mismo. Descarga la guía
               paso a paso — es gratis y te ahorra tiempo.
             </p>
           </div>
@@ -254,7 +276,7 @@ export default function ProyectosPage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <a
-              href="https://wa.me/573012890552?text=Hola%20Hechomadera%2C%20quiero%20cotizar%20un%20proyecto%20a%20medida."
+              href={waCotizar}
               target="_blank"
               rel="noopener noreferrer"
               data-track-location="proyectos_cta_final"
