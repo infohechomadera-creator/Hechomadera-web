@@ -180,3 +180,15 @@
 - **Arreglos de los hallazgos** (pedido de Alberto): "Cocinas" en el menú y el pie; el botón "Cotizar" y el principal de Inicio ("Cotiza tu cocina") van al configurador; en Contacto la "Agenda" provisional se cambió por "¿Es una cocina? Configurar mi cocina"; si falla el pago de un lead, `/pago/resultado` ofrece "Intentar de nuevo" a su enlace de pago (se busca en el servidor por la orden); "Ver cómo funciona" baja a la sección del proceso; las categorías de la Tienda filtran; voseo corregido; Proyectos usa el WhatsApp configurado y, si falta la variable, el número de la empresa en vez de "#contacto"; se borraron `DepositCalculator`, `JsonLdOrganization` y `LegalNotice` (sin uso; la calculadora hacía montos en el navegador).
 - Pendiente: fotos reales para Inicio, Inspiración y Tienda (hoy son de demostración). `/cocinas` sigue sin indexarse en Google hasta tener renders y precios reales.
 - Servicios externos: ninguno tocado (solo se miró la vista previa con la sesión de Alberto en Chrome).
+
+## 2026-11-21 · W1–W6 en producción
+- **Alberto dio el visto bueno para pasar a `main`** ("vamos a pasarlo al main"). Antes: "Cocinas" salió de la barra superior (pedido de Alberto); el catálogo `/cocinas` se enlaza desde una tarjeta "Cocinas a medida" en Inicio, un bloque "¿Es una cocina?" en Proyectos y el configurador; "Cotizar" lleva al configurador (decisión de Alberto) y el configurador muestra arriba "Ver catálogo de cocinas" y "¿No es una cocina o prefieres hablar con un asesor? Escríbenos por WhatsApp", para no perder el contacto con el asesor.
+- Se fusionó la rama `w1-w2-base` en `main` con el PR https://github.com/infohechomadera-creator/Hechomadera-web/pull/1 (merge commit `1747b00`), con la revisión de Vercel en verde. La rama de trabajo se conserva (no se borró nada en GitHub).
+- Revisado en hechomadera.com: Inicio nuevo, `/cocinas`, `/cocinas/configurar`, `/tienda`, `/proyectos`, `/contacto` y `/admin/login` responden; `/admin/leads` pide entrar; el rango se calcula con la tabla de Supabase.
+- Riesgo aceptado por Alberto: el configurador queda público con **precios de prueba** hasta que él ponga los reales en `/admin/precios`.
+- `ADMIN_PASSWORD` sigue en Vercel (el código ya no lo usa); se borra con OK explícito de Alberto. `ADMIN_API_TOKEN` ya no existía.
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| GitHub | Etiqueta `respaldo-2026-11-21-antes-main` (main anterior, `0e6d701`); PR #1 creado y fusionado en `main` | En Vercel, "Instant Rollback" al despliegue anterior de producción; o en git, `git revert -m 1 1747b00` en `main` (con OK de Alberto) |
+| Vercel `hechomadera-web` | Despliegue automático de producción desde `main`; solo lectura de la lista de variables (sin valores) | "Instant Rollback" en la página del proyecto |

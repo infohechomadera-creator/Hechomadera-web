@@ -1,10 +1,10 @@
 # Estado de Hechomadera-web
-> Página única para retomar. Máximo ~50 líneas. Última actualización: 2026-11-19.
+> Página única para retomar. Máximo ~50 líneas. Última actualización: 2026-11-21.
 
 ## Dónde vamos
-- W0 cerrado (etiqueta `hito-0`). W1 a W5 hechos. **W6 hecho (agente de IA)**: botón "Prefiero conversar" en `/cocinas/configurar`; chat que llena el mismo configurador con 3 herramientas en el servidor. La IA no ve ni da precios (el rango sale de `calcularRango`; el lead lo crea solo el servidor al pulsar Enviar el cliente). Conversación no se guarda. Modelo `claude-haiku-5-5` (~US$0,01 por conversación). Todo en la rama `w1-w2-base` (no está en producción). Diarios: `docs/hitos/hito-1.md` a `hito-6.md`.
-- Probado: 349 pruebas, lint, tipos y build sin errores; validador (2 pasadas en W6) y auditor sin violaciones graves. Pantalla del chat probada en celular con respuestas simuladas; **sin llamada real a Anthropic aún**.
-- Agente apagado hasta que existan `ANTHROPIC_API_KEY` y `AGENTE_IA_ACTIVO=true` (sin ellos: botón oculto, API 503). Topes: 40 mensajes por IP por hora, 1.500 llamadas por día, 30 mensajes por conversación. Detalle en `docs/REFERENCIA.md`.
+- W0 cerrado (etiqueta `hito-0`). W1 a W5 hechos. **W6 hecho (agente de IA)**: botón "Prefiero conversar" en `/cocinas/configurar`; chat que llena el mismo configurador con 3 herramientas en el servidor. La IA no ve ni da precios (el rango sale de `calcularRango`; el lead lo crea solo el servidor al pulsar Enviar el cliente). Conversación no se guarda. Modelo `claude-haiku-5-5` (~US$0,01 por conversación). **En producción desde 2026-11-21** (`main` → hechomadera.com; PR #1; respaldo `respaldo-2026-11-21-antes-main`). Admin con menú propio; mapa de la web en https://claude.ai/artifact/Q7Q8JfLv96L1EEcjf8dHyj. Diarios: `docs/hitos/hito-1.md` a `hito-6.md`.
+- Probado: 351 pruebas, lint, tipos y build sin errores; validador (2 pasadas en W6) y auditor sin violaciones graves. Pantalla del chat probada en celular con respuestas simuladas; **sin llamada real a Anthropic aún**.
+- Agente apagado hasta que existan `ANTHROPIC_API_KEY` y `AGENTE_IA_ACTIVO=true` (sin ellos: el botón "Prefiero conversar" se ve pero avisa "disponible muy pronto"; API 503). Topes: 40 mensajes por IP por hora, 1.500 llamadas por día, 30 mensajes por conversación. Detalle en `docs/REFERENCIA.md`.
 - Supabase (ref `seazgghpynhflxvrjpee`): migraciones hasta `20261119000600` aplicadas (W6 no agregó ninguna); cubeta privada `fotos-espacio`; gerencia y un "Asesor Prueba"; registro libre desactivado. Respaldos de W5 y W6 con etiquetas `respaldo-2026-11-19-w5-pagos` y `respaldo-2026-11-19-w6-agente`.
 - La base decide si un pago cuenta (`registrar_pago`); todo pago raro avisa por correo a gerencia. Fuera de producción solo gerencia inicia cobros.
 - Operflow: O3 no existe; los mensajes quedan en la bandeja y se reintentan. Firma del mensaje B propuesta por la web, por confirmar.
@@ -20,8 +20,9 @@
 - Datos de clientes con `SUPABASE_SECRET_KEY` aún no tipo Secret; textos legales sin revisar por abogado.
 
 ## Siguiente paso exacto
-1. Con visto bueno de Alberto: pasar a `main` y quitar `ADMIN_PASSWORD` y `ADMIN_API_TOKEN` de Vercel. Antes conviene que Alberto ponga los precios reales en `/admin/precios` (el configurador queda público).
-2. **Al final (decisión de Alberto, 2026-11-21):** cuenta de Anthropic con su correo personal (organización "Hechomadera"), crédito, tope mensual (sugerido US$10), llave en Vercel como `ANTHROPIC_API_KEY` (Secret, Production y Preview) y `AGENTE_IA_ACTIVO=true`; agregar ambos nombres sin valor a `.env.example`. Luego prueba real del agente en la vista previa (conversación completa desde el celular hasta un lead guardado; revisar registros "[agente]"). El botón "Prefiero conversar" se muestra siempre (decisión de Alberto, 2026-11-21); sin llave, el chat avisa "disponible muy pronto" y no deja escribir.
+1. **Urgente, Alberto:** poner los precios reales en `/admin/precios`: el configurador ya está público en hechomadera.com con precios de prueba. Fotos reales para Inicio, Inspiración y Tienda.
+2. Con OK de Alberto: borrar `ADMIN_PASSWORD` de Vercel (el código ya no lo usa; `ADMIN_API_TOKEN` ya no existe).
+3. **Al final (decisión de Alberto, 2026-11-21):** cuenta de Anthropic con su correo personal (organización "Hechomadera"), crédito, tope mensual (sugerido US$10), llave en Vercel como `ANTHROPIC_API_KEY` (Secret, Production y Preview) y `AGENTE_IA_ACTIVO=true`; agregar ambos nombres sin valor a `.env.example`. Luego prueba real del agente en la vista previa (conversación completa desde el celular hasta un lead guardado; revisar registros "[agente]"). El botón "Prefiero conversar" se muestra siempre (decisión de Alberto, 2026-11-21); sin llave, el chat avisa "disponible muy pronto" y no deja escribir.
 4. Alberto, cuando exista O3: `CRON_SECRET`, `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
 5. Alberto: cerrar la pestaña del SQL Editor de Supabase (descartar cambios).
 
