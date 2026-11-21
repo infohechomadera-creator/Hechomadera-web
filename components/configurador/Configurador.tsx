@@ -10,6 +10,9 @@ import { AUTORIZACION_TEXTO, AUTORIZACION_VERSION } from "@/lib/configurador/aut
 import { MAX_BYTES_TOTAL } from "@/lib/configurador/fotos";
 import { reducirFoto } from "./reducirFoto";
 import { Agente, type CambiosAgente } from "./Agente";
+import { getWhatsAppHref } from "@/lib/whatsapp";
+
+const waAsesor = getWhatsAppHref("Hola Hechomadera, quiero hablar con un asesor sobre mi proyecto.");
 
 /** Opciones de cada ciudad (de su tabla de precios), sin montos: los montos los calcula el servidor. */
 export type OpcionesCiudad = Record<CiudadActiva, { colores: { id: string; nombre: string }[]; herrajes: { id: string; nombre: string }[] }>;
@@ -400,6 +403,17 @@ export function Configurador({
           onMinimizar={(v) => setChat(v ? "minimizado" : "abierto")}
           onCerrar={() => setChat("cerrado")}
         />
+      )}
+      {paso === P.Forma && (
+        <p className="mb-6 text-sm text-ink-muted">
+          <Link href="/cocinas" className="text-ink underline underline-offset-4">
+            Ver catálogo de cocinas
+          </Link>{" "}
+          · ¿No es una cocina o prefieres hablar con un asesor?{" "}
+          <a href={waAsesor} target="_blank" rel="noopener noreferrer" className="text-ink underline underline-offset-4">
+            Escríbenos por WhatsApp
+          </a>
+        </p>
       )}
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-ink-muted">
