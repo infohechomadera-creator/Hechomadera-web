@@ -214,3 +214,13 @@
 | GitHub | Etiqueta `respaldo-2026-11-24-antes-w7` (main anterior, `1747b00`); PR #2 creado y fusionado en `main` (`cc71d4b`) con el nivel 4 de W7 | En Vercel, "Instant Rollback" al despliegue anterior; o `git revert -m 1 cc71d4b` en `main` |
 | Vercel `hechomadera-web` | Despliegue automático de producción desde `main`; verificado en hechomadera.com: `/api/pagos/lead` responde 503 "pago en línea en pausa" y la privacidad nueva se ve. Lectura de registros de Preview (sin errores) | "Instant Rollback" |
 | Supabase Hechomadera (datos de ensayo) | Desde la vista previa con la sesión de gerencia de Alberto en Chrome: leads de ensayo `521787A3` (diseño, anticipo y saldo registrados a mano, sin dinero) y `637D0BD9` ("No aprobó": cliente y foto borrados, pago conservado). Ambos `es_prueba`, datos ficticios | Son datos de prueba; se pueden dejar. Borrarlos requiere SQL con respaldo previo (los pagos no se borran por regla) |
+
+## 2026-11-24 · Cierre de W7 y vuelta al nivel 3
+- **W7 se cierra con 2 leads de ensayo** (521787A3: diseño, anticipo y saldo; 637D0BD9: "No aprobó"), en vez de 3 a 5. Decisión de Alberto ("Cerremos y pasemos a operflow"). Motivo: el recorrido completo funcionó sin fallas y quiere avanzar con Operflow O3. Las pruebas de Alberto desde el celular y con dinero real quedan para W7b.
+- **Se vuelve al nivel de autonomía 3** (el 4 rigió solo durante W7). Pasar a `main` vuelve a pedir permiso.
+- El paso a `main` (PR #2) se le avisó a Alberto en el chat el mismo día, como pide el nivel 4.
+- Riesgos aceptados que siguen: legal sin abogado (Ley 1581, transferencia a proveedores fuera de Colombia); Vercel en plan Hobby (no comercial).
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| Chrome (sesión de gerencia de Alberto en la vista previa) | Para registrar los pagos a mano de los ensayos se reemplazó `window.confirm` en la página abierta, para aceptar el diálogo de confirmación. Solo en esa pestaña, ya cerrada; el código de la web no cambió | Se deshace solo al recargar o cerrar la página (ya cerrada) |

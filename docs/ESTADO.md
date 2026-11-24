@@ -3,7 +3,7 @@
 
 ## Dónde vamos
 - W0–W6 hechos y en producción (hechomadera.com). Diarios: `docs/hitos/hito-1.md` a `hito-7.md`.
-- **W7 en curso, sin dinero real** (decisión de Alberto 2026-11-24): 3 a 5 leads **de ensayo** recorren el flujo en la vista previa con pagos a mano (sin dinero). El W7 con plata real queda como **W7b** (después de O3 y precios reales). **Nivel de autonomía 4 solo durante W7.**
+- **W7 cerrado (etiqueta `hito-7`), sin dinero real:** 2 leads de ensayo recorrieron el flujo completo en la vista previa con pagos a mano, sin fallas (decisión de Alberto cerrar con 2). El W7 con plata real queda como **W7b** (después de O3 y precios reales). **Nivel de autonomía de vuelta en 3.**
 - **Cobros a leads en pausa** en producción (`COBROS_LEADS_ACTIVOS` sin valor; PR #2 en `main`, respaldo `respaldo-2026-11-24-antes-w7`). La vista previa cobra solo con credencial de prueba (`TEST-`), y hoy la tiene. La tienda no cambió.
 - Legal completado y **dado por revisado por Alberto** (sin abogado): privacidad (fotos, asistente de IA, proveedores fuera de Colombia, borrado al "no aprobó"), términos (diseño, anticipo, medición, saldo), autorización `2026-11-24-v1`.
 - Costos a 10x y 100x en `docs/REFERENCIA.md`. Vercel está en plan **Hobby** (no permite uso comercial).
@@ -14,10 +14,9 @@
 - Vista previa: https://hechomadera-web-git-w1-dce765-infohechomadera-creators-projects.vercel.app
 
 ## Siguiente paso exacto
-1. **Alberto:** hacer 1 a 3 leads de ensayo desde el celular en la vista previa (formulario completo, con foto). Avisar a Claude la referencia para seguir la ficha de `docs/hitos/hito-7.md` (pagos a mano, valor final, "No aprobó").
-2. **Alberto:** confirmar que llegaron los correos de los ensayos ("nuevo lead" y avisos de pago de 521787A3 y 637D0BD9) a `CONTACT_TO_EMAIL`.
-3. **Alberto:** confirmar en Vercel que `ENABLE_PAYMENT_TEST_PAGE` no esté en `true` en producción.
-4. Con los ensayos listos: `/cierre` de W7 (validador, auditor, etiqueta `hito-7`), volver a nivel 3 y pasar al desarrollo de Operflow O3 (puente en `docs/hitos/hito-7.md`).
+1. **Operflow O3** en la sesión de Operflow (otro proyecto). Puente: sección "Puente a Operflow" de `docs/hitos/hito-7.md` y `docs/CONTRATO-INTEGRACION.md`. En la vista previa hay 1 mensaje A y 2 C pendientes del ensayo 521787A3 para probar O3.
+2. Cuando O3 exista, Alberto pone en Vercel `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET` y `CRON_SECRET` (primero en Preview para probar con los ensayos).
+3. Alberto: confirmar que llegaron los correos de los ensayos a `CONTACT_TO_EMAIL` y que `ENABLE_PAYMENT_TEST_PAGE` no esté en `true` en producción.
 
 ## Riesgos abiertos
 - Vercel Hobby no permite uso comercial (Pro US$20/mes; decide Alberto). Supabase gratis se pausa tras 1 semana sin uso.

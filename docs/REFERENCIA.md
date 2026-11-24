@@ -48,8 +48,8 @@
 | 0 · Lectura | Leer, buscar, comandos de solo lectura (`git status`, `git log`, `git diff`) |
 | 1 · Editar | + Crear y editar archivos en la carpeta, commits locales, instalar dependencias, pruebas y build |
 | 2 · Subir | + Push a GitHub, ramas y etiquetas de respaldo |
-| 3 · Servicios de desarrollo | + Publicar en prueba, SQL en la base de desarrollo, navegador y conectores del perímetro |
-| **4 · Producción (solo durante W7, desde 2026-11-24)** | + Publicar en producción y cambios en la base real, con respaldo previo |
+| **3 · Servicios de desarrollo (actual)** | + Publicar en prueba, SQL en la base de desarrollo, navegador y conectores del perímetro |
+| 4 · Producción (rigió solo en W7, 2026-11-24) | + Publicar en producción y cambios en la base real, con respaldo previo |
 
 En cualquier nivel se pide permiso para: borrar cualquier archivo o dato, salir de la carpeta, dinero, contraseñas o inicios de sesión, aceptar términos.
 

@@ -104,3 +104,9 @@ Fallas: ninguna.
 - Por confirmar (Alberto): que `ENABLE_PAYMENT_TEST_PAGE` no esté en `true` en producción (esa página de gerencia cobra $5.000 reales).
 - Mejora opcional del validador: quien tenga el configurador abierto durante un despliegue que cambia la versión de la autorización recibe "recarga la página" y pierde lo llenado.
 - Los 2 leads de ensayo quedan en la base marcados como prueba (no se envían a Operflow de producción).
+
+## Cierre (2026-11-24)
+- Alberto decidió cerrar W7 con los 2 ensayos de Claude (sin fallas) y pasar a Operflow O3. Pruebas desde el celular y con dinero real: W7b.
+- Auditor: sin violaciones graves; se anotaron el cierre con 2 ensayos, la vuelta al nivel 3 y el parche temporal de `window.confirm` en Chrome (DECISIONES).
+- Etiqueta `hito-7`. Nivel de autonomía de vuelta en 3.
+- Pendientes de Alberto: confirmar correos de los ensayos; revisar `ENABLE_PAYMENT_TEST_PAGE` en producción; decidir Vercel Pro.
