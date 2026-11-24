@@ -207,3 +207,10 @@
 - **Precios y fotos siguen ficticios**; atiende Alberto desde gerencia (asesor real después). Motivo: decisión de Alberto.
 - **Lo legal se da por revisado, sin abogado** ("demos por revisado el tema legal"): se completaron privacidad (fotos, asistente de IA, proveedores y transferencia fuera de Colombia, borrado al "no aprobó") y términos (diseño no reembolsable, anticipo 35%, medición y saldo); autorización `2026-11-24-v1`. Riesgo aceptado por Alberto.
 - Costos a 10x y 100x calculados (`docs/REFERENCIA.md`). Hallazgo: Vercel Hobby no permite uso comercial; Supabase gratis se pausa tras una semana sin uso. Pagar planes lo decide Alberto.
+- La vista previa resultó tener credencial de Mercado Pago **de prueba** (`TEST-`), no la real: se corrige lo anotado antes. Vercel está en plan Hobby.
+
+| Servicio | Qué se hizo | Cómo revertir |
+| --- | --- | --- |
+| GitHub | Etiqueta `respaldo-2026-11-24-antes-w7` (main anterior, `1747b00`); PR #2 creado y fusionado en `main` (`cc71d4b`) con el nivel 4 de W7 | En Vercel, "Instant Rollback" al despliegue anterior; o `git revert -m 1 cc71d4b` en `main` |
+| Vercel `hechomadera-web` | Despliegue automático de producción desde `main`; verificado en hechomadera.com: `/api/pagos/lead` responde 503 "pago en línea en pausa" y la privacidad nueva se ve. Lectura de registros de Preview (sin errores) | "Instant Rollback" |
+| Supabase Hechomadera (datos de ensayo) | Desde la vista previa con la sesión de gerencia de Alberto en Chrome: leads de ensayo `521787A3` (diseño, anticipo y saldo registrados a mano, sin dinero) y `637D0BD9` ("No aprobó": cliente y foto borrados, pago conservado). Ambos `es_prueba`, datos ficticios | Son datos de prueba; se pueden dejar. Borrarlos requiere SQL con respaldo previo (los pagos no se borran por regla) |

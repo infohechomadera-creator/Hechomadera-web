@@ -10,7 +10,7 @@
 ## Requisitos antes de clientes reales (W7b)
 | Requisito | Estado | Quién |
 | --- | --- | --- |
-| Cobros reales apagados mientras tanto | Hecho en código (`COBROS_LEADS_ACTIVOS`); falta pasar a `main` | Claude |
+| Cobros reales apagados mientras tanto | Hecho y en producción (PR #2, 2026-11-24); hechomadera.com responde "pago en línea en pausa" | Claude |
 | Precios reales en `/admin/precios` | Ficticios por decisión de Alberto (2026-11-24) | Alberto, antes de W7b |
 | Asesor real | No hay; se usa gerencia y el "Asesor Prueba" | Alberto |
 | Textos legales | Completados (fotos, asistente, proveedores, diseño no reembolsable, anticipo y saldo) y **dados por revisados** por Alberto; autorización `2026-11-24-v1` | Hecho |
@@ -81,3 +81,26 @@ select * from pagos where estado in ('revisar','devuelto') and resuelto_at is nu
 
 **Leads de ensayo**
 (se agregan aquí con la ficha de arriba)
+
+### Lead 521787A3 · 2026-11-24 · Claude (envío directo a la ruta del formulario, datos ficticios) · computador
+- [x] 1. Guardado en la vista previa (rango $10.450.000–$13.350.000, 1 foto). Correo "nuevo lead": por confirmar Alberto
+- [x] 2. Ficha con "LEAD DE PRUEBA", foto visible, autorización 2026-11-24-v1
+- [x] 3. Asignado a Asesor Prueba, Contactado, nota y próximo contacto 26/11: todo en el historial
+- [x] 4. Diseño $300.000 a mano → "Diseño pagado"; mensaje A pendiente (SIN_CONEXION)
+- [x] 5. Valor final $12.000.000 → anticipo calculado $3.900.000 (35% − diseño) a mano → "Aprobado"; mensaje C pendiente
+- [x] 6. Valor con medidas $12.500.000 → saldo $8.300.000 a mano → pagó: saldo; segundo mensaje C pendiente
+- [x] 8. Registros de Vercel (Preview, última hora): 0 errores, 0 advertencias
+Fallas: ninguna.
+
+### Lead 637D0BD9 · 2026-11-24 · Claude (datos ficticios) · computador
+- [x] 1–2. Guardado (Santa Marta, lineal, 1 foto)
+- [x] 4. Diseño $300.000 a mano → "Diseño pagado"
+- [x] 7. "No aprobó": "Cliente borrado", foto borrada, pago conservado, estado "No aprobó"; el mensaje A quedó "Cancelado · datos borrados antes de enviar" (Operflow nunca lo recibió, por eso no hay E)
+Fallas: ninguna.
+
+**Hallazgos de la ronda**
+- La vista previa tiene credencial de Mercado Pago **de prueba** (`TEST-`): el interruptor la deja cobrar y el panel muestra el enlace de pago. No mueve dinero. Corrige lo que decía ESTADO ("credencial real en todos los entornos"). El camino B quizá ya sirve, pero el aviso de Mercado Pago llega a la dirección del sitio configurada (`NEXT_PUBLIC_SITE_URL`); por confirmar antes de usarlo.
+- Vercel está en plan **Hobby** (no permite uso comercial; ver costos en `docs/REFERENCIA.md`). Vercel también sugiere activar la verificación en dos pasos en la cuenta.
+- Por confirmar (Alberto): que `ENABLE_PAYMENT_TEST_PAGE` no esté en `true` en producción (esa página de gerencia cobra $5.000 reales).
+- Mejora opcional del validador: quien tenga el configurador abierto durante un despliegue que cambia la versión de la autorización recibe "recarga la página" y pierde lo llenado.
+- Los 2 leads de ensayo quedan en la base marcados como prueba (no se envían a Operflow de producción).
