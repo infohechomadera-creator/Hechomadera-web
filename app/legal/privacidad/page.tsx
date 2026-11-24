@@ -53,7 +53,8 @@ export default function PrivacidadPage() {
           <p className={p}>
             En el configurador puedes elegir conversar con un asistente de inteligencia artificial en lugar de llenar el formulario.
             Lo que escribas ahí lo procesa nuestro proveedor de inteligencia artificial (Anthropic, en Estados Unidos) solo para
-            responderte y llenar el formulario; no guardamos la conversación. El asistente no da precios: el rango lo calcula el
+            responderte y llenar el formulario. Hechomadera no guarda la conversación; el proveedor puede conservarla por un
+            tiempo limitado según sus propias políticas. El asistente no da precios: el rango lo calcula el
             Sitio. Si prefieres que tus datos no salgan del formulario, usa el formulario.
           </p>
         </section>

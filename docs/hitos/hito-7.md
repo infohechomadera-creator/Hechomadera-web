@@ -72,7 +72,8 @@ select * from pagos where estado in ('revisar','devuelto') and resuelto_at is nu
 
 ## 2026-11-24
 **Hecho**
-- Interruptor `COBROS_LEADS_ACTIVOS` (`lib/pagos/procesar.ts`): sin él no se cobra ningún lead; la página de pago, el final del configurador y el panel lo dicen. Pago a mano en pausa solo para leads de ensayo. Fuera de producción cobra si la credencial es de prueba (`TEST-`). La tienda no cambia.
+- Interruptor `COBROS_LEADS_ACTIVOS` (`lib/pagos/procesar.ts`): sin él producción no cobra ningún lead; la vista previa solo cobra con credencial de prueba (`TEST-`). La página de pago, el final del configurador y el panel lo dicen. Pago a mano en pausa solo para leads de ensayo. La tienda no cambia.
+- Validador: sin caminos para cobrar dinero real con el interruptor apagado; 3 hallazgos corregidos (interruptor no cobra en Preview con credencial real, aviso neutro al cliente, prueba del botón del configurador). Pruebas: 359.
 - Arreglo: si el envío a Operflow falla tras un pago (webhook o pago a mano), el correo del pago sale igual.
 - Legal: privacidad con fotos, asistente de IA, proveedores y transferencia fuera de Colombia, borrado al "no aprobó"; términos con diseño, anticipo, medición y saldo; enlace a términos en el consentimiento; autorización `2026-11-24-v1`.
 - Costos a 10x y 100x en `docs/REFERENCIA.md`.

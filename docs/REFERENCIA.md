@@ -24,7 +24,7 @@
 - W6 (agente): `ANTHROPIC_API_KEY` (tipo Secret; también deriva la firma del historial) y `AGENTE_IA_ACTIVO` (`true` para encender). Sin los dos, el botón no aparece y `/api/configurador/agente` responde 503. Pendiente agregarlas sin valor a `.env.example`.
 - Agente, topes: 40 mensajes por IP por hora, 1.500 llamadas por día en todo el sitio, 30 mensajes y 60.000 caracteres por conversación, 50 s y 5 vueltas por mensaje. Código en `lib/agente/` y `components/configurador/Agente.tsx`.
 - Futuras (contrato, cuando exista O3): `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
-- W7: `COBROS_LEADS_ACTIVOS` (`true` = cobrar leads con Mercado Pago). Sin él no se cobra ningún lead (decisión 2026-11-24: nada de dinero real). Fuera de producción también cobra si `MERCADOPAGO_ACCESS_TOKEN` es de prueba (empieza por `TEST-`). La tienda no depende de esto.
+- W7: `COBROS_LEADS_ACTIVOS` (`true` = producción cobra leads con Mercado Pago). Sin él producción no cobra ningún lead (decisión 2026-11-24: nada de dinero real). La vista previa y local cobran SOLO si `MERCADOPAGO_ACCESS_TOKEN` es de prueba (empieza por `TEST-`), aunque el interruptor esté encendido. La tienda no depende de esto.
 
 ## Dónde está cada cosa en el código
 - Reglas de negocio: `lib/site-config.ts` (ciudades, marketplace, "precio desde", abono 35%).

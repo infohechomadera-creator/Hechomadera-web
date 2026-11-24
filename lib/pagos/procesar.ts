@@ -47,17 +47,18 @@ export const esProduccion = () => process.env.VERCEL_ENV === "production";
  */
 /**
  * Interruptor de cobros a leads por Mercado Pago (W7, decisión de Alberto 2026-11-24: nada de dinero real
- * por ahora). Sin `COBROS_LEADS_ACTIVOS=true` no se inicia ningún cobro de lead, en ningún entorno.
- * Excepción: fuera de producción con credencial de PRUEBA de Mercado Pago (empieza por "TEST-"), que no mueve plata.
+ * por ahora). En producción solo se cobra a leads con `COBROS_LEADS_ACTIVOS=true`.
+ * Fuera de producción solo con credencial de PRUEBA de Mercado Pago (empieza por "TEST-"), que no mueve plata:
+ * así el interruptor encendido en todos los entornos no hace cobrar a la vista previa con la credencial real.
  * La tienda no usa este interruptor.
  */
 export function cobrosLeadsActivos(): boolean {
-  if (process.env.COBROS_LEADS_ACTIVOS === "true") return true;
-  return !esProduccion() && (process.env.MERCADOPAGO_ACCESS_TOKEN ?? "").startsWith("TEST-");
+  if (esProduccion()) return process.env.COBROS_LEADS_ACTIVOS === "true";
+  return (process.env.MERCADOPAGO_ACCESS_TOKEN ?? "").startsWith("TEST-");
 }
 
 export const COBROS_EN_PAUSA =
-  "Por ahora el pago en línea está en pausa: tu asesor coordina el pago del diseño contigo. Escríbenos por WhatsApp.";
+  "Por ahora el pago en línea está en pausa. Te contactaremos para seguir con tu proyecto; si tienes preguntas, escríbenos por WhatsApp.";
 
 export async function puedeCobrarAqui(rol: () => Promise<string | null>): Promise<boolean> {
   return esProduccion() || (await rol()) === "gerencia";

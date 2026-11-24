@@ -55,6 +55,7 @@ beforeEach(() => {
   e.cobro = { ok: true, tipo: "anticipo", monto: 6_700_000 };
   e.esPrueba = false;
   vi.stubEnv("COBROS_LEADS_ACTIVOS", "true");
+  vi.stubEnv("VERCEL_ENV", "production");
 });
 
 describe("pago a mano y valor final: solo gerencia", () => {

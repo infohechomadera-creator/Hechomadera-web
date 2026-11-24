@@ -188,7 +188,10 @@ describe("avisos de Operflow (mensaje B)", () => {
 });
 
 describe("refuerzo: dinero real solo en producción, y la vista previa solo para gerencia", () => {
-  beforeEach(() => vi.stubEnv("COBROS_LEADS_ACTIVOS", "true"));
+  beforeEach(() => {
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "true");
+    vi.stubEnv("MERCADOPAGO_ACCESS_TOKEN", "TEST-123"); // en la vista previa solo se cobra con credencial de prueba
+  });
 
   it("en producción un pago de PRUEBA no toca la base y se avisa", async () => {
     pagoMP = { ok: true, payment: { id: 900, status: "approved", external_reference: "ord_abc123", transaction_amount: 300000, currency_id: "COP", live_mode: false } };
@@ -238,12 +241,14 @@ describe("W7 · cobros a leads en pausa (nada de dinero real)", () => {
     expect(cobrosLeadsActivos()).toBe(true);
   });
 
-  it("fuera de producción solo cobra con credencial de PRUEBA (o el interruptor)", async () => {
+  it("fuera de producción solo cobra con credencial de PRUEBA, aunque el interruptor esté encendido", async () => {
     const { cobrosLeadsActivos } = await import("@/lib/pagos/procesar");
     vi.stubEnv("VERCEL_ENV", "preview");
     vi.stubEnv("COBROS_LEADS_ACTIVOS", "");
     vi.stubEnv("MERCADOPAGO_ACCESS_TOKEN", "APP_USR-real");
     expect(cobrosLeadsActivos()).toBe(false);
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "true");
+    expect(cobrosLeadsActivos()).toBe(false); // credencial real en Preview: nunca cobra
     vi.stubEnv("MERCADOPAGO_ACCESS_TOKEN", "TEST-123");
     expect(cobrosLeadsActivos()).toBe(true);
   });
