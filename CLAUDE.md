@@ -10,13 +10,14 @@ Al empezar cada sesión lee **solo** `docs/ESTADO.md` (o usa `/retomar`). Lo dem
 - Servicios de **esta** web: Vercel, Supabase de la web (proyecto Hechomadera, ref `seazgghpynhflxvrjpee`, plan gratis; el proyecto `operflow` de la misma organización NO se toca), Upstash Redis, Mercado Pago y Resend. Nada fuera de aquí.
 - **Operflow es otro proyecto.** Solo se habla con él por el contrato (`docs/CONTRATO-INTEGRACION.md`, copia de solo lectura). No se copia código ni datos de Operflow.
 
-## Nivel de autonomía actual: 3 (todo dentro del proyecto, sin preguntar) — desde 2026-11-18
+## Nivel de autonomía actual: 4 solo durante W7 (desde 2026-11-24; al cerrar W7 vuelve al 3)
+- Nivel 4: además de lo del 3, cambios en datos reales y paso a `main` sin preguntar, con etiqueta de respaldo antes y aviso a Alberto después.
 - Sin preguntar: todo lo que está dentro del proyecto: archivos de la carpeta (incluido borrar), git local, push de la rama de trabajo, SQL en el Supabase de la web, Supabase y Vercel de esta web desde Chrome (sesión de Alberto).
 - Qué incluye cada nivel: tabla en `docs/REFERENCIA.md`. Historial: `docs/DECISIONES.md`.
 - Usar en Chrome una sesión que Alberto ya abrió (Supabase, Vercel, la web) **sí** está autorizado (2026-11-18).
 - **Nunca, aunque haya autorización:** copiar o pegar llaves secretas o contraseñas, escribir su contraseña o pulsar "Entrar" por él, dinero o planes pagos, aceptar términos.
 - Toda acción en un servicio externo se anota en `docs/DECISIONES.md` con qué, dónde y cómo revertirla.
-- **Siempre pide permiso para:** tocar algo fuera del perímetro (otros proyectos como Operflow), borrar en GitHub (ramas o etiquetas remotas) y pasar a producción (`main`).
+- **Siempre pide permiso para:** tocar algo fuera del perímetro (otros proyectos como Operflow), borrar en GitHub (ramas o etiquetas remotas) y pasar a producción (`main`), salvo durante W7 (nivel 4).
 
 ## Alcance
 - Construye lo que está en la Versión 1 de `PRODUCTO.md`, hito por hito según `PLAN.md`. Si falta algo, propónlo con su motivo; se agrega solo si se aprueba.

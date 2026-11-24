@@ -199,3 +199,11 @@
 | Servicio | Qué se hizo | Cómo revertir |
 | --- | --- | --- |
 | Vercel `hechomadera-web` | Borrada la variable `ADMIN_PASSWORD` desde Chrome (sesión de Alberto) | No se puede recuperar el valor; si hiciera falta, Alberto crea una nueva con "Add Environment Variable" (el código actual no la usa) |
+
+## 2026-11-24 · W7 sin dinero real (decisiones de Alberto)
+- **Nivel de autonomía 4 aprobado solo para W7** ("Sí, nivel 4 en W7"): cambios en datos reales y paso a `main` sin preguntar, siempre con etiqueta de respaldo antes y aviso después. Siguen prohibidos: llaves, contraseñas, dinero, aceptar términos, tocar Operflow. Al cerrar W7 se vuelve al nivel 3.
+- **Nada de dinero real todavía** ("Todavía no quiero utilizar nada de dinero real"). W7 pasa a ser 3 a 5 leads **de ensayo** en la vista previa, con pagos sin dinero (pago a mano de gerencia o credenciales de prueba de Mercado Pago en Preview). El W7 con plata real queda como **W7b**, después de O3. Motivo: verificar el recorrido del lead y pasar al desarrollo de Operflow.
+- **Cobros a leads en pausa** con el interruptor `COBROS_LEADS_ACTIVOS` (sin valor = no se cobra ningún lead, en ningún entorno; fuera de producción se permite con credencial `TEST-`). Pago a mano en pausa solo para leads de ensayo. La tienda no cambia. Motivo: hechomadera.com es público con precios de prueba y credencial real de Mercado Pago.
+- **Precios y fotos siguen ficticios**; atiende Alberto desde gerencia (asesor real después). Motivo: decisión de Alberto.
+- **Lo legal se da por revisado, sin abogado** ("demos por revisado el tema legal"): se completaron privacidad (fotos, asistente de IA, proveedores y transferencia fuera de Colombia, borrado al "no aprobó") y términos (diseño no reembolsable, anticipo 35%, medición y saldo); autorización `2026-11-24-v1`. Riesgo aceptado por Alberto.
+- Costos a 10x y 100x calculados (`docs/REFERENCIA.md`). Hallazgo: Vercel Hobby no permite uso comercial; Supabase gratis se pausa tras una semana sin uso. Pagar planes lo decide Alberto.
