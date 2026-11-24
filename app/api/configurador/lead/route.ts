@@ -7,6 +7,10 @@ import { buscarLeadRepetido, guardarLead } from "@/lib/configurador/guardar";
 import { dentroDelLimite, ipDe } from "@/lib/limite";
 import { sendNewLeadAlertToSeller } from "@/lib/email-notifications";
 import { tokenDePago } from "@/lib/pagos/lead";
+import { cobrosLeadsActivos } from "@/lib/pagos/procesar";
+
+/** El botón "Pagar el diseño" solo aparece si los cobros a leads están activos (W7: en pausa). */
+const enlaceDePago = (leadId: string) => (cobrosLeadsActivos() ? tokenDePago(leadId) : Promise.resolve(null));
 import { DISENOS_COCINA, FORMAS_COCINA } from "@/content/cocinas";
 
 export const runtime = "nodejs";
@@ -68,7 +72,7 @@ export async function POST(request: Request) {
       ok: true,
       referencia: repetido.leadId.slice(0, 8).toUpperCase(),
       rango: repetido.rango,
-      pago_token: await tokenDePago(repetido.leadId),
+      pago_token: await enlaceDePago(repetido.leadId),
     });
   }
 
@@ -108,6 +112,6 @@ export async function POST(request: Request) {
     // En un envío repetido se devuelve el rango que quedó guardado, no el de este intento.
     rango: guardado.repetido ? guardado.rango : { min: rango.min, max: rango.max, ciudad: rango.ciudad },
     // Para el botón "Pagar el diseño" (W5): el enlace de pago de este lead.
-    pago_token: await tokenDePago(guardado.leadId),
+    pago_token: await enlaceDePago(guardado.leadId),
   });
 }

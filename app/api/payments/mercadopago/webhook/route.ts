@@ -111,7 +111,10 @@ export async function POST(request: Request) {
             if (p.payer?.email) await sendPaymentConfirmationToBuyer({ order, buyerEmail: p.payer.email, buyerName });
             await sendNewOrderAlertToSeller({ order, buyerEmail: p.payer?.email, buyerName });
           } else if (nuevo.lead_id && nuevo.tipo) {
-            await enviarPendientes({ leadId: nuevo.lead_id });
+            // Si Operflow falla, el mensaje queda en la bandeja y se reintenta; el correo del pago sale igual.
+            await enviarPendientes({ leadId: nuevo.lead_id }).catch((e) =>
+              console.error("[Mercado Pago webhook] envío a Operflow falló (queda en la bandeja)", e instanceof Error ? e.message : "error"),
+            );
             await avisarPagoLead({ leadId: nuevo.lead_id, tipo: nuevo.tipo, monto: Number(p.transaction_amount ?? 0) });
           }
         }

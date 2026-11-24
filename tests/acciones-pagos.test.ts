@@ -13,6 +13,7 @@ const e = vi.hoisted(() => ({
   fotosOk: true,
   fotosLlamadas: 0,
   cobro: { ok: true, tipo: "anticipo", monto: 6_700_000 } as Record<string, unknown>,
+  esPrueba: false,
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
@@ -22,7 +23,7 @@ vi.mock("@/lib/email-notifications", () => ({ avisarPagoLead: async () => undefi
 vi.mock("@/lib/pagos/preferencia", () => ({ vencerCobrosAbiertos: async () => undefined }));
 vi.mock("@/lib/borrado", () => ({ borrarFotosDelCliente: async () => (e.fotosLlamadas++, e.fotosOk) }));
 vi.mock("@/lib/integracion/salida", () => ({ enviarPendientes: async () => ({ enviados: 0, pendientes: 0, fallidos: 0, conectado: false }) }));
-vi.mock("@/lib/pagos/lead", () => ({ leerCobroLead: async () => ({ leadId: LEAD, producto: "cocina", ciudad: "Barranquilla", cobro: e.cobro }) }));
+vi.mock("@/lib/pagos/lead", () => ({ leerCobroLead: async () => ({ leadId: LEAD, producto: "cocina", ciudad: "Barranquilla", cobro: e.cobro, esPrueba: e.esPrueba }) }));
 vi.mock("@/lib/supabase/servidor", () => ({
   clienteUsuario: async () => ({
     auth: { getUser: async () => ({ data: { user: { id: UID } } }) },
@@ -52,6 +53,8 @@ beforeEach(() => {
   e.fotosOk = true;
   e.fotosLlamadas = 0;
   e.cobro = { ok: true, tipo: "anticipo", monto: 6_700_000 };
+  e.esPrueba = false;
+  vi.stubEnv("COBROS_LEADS_ACTIVOS", "true");
 });
 
 describe("pago a mano y valor final: solo gerencia", () => {
@@ -170,5 +173,23 @@ describe("resolver: solo dos resultados válidos", () => {
   it("un resultado inventado se rechaza sin tocar la base", async () => {
     expect(await resolverPago(LEAD, 7, "nota válida", "otro" as "devuelto")).toMatchObject({ ok: false });
     expect(e.rpc).toHaveLength(0);
+  });
+});
+
+describe("W7 · pago a mano con cobros en pausa", () => {
+  it("no registra pagos de un lead real", async () => {
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "");
+    vi.stubEnv("VERCEL_ENV", "production");
+    const r = await marcarPagoManual(LEAD, "transferencia", 6_700_000);
+    expect(JSON.stringify(r)).toContain("pausa");
+    expect(e.rpc).toHaveLength(0);
+  });
+
+  it("sí registra el pago de un lead de ensayo (no mueve dinero)", async () => {
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "");
+    vi.stubEnv("VERCEL_ENV", "production");
+    e.esPrueba = true;
+    expect(await marcarPagoManual(LEAD, "ensayo W7", 6_700_000)).toEqual({ ok: true });
+    expect(e.rpc[0]).toMatchObject({ fn: "registrar_pago_manual" });
   });
 });

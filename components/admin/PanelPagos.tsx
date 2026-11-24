@@ -34,6 +34,10 @@ type Props = {
   pagoEstado: string;
   datosBorrados: boolean;
   enlacePago: string | null;
+  /** W7: cobros a leads en pausa (sin dinero real). */
+  cobrosEnPausa?: boolean;
+  /** Lead creado fuera de producción (ensayo). */
+  esPrueba?: boolean;
   /** Siguiente cobro: tipo y valor, o el motivo por el que no hay. */
   cobro: { tipo: string; monto: number } | { motivo: string };
   valorFinal: number | null;
@@ -118,6 +122,12 @@ export function PanelPagos(p: Props) {
             Propuesta: {pesos(p.valorFinal)} · Con medidas: {pesos(p.valorMedido)}
           </p>
         </div>
+
+        {p.cobrosEnPausa && "monto" in p.cobro && (
+          <p className="text-xs text-ink-muted md:col-span-2">
+            Cobros en línea en pausa: no hay enlace de pago. {p.esPrueba ? "En este lead de ensayo usa \"Registrar a mano\" (no mueve dinero)." : "Este lead no se puede cobrar por ahora."}
+          </p>
+        )}
 
         {p.enlacePago && "monto" in p.cobro && (
           <div className="md:col-span-2">
@@ -249,7 +259,7 @@ export function PanelPagos(p: Props) {
         </form>
       )}
 
-      {p.esGerencia && !p.datosBorrados && "monto" in p.cobro && (
+      {p.esGerencia && !p.datosBorrados && "monto" in p.cobro && (!p.cobrosEnPausa || p.esPrueba) && (
         <form
           className="mt-4 border border-neutral-200 bg-white p-4"
           onSubmit={(e) => {

@@ -5,7 +5,7 @@ import { StartCheckoutButton } from "@/components/payments/StartCheckoutButton";
 import { leerCobroLead, nombreProducto, tituloCobro } from "@/lib/pagos/lead";
 import { MOTIVO_SIN_COBRO } from "@/lib/pagos/calcular";
 import { pesos } from "@/lib/leads";
-import { puedeCobrarAqui } from "@/lib/pagos/procesar";
+import { COBROS_EN_PAUSA, cobrosLeadsActivos, puedeCobrarAqui } from "@/lib/pagos/procesar";
 import { rolActual } from "@/lib/sesion";
 
 export const metadata: Metadata = {
@@ -51,7 +51,12 @@ export default async function PagoLeadPage({ params }: { params: Promise<{ token
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 md:px-6 md:py-24">
-      {soloGerencia ? (
+      {!cobrosLeadsActivos() ? (
+        <>
+          <h1 className="font-display text-2xl font-semibold text-ink md:text-3xl">Pago de tu {producto}</h1>
+          <p className="mt-4 text-sm leading-relaxed text-ink-muted">{COBROS_EN_PAUSA}</p>
+        </>
+      ) : soloGerencia ? (
         <>
           <h1 className="font-display text-2xl font-semibold text-ink md:text-3xl">Pago de tu {producto}</h1>
           <p className="mt-4 text-sm leading-relaxed text-ink-muted">
