@@ -38,6 +38,9 @@
 ## Integración con Operflow
 - Solo por `docs/CONTRATO-INTEGRACION.md` (copia de solo lectura; el original vive en Operflow). Mensajes A–E, servidor a servidor, clave Bearer y avisos firmados con HMAC.
 
+## Mapa de la web
+- `docs/mapa/mapa-hechomadera.html`, publicado en https://claude.ai/artifact/Q7Q8JfLv96L1EEcjf8dHyj (privado de Alberto): pantallas, botones, recorridos, permisos por rol y hallazgos. **Se actualiza solo cuando Alberto lo pide** (2026-11-24); al hacerlo, se republica en el mismo enlace.
+
 ## Niveles de autonomía
 | Nivel | Claude puede sin preguntar |
 | --- | --- |
