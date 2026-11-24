@@ -746,6 +746,10 @@ export function Configurador({
               {AUTORIZACION_TEXTO}{" "}
               <Link href="/legal/privacidad" target="_blank" className="text-ink underline underline-offset-4">
                 Política de privacidad
+              </Link>{" "}
+              ·{" "}
+              <Link href="/legal/terminos" target="_blank" className="text-ink underline underline-offset-4">
+                Términos
               </Link>
             </span>
           </label>

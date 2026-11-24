@@ -11,6 +11,7 @@ import { obtenerPrecios } from "@/lib/precios/fuente";
 import type { CiudadActiva, Producto } from "@/lib/precios/tipos";
 import { MOTIVO_SIN_COBRO, siguienteCobro, sumarPagado, type LeadParaCobro } from "@/lib/pagos/calcular";
 import { urlDelSitio } from "@/lib/pagos/preferencia";
+import { cobrosLeadsActivos } from "@/lib/pagos/procesar";
 import {
   ETIQUETA_ESTADO,
   UUID,
@@ -216,7 +217,9 @@ export default async function AdminLeadPage({ params }: { params: Promise<{ id: 
         estado={lead.estado}
         pagoEstado={lead.pago_estado}
         datosBorrados={datosBorrados}
-        enlacePago={datosBorrados ? null : `${urlDelSitio()}/pago/lead/${lead.pago_token}`}
+        enlacePago={datosBorrados || !cobrosLeadsActivos() ? null : `${urlDelSitio()}/pago/lead/${lead.pago_token}`}
+        cobrosEnPausa={!cobrosLeadsActivos()}
+        esPrueba={lead.es_prueba}
         cobro={cobro.ok ? { tipo: cobro.tipo, monto: cobro.monto } : { motivo: MOTIVO_SIN_COBRO[cobro.motivo] }}
         valorFinal={lead.valor_final == null ? null : Number(lead.valor_final)}
         valorMedido={lead.valor_final_medido == null ? null : Number(lead.valor_final_medido)}

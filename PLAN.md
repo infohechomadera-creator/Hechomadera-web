@@ -19,7 +19,8 @@
 | W4 | CRM mínimo | El asesor ve sus leads, cambia estados, deja notas y marca el filtro | Panel CRM | Asesor no ve leads ajenos | Construir y probar | Probar con el asesor | 3 |
 | W5 | Pagos y conexión con Operflow | Pago del diseño crea el proyecto en Operflow; avisos llegan al CRM; anticipo y saldo se registran; "no aprobó" borra en ambos lados | Webhook MP, mensajes A, B, C, E | Firmas, idempotencia, montos en servidor, borrado | Construir y probar | Coordinar O3 de Operflow; aprobar paso a producción | 3–4 |
 | W6 | Agente de IA | El cliente conversa y el agente llena el configurador | API de Anthropic | Que el agente no invente precios | Construir y probar | Crear cuenta y aprobar tope de gasto | 3 |
-| W7 | Prueba real | 3 a 5 leads reales recorren el flujo completo | Todo | Flujo de punta a punta | Acompañar y corregir | Atender clientes reales | 4 |
+| W7 | Prueba sin dinero | 3 a 5 leads de ensayo recorren el flujo completo en la vista previa, con pagos sin dinero (decisión 2026-11-24) | Todo | Flujo de punta a punta | Acompañar y corregir | Atender los leads de ensayo | 4 |
+| W7b | Prueba real | 3 a 5 leads reales con dinero real, después de O3 y con precios reales | Todo | Flujo de punta a punta | Acompañar y corregir | Atender clientes reales; encender `COBROS_LEADS_ACTIVOS` | 4 |
 
 W0–W4 no dependen de Operflow. W5 necesita el hito O3 de Operflow. W6 depende de W3.
 
@@ -42,13 +43,13 @@ W0–W4 no dependen de Operflow. W5 necesita el hito O3 de Operflow. W6 depende 
 | Webhook falso o repetido crea proyectos dobles | Firma obligatoria e `id_externo` idempotente (contrato) |
 | Supabase plan gratis se pausa o se queda corto | Evaluar Pro antes de clientes reales (requiere aprobación) |
 | Romper pagos que ya funcionan en producción | Etiqueta de respaldo antes de tocar pagos; pruebas en modo prueba |
-| Términos sin revisión legal | Revisión de abogado antes de W7 |
+| Términos sin revisión legal | Dados por revisados por Alberto sin abogado (2026-11-24); riesgo aceptado |
 | Costo del agente de IA | Tope de gasto mensual aprobado antes de W6 |
 
 ## Escalabilidad (decisiones tomadas)
 - Varias ciudades desde el inicio: los precios y los leads llevan ciudad. Barranquilla y Santa Marta primero, luego 5 ciudades más; otros países después.
 - La web y Operflow tienen bases separadas; cada dato tiene un solo dueño.
-- Costos a 10x y 100x: por calcular antes de W7.
+- Costos a 10x y 100x: calculados el 2026-11-24 (`docs/REFERENCIA.md`).
 
 ## Herramientas de Claude por hito
 - Modo plan al empezar cada hito; `/retomar` y `/cierre` en cada sesión.

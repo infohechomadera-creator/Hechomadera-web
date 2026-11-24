@@ -17,6 +17,7 @@ const nuevoId = () => `00000000-0000-4000-a000-${String(++n).padStart(12, "0")}`
 vi.mock("@/lib/precios/fuente", () => ({ obtenerPrecios: async () => ({ tablas: PRECIOS_EJEMPLO }) }));
 const aviso = vi.hoisted(() => ({ llamadas: 0 }));
 vi.mock("@/lib/email-notifications", () => ({ sendNewLeadAlertToSeller: async () => void aviso.llamadas++ }));
+vi.mock("@/lib/pagos/lead", () => ({ tokenDePago: async () => "a".repeat(64) }));
 vi.mock("@/lib/limite", () => ({
   ipDe: () => "203.0.113.9",
   dentroDelLimite: async (nombre: string) => ![...bloqueados].some((b) => nombre.startsWith(b)),
@@ -213,5 +214,32 @@ describe("POST /api/configurador/lead", () => {
     expect(b.rango).toMatchObject({ min: 111, max: 222 });
     expect(base.leads).toHaveLength(1);
     expect(aviso.llamadas).toBe(1);
+  });
+});
+
+describe("W7 · botón de pago al terminar el configurador", () => {
+  beforeEach(() => {
+    base.clientes = [];
+    base.leads = [];
+    base.archivos = [];
+    base.subidas = [];
+    bloqueados.clear();
+  });
+
+  it("con los cobros en pausa no entrega enlace de pago (no hay botón)", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "");
+    const r = await enviar(datos(), []);
+    expect(r.status).toBe(200);
+    expect((await r.json()).pago_token).toBeNull();
+    vi.unstubAllEnvs();
+  });
+
+  it("con los cobros encendidos en producción sí lo entrega", async () => {
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "true");
+    const r = await enviar(datos(), []);
+    expect((await r.json()).pago_token).toBe("a".repeat(64));
+    vi.unstubAllEnvs();
   });
 });

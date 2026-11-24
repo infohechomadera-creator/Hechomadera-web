@@ -12,6 +12,7 @@ import { borrarFotosDelCliente } from "@/lib/borrado";
 import { enviarPendientes } from "@/lib/integracion/salida";
 import { leerCobroLead } from "@/lib/pagos/lead";
 import { crearOrdenId } from "@/lib/pagos/ordenes";
+import { cobrosLeadsActivos } from "@/lib/pagos/procesar";
 import { vencerCobrosAbiertos } from "@/lib/pagos/preferencia";
 import { avisarPagoLead } from "@/lib/email-notifications";
 import { ESTADOS_A_MANO, UUID, esEstadoAMano, validarNota, validarProximoContacto } from "@/lib/leads";
@@ -124,6 +125,10 @@ export async function marcarPagoManual(leadId: string, nota: string, montoVisto:
   if (!(await leadVisible(s, leadId))) return NO_ENCONTRADO;
   const info = await leerCobroLead(leadId, { porId: true });
   if (!info?.cobro.ok) return { ok: false, error: "Este lead no tiene un pago pendiente." };
+  // Cobros en pausa (W7): solo se registran pagos de leads de ensayo, para no marcar como pagado a un cliente real.
+  if (!cobrosLeadsActivos() && !info.esPrueba) {
+    return { ok: false, error: "Los cobros están en pausa: por ahora solo se registran pagos de leads de ensayo." };
+  }
   // Lo que gerencia vio en pantalla debe ser exactamente lo que se registra.
   if (info.cobro.monto !== montoVisto) return { ok: false, error: "El valor a pagar cambió. Recarga la página y revisa antes de registrar." };
   const r = await llamarBase("registrar_pago_manual", {
@@ -139,7 +144,10 @@ export async function marcarPagoManual(leadId: string, nota: string, montoVisto:
     refrescar(leadId);
     return { ok: false, error: "El pago quedó registrado pero NO cuenta (repetido o el valor cambió). Revísalo en el historial." };
   }
-  await enviarPendientes({ leadId });
+  // El pago ya quedó registrado: si Operflow falla, el mensaje sigue en la bandeja y el correo sale igual.
+  await enviarPendientes({ leadId }).catch((e) =>
+    console.error("[pago manual] envío a Operflow falló (queda en la bandeja)", e instanceof Error ? e.message : "error"),
+  );
   await avisarPagoLead({ leadId, tipo: info.cobro.tipo, monto: info.cobro.monto }).catch(() => undefined);
   refrescar(leadId);
   return { ok: true };

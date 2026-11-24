@@ -24,7 +24,7 @@ export const nombreProducto = (p: string) => NOMBRE_PRODUCTO[p] ?? p;
 const TITULO: Record<TipoCobro, string> = { diseno: "Diseño de", anticipo: "Anticipo de", saldo: "Saldo de" };
 export const tituloCobro = (tipo: TipoCobro, producto: string) => `${TITULO[tipo]} ${nombreProducto(producto)} — Hechomadera`;
 
-export type CobroLead = { leadId: string; producto: Producto; ciudad: string; cobro: SiguienteCobro };
+export type CobroLead = { leadId: string; producto: Producto; ciudad: string; cobro: SiguienteCobro; esPrueba: boolean };
 
 type Fila = {
   id: string;
@@ -35,6 +35,7 @@ type Fila = {
   valor_final: number | null;
   valor_final_medido: number | null;
   operflow_estado: string | null;
+  es_prueba: boolean;
   clientes: { datos_borrados_at: string | null } | null;
   pagos: { tipo: string; monto: number; cuenta: boolean; estado: string; resuelto_at: string | null; monto_devuelto: number }[];
 };
@@ -44,7 +45,7 @@ export async function leerCobroLead(token: string, { porId = false } = {}): Prom
   if (porId ? !/^[0-9a-f-]{36}$/.test(token) : !TOKEN.test(token)) return null;
   const { data } = await clienteSistema()
     .from("leads")
-    .select("id, producto, ciudad, pago_estado, estado, valor_final, valor_final_medido, operflow_estado, clientes(datos_borrados_at), pagos(tipo, monto, cuenta, estado, resuelto_at, monto_devuelto)")
+    .select("id, producto, ciudad, pago_estado, estado, valor_final, valor_final_medido, operflow_estado, es_prueba, clientes(datos_borrados_at), pagos(tipo, monto, cuenta, estado, resuelto_at, monto_devuelto)")
     .eq(porId ? "id" : "pago_token", token)
     .maybeSingle<Fila>();
   if (!data || !CIUDADES_ACTIVAS.includes(data.ciudad as CiudadActiva)) return null;
@@ -64,7 +65,7 @@ export async function leerCobroLead(token: string, { porId = false } = {}): Prom
     tablas[data.ciudad as CiudadActiva],
     sumarPagado(data.pagos ?? []),
   );
-  return { leadId: data.id, producto: data.producto, ciudad: data.ciudad, cobro };
+  return { leadId: data.id, producto: data.producto, ciudad: data.ciudad, cobro, esPrueba: data.es_prueba === true };
 }
 
 /** Código del enlace de pago de un lead recién creado (para el botón del configurador). */

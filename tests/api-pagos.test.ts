@@ -188,6 +188,11 @@ describe("avisos de Operflow (mensaje B)", () => {
 });
 
 describe("refuerzo: dinero real solo en producción, y la vista previa solo para gerencia", () => {
+  beforeEach(() => {
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "true");
+    vi.stubEnv("MERCADOPAGO_ACCESS_TOKEN", "TEST-123"); // en la vista previa solo se cobra con credencial de prueba
+  });
+
   it("en producción un pago de PRUEBA no toca la base y se avisa", async () => {
     pagoMP = { ok: true, payment: { id: 900, status: "approved", external_reference: "ord_abc123", transaction_amount: 300000, currency_id: "COP", live_mode: false } };
     const { POST } = await import("@/app/api/payments/mercadopago/webhook/route");
@@ -223,5 +228,49 @@ describe("refuerzo: dinero real solo en producción, y la vista previa solo para
     const r2 = await lead.POST(new Request("http://local/x", { method: "POST", body: JSON.stringify({ token: "a".repeat(64) }) }));
     expect(r2.status).toBe(403);
     expect(crearPreferencia).not.toHaveBeenCalled();
+  });
+});
+
+describe("W7 · cobros a leads en pausa (nada de dinero real)", () => {
+  it("el interruptor: producción solo cobra con COBROS_LEADS_ACTIVOS=true", async () => {
+    const { cobrosLeadsActivos } = await import("@/lib/pagos/procesar");
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "");
+    vi.stubEnv("MERCADOPAGO_ACCESS_TOKEN", "TEST-123");
+    expect(cobrosLeadsActivos()).toBe(false); // producción nunca se fía de una credencial de prueba
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "true");
+    expect(cobrosLeadsActivos()).toBe(true);
+  });
+
+  it("fuera de producción solo cobra con credencial de PRUEBA, aunque el interruptor esté encendido", async () => {
+    const { cobrosLeadsActivos } = await import("@/lib/pagos/procesar");
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "");
+    vi.stubEnv("MERCADOPAGO_ACCESS_TOKEN", "APP_USR-real");
+    expect(cobrosLeadsActivos()).toBe(false);
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "true");
+    expect(cobrosLeadsActivos()).toBe(false); // credencial real en Preview: nunca cobra
+    vi.stubEnv("MERCADOPAGO_ACCESS_TOKEN", "TEST-123");
+    expect(cobrosLeadsActivos()).toBe(true);
+  });
+
+  it("en pausa, el enlace del lead responde 503 y no crea ningún cobro", async () => {
+    vi.stubEnv("COBROS_LEADS_ACTIVOS", "");
+    const { POST } = await import("@/app/api/pagos/lead/route");
+    const r = await POST(new Request("http://local/x", { method: "POST", body: JSON.stringify({ token: "a".repeat(64) }) }));
+    expect(r.status).toBe(503);
+    expect(((await r.json()) as { error: string }).error).toContain("pausa");
+    expect(crearPreferencia).not.toHaveBeenCalled();
+  });
+
+  it("si Operflow falla después de un pago, el correo del pago sale igual", async () => {
+    enviarPendientes.mockRejectedValueOnce(new Error("caído"));
+    pagoMP = { ok: true, payment: { id: 556, status: "approved", external_reference: "ord_abc123", transaction_amount: 300000, currency_id: "COP" } };
+    respuestaRpc = { data: { ok: true, nuevo_aprobado: true, tipo: "diseno", lead_id: "lead-1" }, error: null };
+    const { avisarPagoLead } = await import("@/lib/email-notifications");
+    vi.mocked(avisarPagoLead).mockClear();
+    const { POST } = await import("@/app/api/payments/mercadopago/webhook/route");
+    expect((await POST(aviso({ type: "payment", data: { id: "556" } }))).status).toBe(200);
+    await new Promise((r) => setTimeout(r, 0)); // el trabajo de after() termina después de responder
+    expect(avisarPagoLead).toHaveBeenCalledWith({ leadId: "lead-1", tipo: "diseno", monto: 300000 });
   });
 });

@@ -9,7 +9,7 @@ export default function TerminosPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 md:px-6">
       <h1 className="font-display text-3xl font-semibold text-ink">Términos y condiciones de uso del sitio</h1>
-      <p className="mt-2 text-sm text-ink-muted">Última actualización: marzo 2026.</p>
+      <p className="mt-2 text-sm text-ink-muted">Última actualización: 24 de noviembre de 2026.</p>
 
       <div className="mt-8 space-y-6">
 
@@ -36,21 +36,48 @@ export default function TerminosPage() {
         </section>
 
         <section>
-          <h2 className="font-display text-xl font-semibold text-ink">4. Propiedad intelectual</h2>
+          <h2 className="font-display text-xl font-semibold text-ink">4. Proyectos a medida: diseño, anticipo y saldo</h2>
+          <ul className="mt-3 list-inside list-disc space-y-2 text-sm leading-relaxed text-ink-muted">
+            <li>
+              El rango de precio que muestra el configurador es una estimación con las medidas que nos das; no es una oferta. El valor
+              final sale de la propuesta de diseño.
+            </li>
+            <li>
+              <strong className="text-ink">Diseño:</strong> tiene un valor fijo por producto que se paga antes de diseñar. Te enviamos
+              la propuesta en máximo 48 horas después del pago. Si apruebas la propuesta, ese valor se descuenta del anticipo.
+            </li>
+            <li>
+              <strong className="text-ink">El diseño no es reembolsable.</strong> Si no apruebas la propuesta, recibes el render, es
+              tuyo, Hechomadera no lo usa y borramos tus datos personales (salvo el registro del pago que exige la ley).
+            </li>
+            <li>
+              <strong className="text-ink">Anticipo:</strong> al aprobar la propuesta pagas el 35% del valor final menos el diseño ya
+              pagado. Con el anticipo empieza la producción.
+            </li>
+            <li>
+              <strong className="text-ink">Medición y saldo:</strong> después del anticipo confirmamos las medidas en tu espacio y el
+              valor final puede ajustarse. El saldo es el valor final ajustado menos el diseño y el anticipo. Si no aceptas el valor
+              ajustado, te devolvemos el anticipo menos el costo de la visita de medición; el diseño no se devuelve.
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="font-display text-xl font-semibold text-ink">5. Propiedad intelectual</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-muted">
             Contenidos, marcas y materiales del Sitio están protegidos. No se autoriza reproducción sin consentimiento expreso.
           </p>
         </section>
 
         <section>
-          <h2 className="font-display text-xl font-semibold text-ink">5. Limitación de responsabilidad</h2>
+          <h2 className="font-display text-xl font-semibold text-ink">6. Limitación de responsabilidad</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-muted">
             El Sitio se ofrece con la información disponible en cada momento. Hechomadera no será responsable por daños derivados del uso del Sitio fuera de su control.
           </p>
         </section>
 
         <section>
-          <h2 className="font-display text-xl font-semibold text-ink">6. Ley aplicable</h2>
+          <h2 className="font-display text-xl font-semibold text-ink">7. Ley aplicable</h2>
           <p className="mt-3 text-sm leading-relaxed text-ink-muted">
             Para conflictos relacionados con el uso del Sitio se aplicará la legislación de la República de Colombia y la jurisdicción competente en Colombia.
           </p>

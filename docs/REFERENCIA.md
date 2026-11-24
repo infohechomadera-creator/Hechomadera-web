@@ -24,6 +24,7 @@
 - W6 (agente): `ANTHROPIC_API_KEY` (tipo Secret; también deriva la firma del historial) y `AGENTE_IA_ACTIVO` (`true` para encender). Sin los dos, el botón no aparece y `/api/configurador/agente` responde 503. Pendiente agregarlas sin valor a `.env.example`.
 - Agente, topes: 40 mensajes por IP por hora, 1.500 llamadas por día en todo el sitio, 30 mensajes y 60.000 caracteres por conversación, 50 s y 5 vueltas por mensaje. Código en `lib/agente/` y `components/configurador/Agente.tsx`.
 - Futuras (contrato, cuando exista O3): `OPERFLOW_URL`, `OPERFLOW_API_KEY`, `OPERFLOW_WEBHOOK_SECRET`.
+- W7: `COBROS_LEADS_ACTIVOS` (`true` = producción cobra leads con Mercado Pago). Sin él producción no cobra ningún lead (decisión 2026-11-24: nada de dinero real). La vista previa y local cobran SOLO si `MERCADOPAGO_ACCESS_TOKEN` es de prueba (empieza por `TEST-`), aunque el interruptor esté encendido. La tienda no depende de esto.
 
 ## Dónde está cada cosa en el código
 - Reglas de negocio: `lib/site-config.ts` (ciudades, marketplace, "precio desde", abono 35%).
@@ -38,14 +39,17 @@
 ## Integración con Operflow
 - Solo por `docs/CONTRATO-INTEGRACION.md` (copia de solo lectura; el original vive en Operflow). Mensajes A–E, servidor a servidor, clave Bearer y avisos firmados con HMAC.
 
+## Mapa de la web
+- `docs/mapa/mapa-hechomadera.html`, publicado en https://claude.ai/artifact/Q7Q8JfLv96L1EEcjf8dHyj (privado de Alberto): pantallas, botones, recorridos, permisos por rol y hallazgos. **Se actualiza solo cuando Alberto lo pide** (2026-11-24); al hacerlo, se republica en el mismo enlace.
+
 ## Niveles de autonomía
 | Nivel | Claude puede sin preguntar |
 | --- | --- |
 | 0 · Lectura | Leer, buscar, comandos de solo lectura (`git status`, `git log`, `git diff`) |
 | 1 · Editar | + Crear y editar archivos en la carpeta, commits locales, instalar dependencias, pruebas y build |
-| **2 · Subir (actual)** | + Push a GitHub, ramas y etiquetas de respaldo |
+| 2 · Subir | + Push a GitHub, ramas y etiquetas de respaldo |
 | 3 · Servicios de desarrollo | + Publicar en prueba, SQL en la base de desarrollo, navegador y conectores del perímetro |
-| 4 · Producción | + Publicar en producción y cambios en la base real, con respaldo previo |
+| **4 · Producción (solo durante W7, desde 2026-11-24)** | + Publicar en producción y cambios en la base real, con respaldo previo |
 
 En cualquier nivel se pide permiso para: borrar cualquier archivo o dato, salir de la carpeta, dinero, contraseñas o inicios de sesión, aceptar términos.
 
@@ -63,3 +67,19 @@ En cualquier nivel se pide permiso para: borrar cualquier archivo o dato, salir 
 
 ## Trucos aprendidos
 - (vacío)
+
+## Costos a 10x y 100x (calculado 2026-11-24, antes de W7)
+Supuestos: hoy (1x) = 30 leads y 5 diseños pagados al mes. Cada lead deja ~3 MB de fotos (tope 4 MB) y ~2 correos; cada proyecto pagado ~6 correos más. Precios en dólares, consultados el 2026-11-24 en las páginas oficiales; **verificar antes de pagar**.
+
+| Servicio | 1x (30 leads/mes) | 10x (300) | 100x (3.000) | Cuándo toca pagar |
+| --- | --- | --- | --- | --- |
+| Vercel | Gratis (Hobby) | Gratis en uso | Gratis en uso | **Ya:** Hobby es solo para uso personal, no comercial. Pro: US$20 por usuario al mes (incluye 1 TB de tráfico). Confirmar en Vercel → Settings → Billing qué plan tiene la cuenta. |
+| Supabase | Gratis | Pro US$25 | Pro US$25 (+ cómputo si crece) | Gratis: 500 MB de base, 1 GB de archivos, **se pausa tras 1 semana sin uso**. Fotos: ~90 MB/mes a 1x (el GB se llena en ~11 meses), ~900 MB/mes a 10x (al mes). Pro: 8 GB de base, 100 GB de archivos, no se pausa. |
+| Resend | Gratis | Gratis | Pro US$20 | Gratis: 3.000 correos al mes y 100 al día. 1x ≈ 90/mes, 10x ≈ 900/mes, 100x ≈ 9.000/mes. |
+| Anthropic (asistente, apagado) | ~US$1 | ~US$10 | ~US$100 | ~US$0,01 por conversación, ~3 conversaciones por lead. El tope sugerido de US$10/mes alcanza hasta ~10x. |
+| Mercado Pago | % por cobro | % por cobro | % por cobro | No es fijo: comisión por cada pago (en Colombia ~2,8% a 3% + IVA según el plazo; confirmar la tarifa de Checkout Pro en su panel). Un diseño de cocina de $300.000 deja ~$10.000 de comisión. |
+| Upstash Redis | — | — | — | Ya no se usa (2026-11-19). |
+
+**Resumen:** a 1x todo cabe gratis salvo que Vercel Hobby no permite uso comercial (Pro US$20/mes). A 10x se suma Supabase Pro (US$25) por las fotos: ~US$45/mes + Anthropic si se enciende. A 100x: ~US$65/mes + ~US$100 de Anthropic + comisiones. Pagar cualquier plan lo decide Alberto.
+
+Fuentes: vercel.com/pricing y vercel.com/docs/plans/hobby · supabase.com/pricing · resend.com/pricing · mercadopago.com.co (link de pago: 2,99% + IVA a 7 días, 2,79% + IVA a 14 días).
